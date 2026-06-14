@@ -4,31 +4,37 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import {
   isAdminAuthed,
-  setAdminAuthed,
-  verifyAdminPassword
+  setAdminSession,
+  clearAdminAuthed
 } from "@/lib/admin-auth";
+import { adminLogin } from "@/lib/api-client";
 
 export function AdminGate({ children }: { children: ReactNode }) {
   const [checked, setChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setAuthed(isAdminAuthed());
     setChecked(true);
   }, []);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!verifyAdminPassword(password)) {
-      setError("密码错误，请重试。");
-      return;
-    }
-    setAdminAuthed();
-    setAuthed(true);
+    setSubmitting(true);
     setError(null);
-    setPassword("");
+    try {
+      const { token, expiresAt } = await adminLogin(password);
+      setAdminSession(token, expiresAt);
+      setAuthed(true);
+      setPassword("");
+    } catch {
+      setError("密码错误，请重试。");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!checked) {
@@ -63,8 +69,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
               />
             </div>
             {error && <div className="message error">{error}</div>}
-            <button type="submit" className="btn btn-primary">
-              进入管理
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? "验证中…" : "进入管理"}
             </button>
           </form>
         </section>

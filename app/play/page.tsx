@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ApiError } from "@/lib/api-client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useGame } from "@/context/GameContext";
@@ -218,7 +219,7 @@ export default function PlayPage() {
     );
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!name.trim()) {
       setMessage({ type: "error", text: "请输入你的名字。" });
       return;
@@ -267,10 +268,12 @@ export default function PlayPage() {
     setMessage(null);
 
     try {
-      const { playerId, pickStats: savedStats } = submitPicks(
+      const { playerId, pickStats: savedStats } = await submitPicks(
         name.trim(),
         pickInputs,
-        editingPlayerId
+        editingPlayerId,
+        step,
+        pageInputs
       );
       setEditingPlayerId(playerId);
       const successText =
@@ -279,6 +282,18 @@ export default function PlayPage() {
           : `第二页已保存！第一页 ${savedStats.page1Count} 题，第二页 ${savedStats.page2Count} 题，总计 ${savedStats.totalCount} 题。锁定前可随时修改。`;
       setMessage({ type: "success", text: successText });
     } catch (error) {
+      if (error instanceof ApiError) {
+        const text =
+          error.code === "DUPLICATE_NAME"
+            ? "该名字已被其他玩家使用。"
+            : error.code === "TOO_MANY_DOUBLES"
+              ? step === 1
+                ? "第一页最多只能选 1 题 Double。"
+                : "第二页最多只能选 1 道大题 Double。"
+              : error.message;
+        setMessage({ type: "error", text });
+        return;
+      }
       const code = error instanceof Error ? error.message : "";
       const text =
         code === "DUPLICATE_NAME"

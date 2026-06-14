@@ -106,20 +106,63 @@ function normalizePicks(picks: Pick[]): Pick[] {
 export function loadGameState() {
   const rawPlayers = read<Player[]>(KEYS.players, []);
   let markets = read<Market[] | null>(KEYS.markets, null);
-  markets = syncMarkets(markets);
-  write(KEYS.markets, markets);
   let picks = normalizePicks(read<Pick[]>(KEYS.picks, []));
-  if (picks.length !== read<Pick[]>(KEYS.picks, []).length) {
+  const config = normalizeConfig(read<unknown>(KEYS.config, null));
+  return hydrateGameState({ players: rawPlayers, markets, picks, config }, { persist: true });
+}
+
+export interface GameSnapshot {
+  players: Player[];
+  markets: Market[] | null;
+  picks: Pick[];
+  config: GameConfig;
+}
+
+export function hydrateGameState(
+  snapshot: GameSnapshot,
+  options: { persist?: boolean } = {}
+) {
+  const persist = options.persist ?? false;
+  let markets = snapshot.markets;
+  markets = syncMarkets(markets);
+  if (persist) write(KEYS.markets, markets);
+
+  let picks = normalizePicks(snapshot.picks);
+  if (persist && picks.length !== snapshot.picks.length) {
     savePicks(picks);
   }
-  const players = enrichPlayers(rawPlayers, picks, markets);
-  if (rawPlayers.length > 0) {
+
+  const players = enrichPlayers(snapshot.players, picks, markets);
+  if (persist && snapshot.players.length > 0) {
     savePlayers(players);
   }
-  const config = normalizeConfig(read<unknown>(KEYS.config, null));
-  saveConfig(config);
+
+  const config = normalizeConfig(snapshot.config);
+  if (persist) saveConfig(config);
+
   const leaderboard = refreshLeaderboard(players, markets, picks, config.page2Locked);
+  if (persist) write(KEYS.leaderboard, leaderboard);
+
   return { players, markets, picks, config, leaderboard };
+}
+
+export function snapshotFromState(state: {
+  players: Player[];
+  markets: Market[];
+  picks: Pick[];
+  config: GameConfig;
+}): GameSnapshot {
+  return {
+    players: state.players,
+    markets: state.markets,
+    picks: state.picks,
+    config: state.config
+  };
+}
+
+export function persistSnapshotLocally(snapshot: GameSnapshot) {
+  const state = hydrateGameState(snapshot, { persist: true });
+  return state;
 }
 
 export function savePlayers(players: Player[]) {
