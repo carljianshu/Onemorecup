@@ -36,11 +36,27 @@ npm run dev
 
 ## Netlify 部署
 
-已配置 `@netlify/plugin-nextjs`，**不再**使用静态导出 `out/`。
+`netlify.toml` 已配置：
 
-注意：Netlify 默认文件系统**不持久**，`data/game-state.json` 在函数冷启动间可能丢失。熟人局长线使用建议：
-- 换 VPS / Railway / Fly.io 跑 `next start`，或
-- 日后把 `src/server/storage.ts` 换成 Postgres
+- `publish = ".next"`（不能是站点根目录 `.`，否则会报错）
+- `output: "standalone"`（`next.config.ts`，Netlify 插件需要）
+- `@netlify/plugin-nextjs`
+
+### 若仍报 publish directory 错误
+
+在 Netlify → **Site configuration** → **Build & deploy** → **Build settings**：
+
+1. **Publish directory** 填 `.next`，或**留空**（以 `netlify.toml` 为准）
+2. **不要**填 `.` 或 `/`
+3. 保存后 **Trigger deploy**
+
+### 环境变量
+
+设置 `ADMIN_PASSWORD` 后重新部署。
+
+### 数据持久化
+
+Netlify 上 JSON 文件仍可能不持久，赛期建议 Railway/VPS。
 
 ## 回退
 
