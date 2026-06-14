@@ -10,17 +10,7 @@ import {
   useState,
   type ReactNode
 } from "react";
-import {
-  deleteSubQuestionApi,
-  fetchGameState,
-  patchAdminConfigApi,
-  patchMarketWinnerApi,
-  patchSubQuestionWinnerApi,
-  putPlayerPicks,
-  restoreSubQuestionApi,
-  type GameStateResponse
-} from "@/lib/api-client";
-import { getAdminToken } from "@/lib/admin-auth";
+import { fetchLeaderboard, registerPlayer, type LeaderboardResponse } from "@/lib/api-client";
 import {
   getCurrentPlayerId,
   hydrateGameState,
@@ -29,7 +19,6 @@ import {
   setCurrentPlayerId
 } from "@/lib/local-store";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
-import type { AnswersPageFeature } from "@/lib/public-features";
 
 interface GameContextValue {
   ready: boolean;
@@ -41,15 +30,6 @@ interface GameContextValue {
     page: PlayPage,
     pagePickInputs: PlayerPickInput[]
   ) => Promise<{ isUpdate: boolean; playerId: string; pickStats: PickStats }>;
-  setMarketWinner: (marketId: string, winner: string | null) => Promise<void>;
-  setSubQuestionWinner: (marketId: string, subId: string, winner: string | null) => Promise<void>;
-  deleteSubQuestion: (marketId: string, subId: string) => Promise<void>;
-  restoreSubQuestion: (marketId: string, subId: string) => Promise<void>;
-  togglePageLocked: (page: PlayPage) => Promise<void>;
-  setPublicFeature: (
-    feature: AnswersPageFeature,
-    patch: { public?: boolean; opensAt?: string | null }
-  ) => Promise<void>;
   refreshScores: () => void;
   players: Player[];
   markets: Market[];
@@ -61,8 +41,8 @@ interface GameContextValue {
 
 const GameContext = createContext<GameContextValue | null>(null);
 
-function applyGameState(
-  data: GameStateResponse,
+function applyLeaderboardData(
+  data: LeaderboardResponse,
   setters: {
     setPlayers: (v: Player[]) => void;
     setMarkets: (v: Market[]) => void;
@@ -107,8 +87,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const settersRef = useRef({ setPlayers, setMarkets, setPicks, setConfig, setLeaderboard });
   settersRef.current = { setPlayers, setMarkets, setPicks, setConfig, setLeaderboard };
 
-  const applyResponse = useCallback((data: GameStateResponse) => {
-    applyGameState(data, settersRef.current);
+  const applyResponse = useCallback((data: LeaderboardResponse) => {
+    applyLeaderboardData(data, settersRef.current);
   }, []);
 
   useEffect(() => {
@@ -117,13 +97,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     async function init() {
       try {
-        const data = await fetchGameState();
+        const data = await fetchLeaderboard();
         if (cancelled) return;
         applyResponse(data);
         setApiSync(true);
 
         pollId = setInterval(() => {
-          fetchGameState()
+          fetchLeaderboard()
             .then((next) => {
               if (!cancelled) applyResponse(next);
             })
@@ -161,8 +141,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       pagePickInputs: PlayerPickInput[]
     ) => {
       if (apiSync) {
-        const result = await putPlayerPicks(playerId ?? null, {
+        const result = await registerPlayer({
           name,
+          playerId,
           pickInputs,
           page,
           pagePickInputs
@@ -194,111 +175,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [apiSync, players, markets, picks, applyResponse]
   );
 
-  const requireAdminToken = () => {
-    const token = getAdminToken();
-    if (!token) throw new Error("UNAUTHORIZED");
-    return token;
-  };
-
-  const setMarketWinner = useCallback(
-    async (marketId: string, winner: string | null) => {
-      if (apiSync) {
-        const data = await patchMarketWinnerApi(requireAdminToken(), marketId, winner);
-        applyResponse(data);
-        return;
-      }
-      const { updateMarketWinner } = await import("@/lib/local-store");
-      const result = updateMarketWinner(marketId, winner, { players, markets, picks });
-      setMarkets(result.markets);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
-  const setSubQuestionWinner = useCallback(
-    async (marketId: string, subId: string, winner: string | null) => {
-      if (apiSync) {
-        const data = await patchSubQuestionWinnerApi(requireAdminToken(), marketId, subId, winner);
-        applyResponse(data);
-        return;
-      }
-      const { updateSubQuestionWinner } = await import("@/lib/local-store");
-      const result = updateSubQuestionWinner(marketId, subId, winner, { players, markets, picks });
-      setMarkets(result.markets);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
-  const deleteSubQuestion = useCallback(
-    async (marketId: string, subId: string) => {
-      if (apiSync) {
-        const data = await deleteSubQuestionApi(requireAdminToken(), marketId, subId);
-        applyResponse(data);
-        return;
-      }
-      const { removeSubQuestion } = await import("@/lib/local-store");
-      const result = removeSubQuestion(marketId, subId, { players, markets, picks });
-      setMarkets(result.markets);
-      setPlayers(result.players);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
-  const restoreSubQuestionAction = useCallback(
-    async (marketId: string, subId: string) => {
-      if (apiSync) {
-        const data = await restoreSubQuestionApi(requireAdminToken(), marketId, subId);
-        applyResponse(data);
-        return;
-      }
-      const { restoreSubQuestion } = await import("@/lib/local-store");
-      const result = restoreSubQuestion(marketId, subId, { players, markets, picks });
-      setMarkets(result.markets);
-      setPlayers(result.players);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
-  const togglePageLocked = useCallback(
-    async (page: PlayPage) => {
-      const currentlyLocked = page === 1 ? config.page1Locked : config.page2Locked;
-      if (apiSync) {
-        const data = await patchAdminConfigApi(requireAdminToken(), {
-          page,
-          locked: !currentlyLocked
-        });
-        applyResponse(data);
-        return;
-      }
-      const { setPageLocked } = await import("@/lib/local-store");
-      const result = setPageLocked(page, !currentlyLocked, { players, markets, picks, config, leaderboard });
-      setConfig(result.config);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, config, players, markets, picks, leaderboard, applyResponse]
-  );
-
-  const setPublicFeature = useCallback(
-    async (feature: AnswersPageFeature, patch: { public?: boolean; opensAt?: string | null }) => {
-      if (apiSync) {
-        const data = await patchAdminConfigApi(requireAdminToken(), {
-          feature,
-          public: patch.public,
-          opensAt: patch.opensAt
-        });
-        applyResponse(data);
-        return;
-      }
-      const { updatePublicFeature } = await import("@/lib/local-store");
-      const result = updatePublicFeature(feature, patch, { config });
-      setConfig(result.config);
-    },
-    [apiSync, config, applyResponse]
-  );
-
   const refreshScores = useCallback(() => {
     const lb = recalculateLeaderboard({ players, markets, picks, config });
     setLeaderboard(lb);
@@ -315,12 +191,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       leaderboard,
       currentPlayerId,
       submitPicks,
-      setMarketWinner,
-      setSubQuestionWinner,
-      deleteSubQuestion,
-      restoreSubQuestion: restoreSubQuestionAction,
-      togglePageLocked,
-      setPublicFeature,
       refreshScores
     }),
     [
@@ -333,12 +203,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       leaderboard,
       currentPlayerId,
       submitPicks,
-      setMarketWinner,
-      setSubQuestionWinner,
-      deleteSubQuestion,
-      restoreSubQuestionAction,
-      togglePageLocked,
-      setPublicFeature,
       refreshScores
     ]
   );

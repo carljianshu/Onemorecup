@@ -31,11 +31,6 @@ export default function HomePage() {
           </Link>
           <PublicFeatureLinks />
         </div>
-        <p style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <Link href="/admin" style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-            管理员入口
-          </Link>
-        </p>
       </section>
     </main>
   );

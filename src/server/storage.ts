@@ -1,4 +1,4 @@
-import { readFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { GameSnapshot } from "@/lib/local-store";
 
@@ -14,8 +14,7 @@ export interface StoredGame {
   payload: GameSnapshot;
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const STATE_FILE = path.join(DATA_DIR, "game-state.json");
+const STATE_FILENAME = "game-state.json";
 
 function emptyPayload(): GameSnapshot {
   return {
@@ -33,9 +32,41 @@ function emptyPayload(): GameSnapshot {
   };
 }
 
+let dataDirPromise: Promise<string> | null = null;
+
+async function resolveDataDir() {
+  if (process.env.GAME_STATE_DIR) {
+    const dir = process.env.GAME_STATE_DIR;
+    await mkdir(dir, { recursive: true });
+    return dir;
+  }
+
+  if (!dataDirPromise) {
+    dataDirPromise = (async () => {
+      const preferred = path.join(process.cwd(), "data");
+      try {
+        await mkdir(preferred, { recursive: true });
+        return preferred;
+      } catch {
+        const fallback = path.join("/tmp", "onemorecup-data");
+        await mkdir(fallback, { recursive: true });
+        return fallback;
+      }
+    })();
+  }
+
+  return dataDirPromise;
+}
+
+async function stateFilePath() {
+  const dir = await resolveDataDir();
+  return path.join(dir, STATE_FILENAME);
+}
+
 export async function readStoredGame(): Promise<StoredGame> {
   try {
-    const raw = await readFile(STATE_FILE, "utf-8");
+    const file = await stateFilePath();
+    const raw = await readFile(file, "utf-8");
     const parsed = JSON.parse(raw) as StoredGame;
     if (!parsed.payload) {
       return { version: parsed.version ?? 0, payload: emptyPayload() };
@@ -44,4 +75,24 @@ export async function readStoredGame(): Promise<StoredGame> {
   } catch {
     return { version: 0, payload: emptyPayload() };
   }
+}
+
+export async function mutateStoredGame(
+  mutator: (stored: StoredGame) => GameSnapshot,
+  expectedVersion?: number
+): Promise<StoredGame> {
+  const current = await readStoredGame();
+  if (expectedVersion !== undefined && current.version !== expectedVersion) {
+    throw new VersionConflictError();
+  }
+
+  const payload = mutator(current);
+  const next: StoredGame = {
+    version: current.version + 1,
+    payload
+  };
+
+  const file = await stateFilePath();
+  await writeFile(file, JSON.stringify(next, null, 2), "utf-8");
+  return next;
 }

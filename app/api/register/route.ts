@@ -1,16 +1,12 @@
-import type { NextRequest } from "next/server";
-import { putPlayerPicks } from "@/server/game-service";
+import { registerPlayer } from "@/server/game-service";
 import { handleRouteError, jsonError, jsonOk, parseVersionHeader } from "@/server/api-helpers";
 import type { PlayerPickInput, PlayPage } from "@/types";
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ playerId: string }> }
-) {
+export async function POST(request: Request) {
   try {
-    const { playerId } = await context.params;
     const body = (await request.json()) as {
       name?: string;
+      playerId?: string | null;
       pickInputs?: PlayerPickInput[];
       page?: PlayPage;
       pagePickInputs?: PlayerPickInput[];
@@ -23,10 +19,10 @@ export async function PUT(
       return jsonError("VALIDATION_ERROR", "请求参数不完整。");
     }
 
-    const result = await putPlayerPicks(
-      playerId,
+    const result = await registerPlayer(
       {
         name: body.name,
+        playerId: body.playerId,
         pickInputs: body.pickInputs,
         page: body.page,
         pagePickInputs: body.pagePickInputs
@@ -35,15 +31,15 @@ export async function PUT(
     );
 
     return jsonOk({
-      player: result.player,
-      picks: result.picks.filter((pick) => pick.playerId === result.player.id),
-      pickStats: result.pickStats,
-      isUpdate: result.isUpdate,
+      leaderboard: result.leaderboard,
       players: result.players,
       markets: result.markets,
+      picks: result.picks,
       config: result.config,
-      leaderboard: result.leaderboard,
-      version: result.version
+      version: result.version,
+      player: result.player,
+      pickStats: result.pickStats,
+      isUpdate: result.isUpdate
     });
   } catch (error) {
     return handleRouteError(error);

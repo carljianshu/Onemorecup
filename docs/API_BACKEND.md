@@ -1,14 +1,38 @@
-# 自建后端 API
+# 后端 API（极简）
 
-数据保存在项目目录 `data/game-state.json`（已加入 `.gitignore`）。本地开发与 `next start` 部署均可使用。
+单文件存储 `data/game-state.json`（VPS/本机）或 `/tmp/onemorecup-data/`（Netlify 回退）。
 
-## 环境变量
+## 接口
 
-复制 `.env.example` 为 `.env.local`：
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/register` | 注册 / 更新竞猜 |
+| `GET` | `/api/leaderboard` | 读取同一份数据（含排行榜、玩家、选项、配置） |
 
-```bash
-ADMIN_PASSWORD=你的管理员密码
+### POST /api/register
+
+```json
+{
+  "name": "小明",
+  "playerId": "可选，已有玩家传入",
+  "page": 1,
+  "pagePickInputs": [{ "marketId": "p1-1", "team": "E1" }],
+  "pickInputs": [{ "marketId": "p1-1", "team": "E1" }]
+}
 ```
+
+`pickInputs` 为合并两页后的全量；`pagePickInputs` 为当前保存页。
+
+### GET /api/leaderboard
+
+返回 `leaderboard`、`players`、`picks`、`markets`、`config`、`version`。
+
+写请求可带 `If-Match: <version>` 做乐观锁。
+
+## 管理
+
+无管理后台。赛果、锁页、公开答题总览见 [MANUAL_STATE.md](./MANUAL_STATE.md)。  
+题目对阵改 `src/data/markets.ts` 后重新部署。
 
 ## 本地运行
 
@@ -17,47 +41,7 @@ npm install
 npm run dev
 ```
 
-打开 http://localhost:3000 。所有玩家共享同一份 `data/game-state.json`。
+## 部署
 
-## API 一览
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/state` | 全量状态 + 排行榜 |
-| PUT | `/api/players/:playerId/picks` | 提交竞猜（`new` 表示新玩家） |
-| POST | `/api/admin/login` | 管理员登录，返回 token |
-| PATCH | `/api/admin/markets/:marketId` | 第一页录胜者 |
-| PATCH | `/api/admin/markets/:marketId/subs/:subId` | 第二页小题胜者 |
-| DELETE | `/api/admin/markets/:marketId/subs/:subId` | 隐藏小题 |
-| POST | `/api/admin/markets/:marketId/subs/:subId/restore` | 恢复小题 |
-| PATCH | `/api/admin/config` | 锁页 / 公开答题总览 |
-
-写请求可带 `If-Match: <version>` 做乐观锁；冲突返回 409。
-
-## Netlify 部署
-
-`netlify.toml` 已配置：
-
-- `publish = ".next"`（不能是站点根目录 `.`，否则会报错）
-- `output: "standalone"`（`next.config.ts`，Netlify 插件需要）
-- `@netlify/plugin-nextjs`
-
-### 若仍报 publish directory 错误
-
-在 Netlify → **Site configuration** → **Build & deploy** → **Build settings**：
-
-1. **Publish directory** 填 `.next`，或**留空**（以 `netlify.toml` 为准）
-2. **不要**填 `.` 或 `/`
-3. 保存后 **Trigger deploy**
-
-### 环境变量
-
-设置 `ADMIN_PASSWORD` 后重新部署。
-
-### 数据持久化
-
-Netlify 上 JSON 文件仍可能不持久，赛期建议 Railway/VPS。
-
-## 回退
-
-若 API 不可用（例如纯静态托管），前端会自动回退到浏览器 `localStorage`。
+Netlify 需 `@netlify/plugin-nextjs`，`publish = ".next"`。  
+长期赛期建议 VPS + `npm start`，直接编辑 `data/game-state.json`。
