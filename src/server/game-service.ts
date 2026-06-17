@@ -1,12 +1,19 @@
 import {
   hydrateGameState,
+  removeSubQuestion,
+  restoreSubQuestion,
   savePlayerPicks,
+  setPageLocked,
   snapshotFromState,
+  updateMarketWinner,
+  updatePublicFeature,
+  updateSubQuestionWinner,
   type GameSnapshot
 } from "@/lib/local-store";
 import { validatePage2MainQuestionState } from "@/lib/market-helpers";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame } from "@/server/storage";
+import type { AnswersPageFeature } from "@/lib/public-features";
 import type { GameConfig, LeaderboardEntry, PlayerPickInput, PlayPage } from "@/types";
 
 export interface LeaderboardResponse {
@@ -107,4 +114,144 @@ export async function registerPlayer(
     isUpdate: saveResult!.isUpdate,
     pickStats: saveResult!.player.pickStats
   };
+}
+
+async function mutateAdmin(
+  mutator: (state: ReturnType<typeof hydrateGameState>) => GameSnapshot,
+  expectedVersion?: number
+) {
+  const stored = await mutateStoredGame((current) => {
+    const state = hydrateGameState(current.payload, { persist: false });
+    return mutator(state);
+  }, expectedVersion);
+  return toResponse(stored);
+}
+
+export function patchMarketWinner(
+  marketId: string,
+  winner: string | null,
+  expectedVersion?: number
+) {
+  return mutateAdmin((state) => {
+    const result = updateMarketWinner(marketId, winner, {
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks
+    });
+    return snapshotFromState({
+      players: state.players,
+      markets: result.markets,
+      picks: state.picks,
+      config: state.config
+    });
+  }, expectedVersion);
+}
+
+export function patchSubQuestionWinner(
+  marketId: string,
+  subId: string,
+  winner: string | null,
+  expectedVersion?: number
+) {
+  return mutateAdmin((state) => {
+    const result = updateSubQuestionWinner(marketId, subId, winner, {
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks
+    });
+    return snapshotFromState({
+      players: state.players,
+      markets: result.markets,
+      picks: state.picks,
+      config: state.config
+    });
+  }, expectedVersion);
+}
+
+export function hideSubQuestion(marketId: string, subId: string, expectedVersion?: number) {
+  return mutateAdmin((state) => {
+    const result = removeSubQuestion(marketId, subId, {
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks
+    });
+    return snapshotFromState({
+      players: result.players,
+      markets: result.markets,
+      picks: result.picks,
+      config: state.config
+    });
+  }, expectedVersion);
+}
+
+export function restoreSubQuestionAction(marketId: string, subId: string, expectedVersion?: number) {
+  return mutateAdmin((state) => {
+    const result = restoreSubQuestion(marketId, subId, {
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks
+    });
+    return snapshotFromState({
+      players: result.players,
+      markets: result.markets,
+      picks: result.picks,
+      config: state.config
+    });
+  }, expectedVersion);
+}
+
+export function patchGameConfig(
+  patch: Partial<GameConfig> & {
+    page?: PlayPage;
+    pageLocked?: boolean;
+    feature?: AnswersPageFeature;
+    public?: boolean;
+    opensAt?: string | null;
+  },
+  expectedVersion?: number
+) {
+  return mutateAdmin((state) => {
+    let config = state.config;
+
+    if (patch.page !== undefined && patch.pageLocked !== undefined) {
+      const result = setPageLocked(patch.page, patch.pageLocked, {
+        players: state.players,
+        markets: state.markets,
+        picks: state.picks,
+        config: state.config,
+        leaderboard: state.leaderboard
+      });
+      config = result.config;
+    } else {
+      if (patch.page1Locked !== undefined) config = { ...config, page1Locked: patch.page1Locked };
+      if (patch.page2Locked !== undefined) config = { ...config, page2Locked: patch.page2Locked };
+      if (patch.answersPage1Public !== undefined) {
+        config = { ...config, answersPage1Public: patch.answersPage1Public };
+      }
+      if (patch.answersPage2Public !== undefined) {
+        config = { ...config, answersPage2Public: patch.answersPage2Public };
+      }
+      if (patch.answersPage1OpensAt !== undefined) {
+        config = { ...config, answersPage1OpensAt: patch.answersPage1OpensAt };
+      }
+      if (patch.answersPage2OpensAt !== undefined) {
+        config = { ...config, answersPage2OpensAt: patch.answersPage2OpensAt };
+      }
+      if (patch.feature) {
+        const result = updatePublicFeature(
+          patch.feature,
+          { public: patch.public, opensAt: patch.opensAt },
+          { config }
+        );
+        config = result.config;
+      }
+    }
+
+    return snapshotFromState({
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks,
+      config
+    });
+  }, expectedVersion);
 }

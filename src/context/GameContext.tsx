@@ -10,7 +10,17 @@ import {
   useState,
   type ReactNode
 } from "react";
-import { fetchLeaderboard, registerPlayer, type LeaderboardResponse } from "@/lib/api-client";
+import {
+  deleteSubQuestionApi,
+  fetchLeaderboard,
+  patchAdminConfigApi,
+  patchMarketWinnerApi,
+  patchSubQuestionWinnerApi,
+  registerPlayer,
+  restoreSubQuestionApi,
+  type LeaderboardResponse
+} from "@/lib/api-client";
+import { getAdminToken } from "@/lib/admin-auth";
 import {
   getCurrentPlayerId,
   hydrateGameState,
@@ -19,6 +29,7 @@ import {
   setCurrentPlayerId
 } from "@/lib/local-store";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
+import type { AnswersPageFeature } from "@/lib/public-features";
 
 interface GameContextValue {
   ready: boolean;
@@ -30,6 +41,15 @@ interface GameContextValue {
     page: PlayPage,
     pagePickInputs: PlayerPickInput[]
   ) => Promise<{ isUpdate: boolean; playerId: string; pickStats: PickStats }>;
+  setMarketWinner: (marketId: string, winner: string | null) => Promise<void>;
+  setSubQuestionWinner: (marketId: string, subId: string, winner: string | null) => Promise<void>;
+  deleteSubQuestion: (marketId: string, subId: string) => Promise<void>;
+  restoreSubQuestion: (marketId: string, subId: string) => Promise<void>;
+  togglePageLocked: (page: PlayPage) => Promise<void>;
+  setPublicFeature: (
+    feature: AnswersPageFeature,
+    patch: { public?: boolean; opensAt?: string | null }
+  ) => Promise<void>;
   refreshScores: () => void;
   players: Player[];
   markets: Market[];
@@ -175,6 +195,109 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [apiSync, players, markets, picks, applyResponse]
   );
 
+  const requireAdminToken = () => {
+    const token = getAdminToken();
+    if (!token) throw new Error("UNAUTHORIZED");
+    return token;
+  };
+
+  const setMarketWinner = useCallback(
+    async (marketId: string, winner: string | null) => {
+      if (apiSync) {
+        applyResponse(await patchMarketWinnerApi(requireAdminToken(), marketId, winner));
+        return;
+      }
+      const { updateMarketWinner } = await import("@/lib/local-store");
+      const result = updateMarketWinner(marketId, winner, { players, markets, picks });
+      setMarkets(result.markets);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, applyResponse]
+  );
+
+  const setSubQuestionWinner = useCallback(
+    async (marketId: string, subId: string, winner: string | null) => {
+      if (apiSync) {
+        applyResponse(await patchSubQuestionWinnerApi(requireAdminToken(), marketId, subId, winner));
+        return;
+      }
+      const { updateSubQuestionWinner } = await import("@/lib/local-store");
+      const result = updateSubQuestionWinner(marketId, subId, winner, { players, markets, picks });
+      setMarkets(result.markets);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, applyResponse]
+  );
+
+  const deleteSubQuestion = useCallback(
+    async (marketId: string, subId: string) => {
+      if (apiSync) {
+        applyResponse(await deleteSubQuestionApi(requireAdminToken(), marketId, subId));
+        return;
+      }
+      const { removeSubQuestion } = await import("@/lib/local-store");
+      const result = removeSubQuestion(marketId, subId, { players, markets, picks });
+      setMarkets(result.markets);
+      setPlayers(result.players);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, applyResponse]
+  );
+
+  const restoreSubQuestionAction = useCallback(
+    async (marketId: string, subId: string) => {
+      if (apiSync) {
+        applyResponse(await restoreSubQuestionApi(requireAdminToken(), marketId, subId));
+        return;
+      }
+      const { restoreSubQuestion } = await import("@/lib/local-store");
+      const result = restoreSubQuestion(marketId, subId, { players, markets, picks });
+      setMarkets(result.markets);
+      setPlayers(result.players);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, applyResponse]
+  );
+
+  const togglePageLocked = useCallback(
+    async (page: PlayPage) => {
+      const currentlyLocked = page === 1 ? config.page1Locked : config.page2Locked;
+      if (apiSync) {
+        applyResponse(
+          await patchAdminConfigApi(requireAdminToken(), {
+            page,
+            locked: !currentlyLocked
+          })
+        );
+        return;
+      }
+      const { setPageLocked } = await import("@/lib/local-store");
+      const result = setPageLocked(page, !currentlyLocked, { players, markets, picks, config, leaderboard });
+      setConfig(result.config);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, config, players, markets, picks, leaderboard, applyResponse]
+  );
+
+  const setPublicFeature = useCallback(
+    async (feature: AnswersPageFeature, patch: { public?: boolean; opensAt?: string | null }) => {
+      if (apiSync) {
+        applyResponse(
+          await patchAdminConfigApi(requireAdminToken(), {
+            feature,
+            public: patch.public,
+            opensAt: patch.opensAt
+          })
+        );
+        return;
+      }
+      const { updatePublicFeature } = await import("@/lib/local-store");
+      const result = updatePublicFeature(feature, patch, { config });
+      setConfig(result.config);
+    },
+    [apiSync, config, applyResponse]
+  );
+
   const refreshScores = useCallback(() => {
     const lb = recalculateLeaderboard({ players, markets, picks, config });
     setLeaderboard(lb);
@@ -191,6 +314,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       leaderboard,
       currentPlayerId,
       submitPicks,
+      setMarketWinner,
+      setSubQuestionWinner,
+      deleteSubQuestion,
+      restoreSubQuestion: restoreSubQuestionAction,
+      togglePageLocked,
+      setPublicFeature,
       refreshScores
     }),
     [
@@ -203,6 +332,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       leaderboard,
       currentPlayerId,
       submitPicks,
+      setMarketWinner,
+      setSubQuestionWinner,
+      deleteSubQuestion,
+      restoreSubQuestionAction,
+      togglePageLocked,
+      setPublicFeature,
       refreshScores
     ]
   );

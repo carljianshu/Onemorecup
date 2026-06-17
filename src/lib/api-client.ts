@@ -1,3 +1,4 @@
+import type { AnswersPageFeature } from "@/lib/public-features";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
 
 export interface LeaderboardResponse {
@@ -69,4 +70,87 @@ export async function registerPlayer(body: {
   >(response);
   setStateVersion(data.version);
   return data;
+}
+
+export async function adminLogin(password: string) {
+  const response = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+  return parseResponse<{ token: string; expiresAt: string }>(response);
+}
+
+function adminHeaders(token: string) {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    ...versionHeaders()
+  };
+}
+
+export async function patchMarketWinnerApi(token: string, marketId: string, winner: string | null) {
+  const response = await fetch(`/api/admin/markets/${encodeURIComponent(marketId)}`, {
+    method: "PATCH",
+    headers: adminHeaders(token),
+    body: JSON.stringify({ winner })
+  });
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
+export async function patchSubQuestionWinnerApi(
+  token: string,
+  marketId: string,
+  subId: string,
+  winner: string | null
+) {
+  const response = await fetch(
+    `/api/admin/markets/${encodeURIComponent(marketId)}/subs/${encodeURIComponent(subId)}`,
+    {
+      method: "PATCH",
+      headers: adminHeaders(token),
+      body: JSON.stringify({ winner })
+    }
+  );
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
+export async function deleteSubQuestionApi(token: string, marketId: string, subId: string) {
+  const response = await fetch(
+    `/api/admin/markets/${encodeURIComponent(marketId)}/subs/${encodeURIComponent(subId)}`,
+    {
+      method: "DELETE",
+      headers: adminHeaders(token)
+    }
+  );
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
+export async function restoreSubQuestionApi(token: string, marketId: string, subId: string) {
+  const response = await fetch(
+    `/api/admin/markets/${encodeURIComponent(marketId)}/subs/${encodeURIComponent(subId)}/restore`,
+    {
+      method: "POST",
+      headers: adminHeaders(token)
+    }
+  );
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
+export async function patchAdminConfigApi(
+  token: string,
+  body: {
+    page?: PlayPage;
+    locked?: boolean;
+    feature?: AnswersPageFeature;
+    public?: boolean;
+    opensAt?: string | null;
+  }
+) {
+  const response = await fetch("/api/admin/config", {
+    method: "PATCH",
+    headers: adminHeaders(token),
+    body: JSON.stringify(body)
+  });
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
