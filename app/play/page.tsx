@@ -97,6 +97,8 @@ export default function PlayPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success" | "warning"; text: string } | null>(null);
   const bottomMessageRef = useRef<HTMLDivElement>(null);
+  const selectionsDirtyRef = useRef(false);
+  const prevPlayerIdRef = useRef<string | null>(null);
 
   const isEditing = Boolean(editingPlayerId);
   const pageMarkets = useMemo(() => marketsForPage(markets, step), [markets, step]);
@@ -104,6 +106,12 @@ export default function PlayPage() {
 
   useEffect(() => {
     if (!ready || markets.length === 0) return;
+
+    if (prevPlayerIdRef.current !== currentPlayerId) {
+      selectionsDirtyRef.current = false;
+      prevPlayerIdRef.current = currentPlayerId;
+    }
+    if (selectionsDirtyRef.current) return;
 
     const initial = initSelectionMap(markets);
     const initialDoubles: Record<string, boolean> = {};
@@ -149,6 +157,7 @@ export default function PlayPage() {
   }, [message]);
 
   function selectAnswer(pickId: string, team: string | null) {
+    selectionsDirtyRef.current = true;
     setSelections((prev) => {
       const next = { ...prev, [pickId]: team };
       const subMatch = findSubQuestion(markets, pickId);
@@ -172,6 +181,7 @@ export default function PlayPage() {
     const market = markets.find((m) => m.id === marketId);
     if (!market || market.page !== 2) return;
 
+    selectionsDirtyRef.current = true;
     setSelections((prev) => {
       const skipped = prev[marketId] === MAIN_QUESTION_SKIP;
       if (skipped) {
@@ -188,6 +198,7 @@ export default function PlayPage() {
   }
 
   function toggleDouble(doubleId: string) {
+    selectionsDirtyRef.current = true;
     setDoubles((prev) => {
       if (prev[doubleId]) {
         return { ...prev, [doubleId]: false };
@@ -276,6 +287,7 @@ export default function PlayPage() {
         pageInputs
       );
       setEditingPlayerId(playerId);
+      selectionsDirtyRef.current = false;
       const successText =
         step === 1
           ? `第一页已保存！已答 ${savedStats.page1Count}/${MIN_PAGE1_PICKS} 题。锁定前可随时修改。`
