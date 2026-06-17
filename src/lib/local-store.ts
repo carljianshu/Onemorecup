@@ -317,6 +317,23 @@ export function createPlayerWithPicks(
   return savePlayerPicks(name, pickInputs, state);
 }
 
+export function deletePlayer(
+  playerId: string,
+  state: { players: Player[]; markets: Market[]; picks: Pick[]; config?: GameConfig }
+) {
+  const players = state.players.filter((p) => p.id !== playerId);
+  const picks = state.picks.filter((p) => p.playerId !== playerId);
+  savePlayers(players);
+  savePicks(picks);
+  const leaderboard = refreshLeaderboard(
+    players,
+    state.markets,
+    picks,
+    state.config?.page2Locked
+  );
+  return { players, picks, leaderboard };
+}
+
 export function updateSubQuestionWinner(
   marketId: string,
   subId: string,

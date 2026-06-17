@@ -255,3 +255,19 @@ export function patchGameConfig(
     });
   }, expectedVersion);
 }
+
+export function removePlayer(playerId: string, expectedVersion?: number) {
+  return mutateAdmin((state) => {
+    const players = state.players.filter((p) => p.id !== playerId);
+    const picks = state.picks.filter((p) => p.playerId !== playerId);
+    if (players.length === state.players.length) {
+      throw new Error("PLAYER_NOT_FOUND");
+    }
+    return snapshotFromState({
+      players,
+      markets: state.markets,
+      picks,
+      config: state.config
+    });
+  }, expectedVersion);
+}

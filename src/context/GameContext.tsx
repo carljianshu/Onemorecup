@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   deleteSubQuestionApi,
+  deletePlayerApi,
   fetchLeaderboard,
   patchAdminConfigApi,
   patchMarketWinnerApi,
@@ -45,6 +46,7 @@ interface GameContextValue {
   setSubQuestionWinner: (marketId: string, subId: string, winner: string | null) => Promise<void>;
   deleteSubQuestion: (marketId: string, subId: string) => Promise<void>;
   restoreSubQuestion: (marketId: string, subId: string) => Promise<void>;
+  deletePlayer: (playerId: string) => Promise<void>;
   togglePageLocked: (page: PlayPage) => Promise<void>;
   setPublicFeature: (
     feature: AnswersPageFeature,
@@ -259,6 +261,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [apiSync, players, markets, picks, applyResponse]
   );
 
+  const deletePlayer = useCallback(
+    async (playerId: string) => {
+      if (apiSync) {
+        applyResponse(await deletePlayerApi(requireAdminToken(), playerId));
+        return;
+      }
+      const { deletePlayer: deletePlayerLocal } = await import("@/lib/local-store");
+      const result = deletePlayerLocal(playerId, { players, markets, picks, config });
+      setPlayers(result.players);
+      setPicks(result.picks);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, config, applyResponse]
+  );
+
   const togglePageLocked = useCallback(
     async (page: PlayPage) => {
       const currentlyLocked = page === 1 ? config.page1Locked : config.page2Locked;
@@ -318,6 +335,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setSubQuestionWinner,
       deleteSubQuestion,
       restoreSubQuestion: restoreSubQuestionAction,
+      deletePlayer,
       togglePageLocked,
       setPublicFeature,
       refreshScores
@@ -336,6 +354,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setSubQuestionWinner,
       deleteSubQuestion,
       restoreSubQuestionAction,
+      deletePlayer,
       togglePageLocked,
       setPublicFeature,
       refreshScores

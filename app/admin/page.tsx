@@ -124,6 +124,7 @@ function AdminPageContent() {
     deleteSubQuestion,
     restoreSubQuestion,
     togglePageLocked,
+    deletePlayer,
     refreshScores
   } = useGame();
   const [message, setMessage] = useState<{ type: "error" | "success" | "warning"; text: string } | null>(null);
@@ -150,6 +151,18 @@ function AdminPageContent() {
   function handleRestoreSub(marketId: string, subId: string, subLabel: string) {
     restoreSubQuestion(marketId, subId);
     setMessage({ type: "success", text: `已恢复小题「${subLabel}」。` });
+  }
+
+  async function handleDeletePlayer(playerId: string, playerName: string) {
+    if (!confirm(`确定删除玩家「${playerName}」及其全部竞猜记录？此操作不可撤销。`)) {
+      return;
+    }
+    try {
+      await deletePlayer(playerId);
+      setMessage({ type: "success", text: `已删除玩家「${playerName}」。` });
+    } catch {
+      setMessage({ type: "error", text: "删除失败，请重试。" });
+    }
   }
 
   if (!ready) {
@@ -315,6 +328,7 @@ function AdminPageContent() {
                   <th key={market.id}>{market.id}</th>
                 ))}
                 <th>总分</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -334,6 +348,15 @@ function AdminPageContent() {
                     <td key={market.id}>{cellForMarket(market, player.id, picks)}</td>
                   ))}
                   <td>{scoreFor(player.id)}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDeletePlayer(player.id, player.name)}
+                    >
+                      删除
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

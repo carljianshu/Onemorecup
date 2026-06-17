@@ -26,7 +26,8 @@ export function handleRouteError(error: unknown) {
       TOO_MANY_DOUBLES: { message: "Double 题目数量超出限制。", status: 400 },
       INVALID_MARKET: { message: "题目无效。", status: 400 },
       INVALID_TEAM: { message: "选项无效。", status: 400 },
-      PAGE_LOCKED: { message: "该页已锁定，无法修改。", status: 400 }
+      PAGE_LOCKED: { message: "该页已锁定，无法修改。", status: 400 },
+      PLAYER_NOT_FOUND: { message: "玩家不存在。", status: 404 }
     };
     const mapped = map[error.message];
     if (mapped) {

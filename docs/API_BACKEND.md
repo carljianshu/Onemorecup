@@ -21,6 +21,7 @@
 | `DELETE` | `/api/admin/markets/:marketId/subs/:subId` | 隐藏小题 |
 | `POST` | `/api/admin/markets/:marketId/subs/:subId/restore` | 恢复小题 |
 | `PATCH` | `/api/admin/config` | 锁页 / 公开答题总览 |
+| `DELETE` | `/api/admin/players/:playerId` | 删除玩家及其全部竞猜 |
 
 网页管理：访问 `/admin`，密码见环境变量 `ADMIN_PASSWORD`（默认 `Isi`）。
 

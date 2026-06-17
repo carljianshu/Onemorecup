@@ -154,3 +154,11 @@ export async function patchAdminConfigApi(
   });
   return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
+
+export async function deletePlayerApi(token: string, playerId: string) {
+  const response = await fetch(`/api/admin/players/${encodeURIComponent(playerId)}`, {
+    method: "DELETE",
+    headers: adminHeaders(token)
+  });
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
