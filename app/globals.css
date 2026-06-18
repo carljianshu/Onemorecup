@@ -216,18 +216,6 @@ a {
   font-size: 0.95rem;
 }
 
-.team-btn-with-payout {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
-  min-width: 5.5rem;
-}
-
-.team-btn-label {
-  font-weight: 600;
-}
-
 .option-payout-hints {
   display: flex;
   flex-wrap: wrap;
@@ -243,14 +231,6 @@ a {
 
 .option-payout-hints-wrong {
   color: #fca5a5;
-}
-
-.team-btn.selected .option-payout-hints-correct {
-  color: #bbf7d0;
-}
-
-.team-btn.selected .option-payout-hints-wrong {
-  color: #fecaca;
 }
 
 .team-btn:hover {

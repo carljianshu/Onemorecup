@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ApiError } from "@/lib/api-client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
-import { OptionPayoutHints } from "@/components/OptionPayoutHints";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, isPageLocked, marketsForPage } from "@/data/markets";
@@ -438,16 +437,11 @@ export default function PlayPage() {
                 <button
                   key={team}
                   type="button"
-                  className={`team-btn team-btn-with-payout ${selections[market.id] === team ? "selected" : ""}`}
+                  className={`team-btn ${selections[market.id] === team ? "selected" : ""}`}
                   onClick={() => selectAnswer(market.id, team)}
                   disabled={pageLocked}
                 >
-                  <span className="team-btn-label">{team}</span>
-                  <OptionPayoutHints
-                    option={team}
-                    candidates={market.candidates ?? []}
-                    questionPicks={picks.filter((pick) => pick.marketId === market.id)}
-                  />
+                  {team}
                 </button>
               ))}
               <button
@@ -509,16 +503,11 @@ export default function PlayPage() {
                         <button
                           key={team}
                           type="button"
-                          className={`team-btn team-btn-with-payout ${selections[sub.id] === team ? "selected" : ""}`}
+                          className={`team-btn ${selections[sub.id] === team ? "selected" : ""}`}
                           onClick={() => selectAnswer(sub.id, team)}
                           disabled={pageLocked}
                         >
-                          <span className="team-btn-label">{team}</span>
-                          <OptionPayoutHints
-                            option={team}
-                            candidates={sub.candidates}
-                            questionPicks={picks.filter((pick) => pick.marketId === sub.id)}
-                          />
+                          {team}
                         </button>
                       ))}
                     </div>

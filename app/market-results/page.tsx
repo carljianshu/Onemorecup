@@ -8,45 +8,9 @@ import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { buildMarketResultSections, formatScore } from "@/lib/market-results";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
-import type { MarketResultPick } from "@/lib/market-results";
-import type { TranslationValues } from "@/i18n";
 import type { PlayPage } from "@/types";
 
 type ViewFilter = "all" | PlayPage;
-
-function formatSignedScore(value: number) {
-  const formatted = formatScore(Math.abs(value));
-  if (value > 0) return `+${formatted}`;
-  if (value < 0) return `-${formatted}`;
-  return formatted;
-}
-
-function scoreClassName(value: number) {
-  if (value > 0) return "market-result-score market-result-score-positive";
-  if (value < 0) return "market-result-score market-result-score-negative";
-  return "market-result-score";
-}
-
-function PlayerPayout({
-  pick,
-  settled,
-  t
-}: {
-  pick: MarketResultPick;
-  settled: boolean;
-  t: (key: string, vars?: TranslationValues) => string;
-}) {
-  const showActual = settled && pick.actualPayout !== null;
-  const amount = showActual ? pick.actualPayout! : pick.ifCorrectPayout;
-  const labelKey = showActual ? "marketResults.actualScore" : "marketResults.ifCorrect";
-
-  return (
-    <span className={scoreClassName(amount)}>
-      {t(labelKey, { amount: formatSignedScore(amount) })}
-      {pick.isDouble && <span className="pick-double-badge">{t("common.double")}</span>}
-    </span>
-  );
-}
 
 export default function MarketResultsPage() {
   const { ready, config, players, markets, picks } = useGame();
@@ -246,7 +210,9 @@ export default function MarketResultsPage() {
                               }
                             >
                               <span className="market-result-player-name">{pick.playerName}</span>
-                              <PlayerPayout pick={pick} settled={section.settled && isWinner} t={t} />
+                              {pick.isDouble && (
+                                <span className="pick-double-badge">{t("common.double")}</span>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -255,28 +221,6 @@ export default function MarketResultsPage() {
                   );
                 })}
               </div>
-
-              {section.settled && section.actualScores.length > 0 && (
-                <div className="market-result-settled-table-wrap">
-                  <h3 className="market-result-settled-title">{t("marketResults.settledTitle")}</h3>
-                  <ul className="market-result-settled-list">
-                    {section.actualScores.map((row) => (
-                      <li key={row.playerId} className="market-result-settled-row">
-                        <span className="market-result-player-name">
-                          {row.playerName}
-                          <span className="market-result-settled-team">{row.team}</span>
-                          {row.isDouble && (
-                            <span className="pick-double-badge">{t("common.double")}</span>
-                          )}
-                        </span>
-                        <span className={scoreClassName(row.score)}>
-                          {formatSignedScore(row.score)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </section>
           ))}
         </div>

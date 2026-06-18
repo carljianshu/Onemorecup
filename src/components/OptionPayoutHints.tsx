@@ -6,8 +6,12 @@ import { formatScore } from "@/lib/score-format";
 import { computeOptionPayoutHints } from "@/lib/scoring";
 import type { Pick } from "@/types";
 
-function formatGain(value: number) {
+function formatSignedGain(value: number) {
   return `+${formatScore(value)}`;
+}
+
+function formatSignedLoss(value: number) {
+  return `-${formatScore(Math.abs(value))}`;
 }
 
 export function OptionPayoutHints({
@@ -32,10 +36,10 @@ export function OptionPayoutHints({
   return (
     <span className={className ? `option-payout-hints ${className}` : "option-payout-hints"}>
       <span className="option-payout-hints-correct">
-        {t("common.payoutIfCorrect", { amount: formatGain(hints.gainPerSlot) })}
+        {t("common.payoutIfCorrect", { amount: formatSignedGain(hints.gainPerSlot) })}
       </span>
       <span className="option-payout-hints-wrong">
-        {t("common.payoutIfWrong", { amount: formatScore(hints.lossPerSlot) })}
+        {t("common.payoutIfWrong", { amount: formatSignedLoss(hints.lossPerSlot) })}
       </span>
     </span>
   );
