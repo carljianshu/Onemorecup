@@ -217,56 +217,56 @@ export const DEFAULT_MARKETS: Market[] = [
   {
     id: "p3-1",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A1", "P3-B1"],
+    name: "第一场1/4决赛谁会晋级？",
+    candidates: ["E1/I1区", "F1区"],
     winner: null,
     page: 3
   },
   {
     id: "p3-2",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A2", "P3-B2"],
+    name: "第二场1/4决赛谁会晋级？",
+    candidates: ["H1区", "D1/G1区"],
     winner: null,
     page: 3
   },
   {
     id: "p3-3",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A3", "P3-B3"],
+    name: "第三场1/4决赛谁会晋级？",
+    candidates: ["C1区", "A1/L1区"],
     winner: null,
     page: 3
   },
   {
     id: "p3-4",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A4", "P3-B4"],
+    name: "第四场1/4决赛谁会晋级？",
+    candidates: ["J1区", "B1/K1区"],
     winner: null,
     page: 3
   },
   {
     id: "p3-5",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A5", "P3-B5"],
+    name: "第一场半决赛谁会晋级？",
+    candidates: ["1/4区", "2/4区"],
     winner: null,
     page: 3
   },
   {
     id: "p3-6",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A6", "P3-B6"],
+    name: "第二场半决赛谁会晋级？",
+    candidates: ["3/4区", "4/4区"],
     winner: null,
     page: 3
   },
   {
     id: "p3-7",
     round: "P3",
-    name: "谁会晋级？",
-    candidates: ["P3-A7", "P3-B7"],
+    name: "谁能夺冠？",
+    candidates: ["上半区", "下半区"],
     winner: null,
     page: 3
   }
