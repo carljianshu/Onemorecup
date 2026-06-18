@@ -23,9 +23,7 @@ export default function HomePage() {
           <li>{t("home.rule2")}</li>
           <li>{t("home.rule3")}</li>
           <li>{t("home.rule4")}</li>
-          <li>{t("home.rule5", rules)}</li>
-          <li>{t("home.rule6")}</li>
-          <li>{t("home.rule7")}</li>
+          <li>{t("home.rule5")}</li>
         </ul>
 
         <div className="actions">

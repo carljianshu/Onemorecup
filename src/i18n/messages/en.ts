@@ -40,14 +40,12 @@ export const en: Messages = {
     title: "Knockout Bracket Pool",
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
-    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total).",
-    rule2: "Pick one team per item, or skip; each pick stakes 10 points by default.",
-    rule3: "At most one Double per page; that pick stakes 20 points.",
-    rule4:
-      "Per settled item: wrong = 0, right = 10; Double counts as two 0s or two 10s. Stake per slot is 100÷std dev (Double = 200÷std dev); winners split losers' stakes (if std dev is 0, everyone scores 0).",
-    rule5: "At least {page1Min} picks on page 1, {page2Min} main questions on page 2, and {totalMin} total to save page 2.",
-    rule6: "If everyone is right or everyone is wrong on an item, everyone scores 0.",
-    rule7: "Highest total wins; ties share rank."
+    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). At least {page1Min} picks on page 1, {page2Min} main questions on page 2, and {totalMin} total to save page 2.",
+    rule2: "Pick one team per item, or skip. At most one Double per page; that pick doubles your stake.",
+    rule3:
+      "Each question uses a parimutuel system: wrong picks lose their stake on that question; right picks split the losers' stakes. The stake is not fixed—it adjusts with how picks split among options: more lopsided support means a lower stake; closer splits mean a higher stake.",
+    rule4: "If everyone is right or everyone is wrong on an item, everyone scores 0.",
+    rule5: "Highest total wins; ties share rank."
   },
   markets: {
     page1: "Page 1 ({count} picks)",
