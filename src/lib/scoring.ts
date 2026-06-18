@@ -3,7 +3,6 @@ import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
 import {
   countPlayerGuessedItems,
   isMainQuestionComplete,
-  pickPersonWeightFromStake,
   playerAnswersFromPicks
 } from "@/lib/market-helpers";
 import type { LeaderboardEntry, Market, Pick, Player, SubQuestion } from "@/types";
@@ -12,36 +11,38 @@ export function roundScore(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-function settlePickGroup(winner: string, groupPicks: Pick[]): Record<string, number> {
+function binarySlotsForPick(pick: Pick, winner: string): number[] {
+  const value = pick.team === winner ? 1 : 0;
+  const count = pick.stake === DOUBLE_STAKE ? 2 : 1;
+  return Array.from({ length: count }, () => value);
+}
+
+/** 单场：0/1 序列标准化后 ×10；Double 为 2 个 0 或 2 个 1。标准差为 0 时该场所有人得 0。 */
+export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<string, number> {
   const scores: Record<string, number> = {};
   if (groupPicks.length === 0) return scores;
 
-  const correctPool = groupPicks.filter((p) => p.team === winner);
-  const wrongPool = groupPicks.filter((p) => p.team !== winner);
-
-  const allCorrect = wrongPool.length === 0;
-  const allWrong = correctPool.length === 0;
-
-  if (allCorrect || allWrong) {
-    for (const pick of groupPicks) {
-      scores[pick.playerId] = 0;
+  const slots: { playerId: string; value: number }[] = [];
+  for (const pick of groupPicks) {
+    for (const value of binarySlotsForPick(pick, winner)) {
+      slots.push({ playerId: pick.playerId, value });
     }
-    return scores;
   }
 
-  const totalPool = groupPicks.reduce((sum, pick) => sum + pick.stake, 0);
-  const weightedCorrectCount = correctPool.reduce(
-    (sum, pick) => sum + pickPersonWeightFromStake(pick.stake),
-    0
-  );
-  const baseGain = totalPool / weightedCorrectCount - STAKE_PER_PICK;
+  const mean = slots.reduce((sum, slot) => sum + slot.value, 0) / slots.length;
+  const variance =
+    slots.reduce((sum, slot) => sum + (slot.value - mean) ** 2, 0) / slots.length;
+  const std = Math.sqrt(variance);
 
-  for (const pick of wrongPool) {
-    scores[pick.playerId] = -pick.stake;
+  for (const pick of groupPicks) {
+    scores[pick.playerId] = 0;
   }
-  for (const pick of correctPool) {
-    const multiplier = pick.stake === DOUBLE_STAKE ? 2 : 1;
-    scores[pick.playerId] = roundScore(baseGain * multiplier);
+
+  if (std === 0) return scores;
+
+  for (const slot of slots) {
+    const z = ((slot.value - mean) / std) * 10;
+    scores[slot.playerId] = roundScore((scores[slot.playerId] ?? 0) + z);
   }
 
   return scores;

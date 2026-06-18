@@ -88,8 +88,8 @@ export default function MarketResultsPage() {
 
       <h1 style={{ marginTop: 0 }}>单场竞猜结果</h1>
       <p className="page-lead">
-        每道题各选项的竞猜玩家一览。奖金 = 奖池合计 ÷ 加权人数 − 10（Double 计 2 人），Double 玩家再 ×2；任一侧无人选则两侧均为
-        0。已录入赛果的题目，猜对选项以绿色边框标出。
+        每道题各选项的竞猜玩家一览。已录入赛果的题目，按 0/1 标准化计分（猜对 1、猜错 0，Double 计 2 个）后 ×10
+        显示该题得分；标准差为 0 时该题所有人得 0。猜对选项以绿色边框标出。
         {!page1Public && page2Public && "（当前仅展示第二页）"}
         {page1Public && !page2Public && "（当前仅展示第一页）"}
       </p>
@@ -124,11 +124,11 @@ export default function MarketResultsPage() {
               <div className="market-result-header">
                 <h2 className="market-result-title">{section.title}</h2>
                 <span className="market-result-meta">
-                  {section.totalPicks} 人作答 · 奖池合计 {formatPoolAmount(section.totalPool)} 分
+                  {section.totalPicks} 人作答 · {section.slotCount} 个计分位
                 </span>
               </div>
               <div className="market-result-options">
-                {section.options.map(({ option, picks: optionPicks, basePayout, weightedCount, isWinner }) => (
+                {section.options.map(({ option, picks: optionPicks, isWinner }) => (
                   <div
                     key={option}
                     className={`market-result-option${isWinner ? " market-result-option-winner" : ""}`}
@@ -138,14 +138,6 @@ export default function MarketResultsPage() {
                         {option}
                         {isWinner && <span className="market-result-winner-badge">猜对</span>}
                       </h3>
-                      <span className="market-result-pool">
-                        基础奖金 {formatPoolAmount(basePayout)} 分
-                        {weightedCount > 0 && (
-                          <span className="market-result-pool-meta">
-                            （加权 {weightedCount} 人，Double ×2）
-                          </span>
-                        )}
-                      </span>
                     </div>
                     {optionPicks.length === 0 ? (
                       <p className="market-result-empty">暂无</p>
@@ -158,8 +150,8 @@ export default function MarketResultsPage() {
                           >
                             <span className="market-result-player-name">{pick.playerName}</span>
                             <span className="market-result-player-payout">
-                              +{formatPoolAmount(pick.payout)}
-                              {pick.isDouble && <span className="pick-double-badge">×2</span>}
+                              {formatPoolAmount(pick.payout)}
+                              {pick.isDouble && <span className="pick-double-badge">Double</span>}
                             </span>
                           </li>
                         ))}
