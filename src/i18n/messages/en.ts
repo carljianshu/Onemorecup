@@ -133,8 +133,9 @@ export const en: Messages = {
     missing: "Missing items",
     details: "Details",
     collapse: "Collapse",
-    perMarket: "Per-item scores",
-    promotionZone: "Advancing"
+    perMarket: "Per-item earnings",
+    promotionZone: "Advancing",
+    earning: "Earning"
   },
   answers: {
     title: "All picks",

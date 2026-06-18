@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
                 <th>{t("common.page2Short")}</th>
                 <th>{t("common.page3Short")}</th>
                 <th>{t("leaderboard.totalPicks")}</th>
-                <th>{t("common.score")}</th>
+                <th>{t("leaderboard.earning")}</th>
                 <th>{t("leaderboard.settled")}</th>
                 <th>{t("leaderboard.missing")}</th>
                 <th>{t("leaderboard.details")}</th>
