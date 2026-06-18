@@ -4,8 +4,11 @@ import Link from "next/link";
 import { ApiError } from "@/lib/api-client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, PAGE_LABELS, isPageLocked, marketsForPage } from "@/data/markets";
+import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, isPageLocked, marketsForPage } from "@/data/markets";
+import { translateMarketName } from "@/i18n";
+import { translatePageSaveError, translatePage2StructureError } from "@/i18n/validation";
 import {
   activeSubQuestions,
   doubleIdsForPage,
@@ -89,6 +92,7 @@ function buildPickInputsForPage(
 
 export default function PlayPage() {
   const { ready, markets, picks, config, currentPlayerId, submitPicks, players } = useGame();
+  const { t, locale, pageLabel } = useLocale();
   const [step, setStep] = useState<PlayPage>(1);
   const [name, setName] = useState("");
   const [selections, setSelections] = useState<Record<string, string | null>>({});
@@ -223,23 +227,23 @@ export default function PlayPage() {
         className={`team-btn double ${isOn ? "selected" : ""}`}
         onClick={() => toggleDouble(doubleId)}
         disabled={blocked}
-        title={enabled ? "双倍投注（20 分）" : hint}
+        title={enabled ? t("play.doubleTitle") : hint}
       >
-        Double{isOn ? " · 20分" : ""}
+        {t("common.double")}{isOn ? t("play.doublePoints") : ""}
       </button>
     );
   }
 
   async function handleSubmit() {
     if (!name.trim()) {
-      setMessage({ type: "error", text: "请输入你的名字。" });
+      setMessage({ type: "error", text: t("play.errName") });
       return;
     }
 
     if (pageLocked) {
       setMessage({
         type: "warning",
-        text: `${PAGE_LABELS[step]} 已锁定，无法修改本页竞猜。`
+        text: t("play.pageLockedSubmit", { page: pageLabel(step) })
       });
       return;
     }
@@ -247,7 +251,7 @@ export default function PlayPage() {
     if (step === 2) {
       const structureError = validatePage2MainQuestionState(markets, selections);
       if (structureError) {
-        setMessage({ type: "error", text: structureError });
+        setMessage({ type: "error", text: translatePage2StructureError(t, structureError) });
         return;
       }
     }
@@ -271,7 +275,7 @@ export default function PlayPage() {
 
     const validationError = validatePageSave(step, pickInputs, markets, pageInputs);
     if (validationError) {
-      setMessage({ type: "error", text: validationError });
+      setMessage({ type: "error", text: translatePageSaveError(t, validationError) });
       return;
     }
 
@@ -290,18 +294,22 @@ export default function PlayPage() {
       selectionsDirtyRef.current = false;
       const successText =
         step === 1
-          ? `第一页已保存！已答 ${savedStats.page1Count}/${MIN_PAGE1_PICKS} 题。锁定前可随时修改。`
-          : `第二页已保存！第一页 ${savedStats.page1Count} 题，第二页 ${savedStats.page2Count} 题，总计 ${savedStats.totalCount} 题。锁定前可随时修改。`;
+          ? t("play.successP1", { count: savedStats.page1Count, min: MIN_PAGE1_PICKS })
+          : t("play.successP2", {
+              p1: savedStats.page1Count,
+              p2: savedStats.page2Count,
+              total: savedStats.totalCount
+            });
       setMessage({ type: "success", text: successText });
     } catch (error) {
       if (error instanceof ApiError) {
         const text =
           error.code === "DUPLICATE_NAME"
-            ? "该名字已被其他玩家使用。"
+            ? t("play.errDuplicateName")
             : error.code === "TOO_MANY_DOUBLES"
               ? step === 1
-                ? "第一页最多只能选 1 题 Double。"
-                : "第二页最多只能选 1 道大题 Double。"
+                ? t("play.errTooManyDoublesP1")
+                : t("play.errTooManyDoublesP2")
               : error.message;
         setMessage({ type: "error", text });
         return;
@@ -309,12 +317,12 @@ export default function PlayPage() {
       const code = error instanceof Error ? error.message : "";
       const text =
         code === "DUPLICATE_NAME"
-          ? "该名字已被其他玩家使用。"
+          ? t("play.errDuplicateName")
           : code === "TOO_MANY_DOUBLES"
             ? step === 1
-              ? "第一页最多只能选 1 题 Double。"
-              : "第二页最多只能选 1 道大题 Double。"
-            : "保存失败，请重试。";
+              ? t("play.errTooManyDoublesP1")
+              : t("play.errTooManyDoublesP2")
+            : t("play.errSave");
       setMessage({ type: "error", text });
     } finally {
       setSubmitting(false);
@@ -324,7 +332,7 @@ export default function PlayPage() {
   if (!ready) {
     return (
       <main className="container">
-        <p>加载中…</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -332,11 +340,11 @@ export default function PlayPage() {
   return (
     <main className="container">
       <nav className="nav-bar">
-        <Link href="/">← 返回首页</Link>
+        <Link href="/">{t("common.backHome")}</Link>
         <PublicFeatureNavLinks />
       </nav>
 
-      <h1 style={{ marginTop: 0 }}>玩家竞猜</h1>
+      <h1 style={{ marginTop: 0 }}>{t("play.title")}</h1>
 
       <div className="page-steps">
         {([1, 2] as PlayPage[]).map((page) => {
@@ -349,34 +357,46 @@ export default function PlayPage() {
               className={`page-step ${step === page ? "active" : ""} ${isPageLocked(config, page) ? "locked" : ""}`}
               onClick={() => setStep(page)}
             >
-              {PAGE_LABELS[page]} · 已答 {count}/{total}
+              {pageLabel(page)} · {t("play.pageAnswered", { count, total })}
               {isPageLocked(config, page) && " 🔒"}
             </button>
           );
         })}
       </div>
 
-      {step === 2 && (
-        <div className="message" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--muted)" }}>
-          第二页每道大题含 4 个小题：须<strong style={{ color: "var(--text)" }}>全部小题都作答</strong>，或点击大题旁的「不选」跳过该题。只答了部分小题时无法保存。
-        </div>
-      )}
+      {step === 2 && (() => {
+        const strong = t("play.page2HintStrong");
+        const parts = t("play.page2Hint").split(strong);
+        return (
+          <div className="message" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--muted)" }}>
+            {parts.length === 2 ? (
+              <>
+                {parts[0]}
+                <strong style={{ color: "var(--text)" }}>{strong}</strong>
+                {parts[1]}
+              </>
+            ) : (
+              t("play.page2Hint")
+            )}
+          </div>
+        );
+      })()}
 
       {isEditing && !pageLocked && (
-        <div className="message success">已加载你上次的竞猜，可随时修改并点击「保存当页」。</div>
+        <div className="message success">{t("play.loadedEdit")}</div>
       )}
 
       {pageLocked && (
-        <div className="message warning">{PAGE_LABELS[step]} 已锁定，无法再修改本页题目。</div>
+        <div className="message warning">{t("play.pageLocked", { page: pageLabel(step) })}</div>
       )}
 
       {step === 1 && (
         <div className="field">
-          <label htmlFor="name">你的名字</label>
+          <label htmlFor="name">{t("play.yourName")}</label>
           <input
             id="name"
             type="text"
-            placeholder="输入昵称"
+            placeholder={t("play.namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={pageLocked}
@@ -386,19 +406,21 @@ export default function PlayPage() {
 
       <div className="status-bar pick-stats-bar">
         <span>
-          第一页已答：<strong>{pickStats.page1Count}</strong> / {MIN_PAGE1_PICKS}
+          {t("play.page1Answered")}<strong>{pickStats.page1Count}</strong> / {MIN_PAGE1_PICKS}
         </span>
         <span>
-          第二页已答：<strong>{pickStats.page2Count}</strong> / {MIN_PAGE2_PICKS}
+          {t("play.page2Answered")}<strong>{pickStats.page2Count}</strong> / {MIN_PAGE2_PICKS}
         </span>
         <span>
-          总计已答：<strong>{pickStats.totalCount}</strong> / {MIN_TOTAL_PICKS}
+          {t("play.totalAnswered")}<strong>{pickStats.totalCount}</strong> / {MIN_TOTAL_PICKS}
         </span>
         <span>
-          本页 Double：
-          <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : "未选"}</strong>
+          {t("play.pageDouble")}
+          <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : t("play.doubleNone")}</strong>
           <span className="muted-inline">
-            （每页最多 1 次{step === 2 ? "，按大题" : ""}，20 分）
+            {t("play.doubleHint", {
+              perMain: step === 2 ? t("play.doublePerMain") : ""
+            })}
           </span>
         </span>
       </div>
@@ -407,9 +429,9 @@ export default function PlayPage() {
         pageMarkets.map((market) => (
           <section key={market.id} className="card item-card">
             <h3>
-              {market.id.toUpperCase()}：{market.name}
+              {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
             </h3>
-            <p className="prompt">请选择：</p>
+            <p className="prompt">{t("play.pleaseChoose")}</p>
             <div className="team-options">
               {(market.candidates ?? []).map((team) => (
                 <button
@@ -428,12 +450,12 @@ export default function PlayPage() {
                 onClick={() => selectAnswer(market.id, null)}
                 disabled={pageLocked}
               >
-                不选
+                {t("common.skip")}
               </button>
               {renderDoubleButton(
                 market.id,
                 selections[market.id] !== null,
-                "请先选择答案再使用 Double"
+                t("play.doubleNeedAnswer")
               )}
             </div>
           </section>
@@ -447,15 +469,15 @@ export default function PlayPage() {
             <section key={market.id} className="card item-card">
               <div className="main-question-header">
                 <h3>
-                  {market.id.toUpperCase()}：{market.name}
+                  {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
                 </h3>
                 <div className="main-question-actions">
                   <span
                     className={`completion-badge ${progress.complete ? "done" : ""} ${skipped ? "skipped" : ""}`}
                   >
                     {skipped
-                      ? "已选择不选"
-                      : `小题 ${progress.done}/${progress.total}${progress.complete ? " · 已完成" : ""}`}
+                      ? t("play.skipped")
+                      : `${t("play.subProgress", { done: progress.done, total: progress.total })}${progress.complete ? t("play.subComplete") : ""}`}
                   </span>
                   <button
                     type="button"
@@ -463,12 +485,12 @@ export default function PlayPage() {
                     onClick={() => toggleMainQuestionSkip(market.id)}
                     disabled={pageLocked}
                   >
-                    不选
+                    {t("common.skip")}
                   </button>
                   {renderDoubleButton(
                     market.id,
                     progress.complete,
-                    "请先答完本大题全部小题再使用 Double"
+                    t("play.doubleNeedComplete")
                   )}
                 </div>
               </div>
@@ -504,12 +526,12 @@ export default function PlayPage() {
       <div className="actions page-nav">
         {step === 2 && (
           <button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>
-            上一页
+            {t("play.prevPage")}
           </button>
         )}
         {step === 1 && (
           <button type="button" className="btn btn-secondary" onClick={() => setStep(2)}>
-            下一页
+            {t("play.nextPage")}
           </button>
         )}
         <button
@@ -518,7 +540,7 @@ export default function PlayPage() {
           onClick={handleSubmit}
           disabled={submitting || pageLocked}
         >
-          {submitting ? "保存中…" : "保存当页"}
+          {submitting ? t("play.saving") : t("play.savePage")}
         </button>
       </div>
     </main>

@@ -1,4 +1,5 @@
 import { DOUBLE_STAKE, SUBS_PER_PAGE2_QUESTION } from "@/data/markets";
+import type { Page2StructureError } from "@/i18n/validation";
 import type { Market, Pick, PlayPage, PlayerPickInput, SubQuestion } from "@/types";
 
 export function isPage2Market(market: Market) {
@@ -138,13 +139,17 @@ export function isMainQuestionPartial(market: Market, answers: Record<string, st
 export function validatePage2MainQuestionState(
   markets: Market[],
   selections: Record<string, string | null>
-): string | null {
+): Page2StructureError | null {
   for (const market of markets.filter((m) => m.page === 2)) {
     if (isMainQuestionSkipped(market, selections)) continue;
     const subs = activeSubQuestions(market);
     const answered = subs.filter((sub) => isSubQuestionComplete(sub, selections)).length;
     if (answered > 0 && answered < subs.length) {
-      return `${market.id.toUpperCase()} 需答完全部 ${subs.length} 个小题，或点击大题旁的「不选」。`;
+      return {
+        code: "main_incomplete",
+        market: market.id.toUpperCase(),
+        subs: subs.length
+      };
     }
   }
   return null;

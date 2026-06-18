@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AdminGate } from "@/components/AdminGate";
+import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, PAGE_LABELS, marketsForPage } from "@/data/markets";
+import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, marketsForPage } from "@/data/markets";
+import { answersFeatureLabelKey, translateMarketName } from "@/i18n";
 import {
   activeSubQuestions,
   formatMainQuestionProgress,
@@ -12,9 +14,7 @@ import {
   playerAnswersFromPicks
 } from "@/lib/market-helpers";
 import {
-  answersFeatureLabel,
   canAdminEnableFeature,
-  formatOpensAt,
   fromDatetimeLocalValue,
   isAnswersFeaturePublic,
   toDatetimeLocalValue
@@ -22,19 +22,24 @@ import {
 import { clearAdminAuthed } from "@/lib/admin-auth";
 import { formatScore } from "@/lib/score-format";
 import type { AnswersPageFeature } from "@/lib/public-features";
-import type { Market, PlayPage } from "@/types";
+import type { Market, Pick, PlayPage } from "@/types";
 
-function cellForMarket(market: Market, playerId: string, picks: ReturnType<typeof useGame>["picks"]) {
+function cellForMarket(
+  market: Market,
+  playerId: string,
+  picks: Pick[],
+  t: (key: string, values?: Record<string, string | number>) => string
+) {
   if (market.page === 1) {
     const pick = picks.find((p) => p.playerId === playerId && p.marketId === market.id);
-    if (!pick) return "—";
+    if (!pick) return t("common.none");
     return pick.stake === DOUBLE_STAKE ? `${pick.team} ×2` : pick.team;
   }
   const answers = playerAnswersFromPicks(picks.filter((p) => p.playerId === playerId));
   const progress = formatMainQuestionProgress(market, answers);
-  if (progress.complete) return "✓ 已完成";
-  if (progress.done === 0) return "—";
-  return `${progress.done}/${progress.total} 小题`;
+  if (progress.complete) return t("admin.complete");
+  if (progress.done === 0) return t("common.none");
+  return t("admin.subCount", { done: progress.done, total: progress.total });
 }
 
 function PublicFeatureControl({
@@ -45,7 +50,8 @@ function PublicFeatureControl({
   onMessage: (msg: { type: "error" | "success" | "warning"; text: string }) => void;
 }) {
   const { config, setPublicFeature } = useGame();
-  const label = answersFeatureLabel(feature);
+  const { t, formatOpensAt } = useLocale();
+  const label = t(answersFeatureLabelKey(feature));
   const enabled =
     feature === "answersPage1" ? config.answersPage1Public : config.answersPage2Public;
   const opensAt =
@@ -55,21 +61,25 @@ function PublicFeatureControl({
 
   function handleOpensAtChange(value: string) {
     setPublicFeature(feature, { opensAt: fromDatetimeLocalValue(value) });
-    onMessage({ type: "success", text: `已更新「${label}」最早开放时间。` });
+    onMessage({ type: "success", text: t("admin.updatedOpensAt", { label }) });
   }
 
   function handleToggle() {
     if (!enabled && !canEnable) {
+      const formatted = opensAt ? formatOpensAt(opensAt) : null;
       onMessage({
         type: "warning",
-        text: `未到开放时间${opensAt ? `（${formatOpensAt(opensAt)}）` : ""}，暂无法向玩家开放${label}。`
+        text: t("admin.cannotOpenYet", {
+          time: formatted ? `（${formatted}）` : "",
+          label
+        })
       });
       return;
     }
     setPublicFeature(feature, { public: !enabled });
     onMessage({
       type: "success",
-      text: !enabled ? `已向玩家开放${label}。` : `已关闭${label}，玩家不可见。`
+      text: !enabled ? t("admin.opened", { label }) : t("admin.closed", { label })
     });
   }
 
@@ -78,11 +88,15 @@ function PublicFeatureControl({
       <div className="public-feature-control-header">
         <strong>{label}</strong>
         <span className={`badge ${visible ? "open" : "locked"}`}>
-          {visible ? "玩家可见" : enabled ? "已开放，未到展示时间" : "未向玩家开放"}
+          {visible
+            ? t("admin.visible")
+            : enabled
+              ? t("admin.enabledPending")
+              : t("admin.disabled")}
         </span>
       </div>
       <label className="public-feature-field">
-        <span>最早可开放时间（留空表示随时可开放）</span>
+        <span>{t("admin.opensAtLabel")}</span>
         <input
           type="datetime-local"
           value={toDatetimeLocalValue(opensAt)}
@@ -90,7 +104,9 @@ function PublicFeatureControl({
         />
       </label>
       {opensAt && !canEnable && (
-        <p className="public-feature-hint">将于 {formatOpensAt(opensAt)} 后可向玩家开放。</p>
+        <p className="public-feature-hint">
+          {t("admin.opensAtHint", { time: formatOpensAt(opensAt) ?? "" })}
+        </p>
       )}
       <button
         type="button"
@@ -98,7 +114,7 @@ function PublicFeatureControl({
         onClick={handleToggle}
         disabled={!enabled && !canEnable}
       >
-        {enabled ? `关闭${label}` : `向玩家开放${label}`}
+        {enabled ? t("admin.closeFeature", { label }) : t("admin.openFeature", { label })}
       </button>
     </div>
   );
@@ -128,6 +144,7 @@ function AdminPageContent() {
     deletePlayer,
     refreshScores
   } = useGame();
+  const { t, locale, pageLabel } = useLocale();
   const [message, setMessage] = useState<{ type: "error" | "success" | "warning"; text: string } | null>(null);
 
   function scoreFor(playerId: string) {
@@ -137,38 +154,38 @@ function AdminPageContent() {
 
   function handleCalculate() {
     refreshScores();
-    setMessage({ type: "success", text: "分数已重新计算。" });
+    setMessage({ type: "success", text: t("admin.scoresRecalculated") });
   }
 
   function handleHideSub(marketId: string, subId: string, subLabel: string) {
-    if (!confirm(`确定隐藏小题「${subLabel}」？隐藏后玩家看不到该题；若其余小题均已作答，将视为答完该大题。`)) {
+    if (!confirm(t("admin.confirmHide", { label: subLabel }))) {
       return;
     }
     deleteSubQuestion(marketId, subId);
-    setMessage({ type: "success", text: `已隐藏小题「${subLabel}」。可在下方「已隐藏小题」中撤回。` });
+    setMessage({ type: "success", text: t("admin.hiddenSub", { label: subLabel }) });
   }
 
   function handleRestoreSub(marketId: string, subId: string, subLabel: string) {
     restoreSubQuestion(marketId, subId);
-    setMessage({ type: "success", text: `已恢复小题「${subLabel}」。` });
+    setMessage({ type: "success", text: t("admin.restoredSub", { label: subLabel }) });
   }
 
   async function handleDeletePlayer(playerId: string, playerName: string) {
-    if (!confirm(`确定删除玩家「${playerName}」及其全部竞猜记录？此操作不可撤销。`)) {
+    if (!confirm(t("admin.confirmDelete", { name: playerName }))) {
       return;
     }
     try {
       await deletePlayer(playerId);
-      setMessage({ type: "success", text: `已删除玩家「${playerName}」。` });
+      setMessage({ type: "success", text: t("admin.deletedPlayer", { name: playerName }) });
     } catch {
-      setMessage({ type: "error", text: "删除失败，请重试。" });
+      setMessage({ type: "error", text: t("admin.deleteFailed") });
     }
   }
 
   if (!ready) {
     return (
       <main className="container">
-        <p>加载中…</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -176,13 +193,13 @@ function AdminPageContent() {
   return (
     <main className="container">
       <nav className="nav-bar">
-        <Link href="/">← 返回首页</Link>
+        <Link href="/">{t("common.backHome")}</Link>
         <div className="lock-badges">
           {([1, 2] as PlayPage[]).map((page) => {
             const locked = page === 1 ? config.page1Locked : config.page2Locked;
             return (
               <span key={page} className={`badge ${locked ? "locked" : "open"}`}>
-                {PAGE_LABELS[page]}：{locked ? "已锁定" : "开放"}
+                {pageLabel(page)}：{locked ? t("admin.pageLocked") : t("admin.pageOpen")}
               </span>
             );
           })}
@@ -195,17 +212,17 @@ function AdminPageContent() {
             window.location.href = "/admin";
           }}
         >
-          退出管理
+          {t("admin.logout")}
         </button>
       </nav>
 
-      <h1 style={{ marginTop: 0 }}>管理员</h1>
+      <h1 style={{ marginTop: 0 }}>{t("admin.title")}</h1>
 
       {message && <div className={`message ${message.type}`}>{message.text}</div>}
 
       <div className="admin-toolbar">
         <button type="button" className="btn btn-primary" onClick={handleCalculate}>
-          计算分数
+          {t("admin.calcScores")}
         </button>
         {([1, 2] as PlayPage[]).map((page) => {
           const locked = page === 1 ? config.page1Locked : config.page2Locked;
@@ -216,16 +233,18 @@ function AdminPageContent() {
               className={`btn ${locked ? "btn-secondary" : "btn-danger"}`}
               onClick={() => togglePageLocked(page)}
             >
-              {locked ? `解锁${PAGE_LABELS[page]}` : `锁定${PAGE_LABELS[page]}`}
+              {locked
+                ? t("admin.unlockPage", { page: pageLabel(page) })
+                : t("admin.lockPage", { page: pageLabel(page) })}
             </button>
           );
         })}
       </div>
 
       <section className="card" style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ marginTop: 0 }}>向玩家开放答题总览</h2>
+        <h2 style={{ marginTop: 0 }}>{t("admin.publicAnswersTitle")}</h2>
         <p style={{ color: "var(--muted)", marginTop: 0 }}>
-          排行榜始终公开。答题总览默认隐藏，第一页与第二页可分别设置最早开放时间并手动开放。
+          {t("admin.publicAnswersDesc")}
         </p>
         <div className="public-feature-grid">
           <PublicFeatureControl feature="answersPage1" onMessage={setMessage} />
@@ -234,18 +253,18 @@ function AdminPageContent() {
       </section>
 
       <section className="card" style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ marginTop: 0 }}>录入比赛结果 — {PAGE_LABELS[1]}</h2>
+        <h2 style={{ marginTop: 0 }}>{t("admin.resultsP1", { page: pageLabel(1) })}</h2>
         <div className="admin-grid">
           {marketsForPage(markets, 1).map((market) => (
             <div key={market.id} className="admin-item">
               <strong>
-                [{market.round}] {market.id}：{market.name}
+                [{market.round}] {market.id}：{translateMarketName(locale, market.name)}
               </strong>
               <select
                 value={market.winner ?? ""}
                 onChange={(e) => setMarketWinner(market.id, e.target.value || null)}
               >
-                <option value="">未结算</option>
+                <option value="">{t("admin.unsettled")}</option>
                 {(market.candidates ?? []).map((team) => (
                   <option key={team} value={team}>
                     {team}
@@ -258,11 +277,11 @@ function AdminPageContent() {
       </section>
 
       <section className="card" style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ marginTop: 0 }}>录入比赛结果 & 管理小题 — {PAGE_LABELS[2]}</h2>
+        <h2 style={{ marginTop: 0 }}>{t("admin.resultsP2", { page: pageLabel(2) })}</h2>
         {marketsForPage(markets, 2).map((market) => (
           <div key={market.id} className="admin-main-question">
             <strong>
-              [{market.round}] {market.id}：{market.name}
+              [{market.round}] {market.id}：{translateMarketName(locale, market.name)}
             </strong>
             <div className="admin-sub-list">
               {activeSubQuestions(market).map((sub) => (
@@ -272,7 +291,7 @@ function AdminPageContent() {
                     value={sub.winner ?? ""}
                     onChange={(e) => setSubQuestionWinner(market.id, sub.id, e.target.value || null)}
                   >
-                    <option value="">未结算</option>
+                    <option value="">{t("admin.unsettled")}</option>
                     {sub.candidates.map((team) => (
                       <option key={team} value={team}>
                         {team}
@@ -284,28 +303,28 @@ function AdminPageContent() {
                     className="btn btn-danger btn-sm"
                     onClick={() => handleHideSub(market.id, sub.id, sub.label)}
                   >
-                    隐藏
+                    {t("admin.hide")}
                   </button>
                 </div>
               ))}
               {hiddenSubQuestions(market).map((sub) => (
                 <div key={sub.id} className="admin-sub-item admin-sub-item-hidden">
                   <span>{sub.label}</span>
-                  <span className="hidden-tag">已隐藏</span>
+                  <span className="hidden-tag">{t("admin.hidden")}</span>
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
                     onClick={() => handleRestoreSub(market.id, sub.id, sub.label)}
                   >
-                    撤回隐藏
+                    {t("admin.restoreHide")}
                   </button>
                 </div>
               ))}
               {activeSubQuestions(market).length === 0 && hiddenSubQuestions(market).length === 0 && (
-                <p style={{ color: "var(--muted)", margin: 0 }}>该题暂无小题。</p>
+                <p style={{ color: "var(--muted)", margin: 0 }}>{t("admin.noSubs")}</p>
               )}
               {activeSubQuestions(market).length === 0 && hiddenSubQuestions(market).length > 0 && (
-                <p style={{ color: "var(--muted)", margin: 0 }}>该题所有小题均已隐藏，可在下方撤回。</p>
+                <p style={{ color: "var(--muted)", margin: 0 }}>{t("admin.allSubsHidden")}</p>
               )}
             </div>
           </div>
@@ -313,22 +332,22 @@ function AdminPageContent() {
       </section>
 
       <section className="card table-wrap">
-        <h2 style={{ marginTop: 0 }}>所有玩家选择</h2>
+        <h2 style={{ marginTop: 0 }}>{t("admin.allPicks")}</h2>
         {players.length === 0 ? (
-          <p style={{ color: "var(--muted)" }}>暂无提交。</p>
+          <p style={{ color: "var(--muted)" }}>{t("admin.noSubmissions")}</p>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>玩家</th>
-                <th>第一页</th>
-                <th>第二页</th>
-                <th>总计</th>
+                <th>{t("common.player")}</th>
+                <th>{t("common.page1Short")}</th>
+                <th>{t("common.page2Short")}</th>
+                <th>{t("common.total")}</th>
                 {markets.map((market) => (
                   <th key={market.id}>{market.id}</th>
                 ))}
-                <th>总分</th>
-                <th>操作</th>
+                <th>{t("common.score")}</th>
+                <th>{t("admin.action")}</th>
               </tr>
             </thead>
             <tbody>
@@ -345,7 +364,7 @@ function AdminPageContent() {
                     {player.pickStats.totalCount} / {MIN_TOTAL_PICKS}
                   </td>
                   {markets.map((market) => (
-                    <td key={market.id}>{cellForMarket(market, player.id, picks)}</td>
+                    <td key={market.id}>{cellForMarket(market, player.id, picks, t)}</td>
                   ))}
                   <td>{scoreFor(player.id)}</td>
                   <td>
@@ -354,7 +373,7 @@ function AdminPageContent() {
                       className="btn btn-danger btn-sm"
                       onClick={() => handleDeletePlayer(player.id, player.name)}
                     >
-                      删除
+                      {t("common.delete")}
                     </button>
                   </td>
                 </tr>

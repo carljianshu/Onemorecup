@@ -65,11 +65,11 @@ function validatePlayerSave(
 ) {
   if (page === 2) {
     const structureError = validatePage2MainQuestionState(markets, selectionsFromPickInputs(pickInputs));
-    if (structureError) throw new Error(structureError);
+    if (structureError) throw new Error(structureError.code);
   }
 
   const validationError = validatePageSave(page, pickInputs, markets, pagePickInputs);
-  if (validationError) throw new Error(validationError);
+  if (validationError) throw new Error(validationError.code);
 }
 
 export async function registerPlayer(

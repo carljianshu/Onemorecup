@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { buildMarketResultSections, formatScore } from "@/lib/market-results";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
@@ -12,6 +13,7 @@ type ViewFilter = "all" | PlayPage;
 
 export default function MarketResultsPage() {
   const { ready, config, players, markets, picks } = useGame();
+  const { t } = useLocale();
   const [filter, setFilter] = useState<ViewFilter>("all");
 
   const page1Public = ready && isAnswersPagePublic(config, 1);
@@ -46,16 +48,16 @@ export default function MarketResultsPage() {
 
   const filterOptions = useMemo(() => {
     const options: { value: ViewFilter; label: string }[] = [];
-    if (showAllFilter) options.push({ value: "all", label: "全部题目" });
-    if (page1Public) options.push({ value: 1, label: "仅第一页" });
-    if (page2Public) options.push({ value: 2, label: "仅第二页" });
+    if (showAllFilter) options.push({ value: "all", label: t("common.filterAll") });
+    if (page1Public) options.push({ value: 1, label: t("common.filterPage1") });
+    if (page2Public) options.push({ value: 2, label: t("common.filterPage2") });
     return options;
-  }, [showAllFilter, page1Public, page2Public]);
+  }, [showAllFilter, page1Public, page2Public, t]);
 
   if (!ready) {
     return (
       <main className="container">
-        <p>加载中…</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -64,14 +66,14 @@ export default function MarketResultsPage() {
     return (
       <main className="container">
         <nav className="nav-bar">
-          <Link href="/">← 返回首页</Link>
-          <Link href="/leaderboard">排行榜</Link>
-          <Link href="/play">进入竞猜</Link>
+          <Link href="/">{t("common.backHome")}</Link>
+          <Link href="/leaderboard">{t("common.leaderboard")}</Link>
+          <Link href="/play">{t("common.play")}</Link>
         </nav>
         <div className="card" style={{ maxWidth: 480, margin: "2rem auto" }}>
-          <h1 style={{ marginTop: 0 }}>单场竞猜结果尚未开放</h1>
+          <h1 style={{ marginTop: 0 }}>{t("marketResults.closedTitle")}</h1>
           <p style={{ color: "var(--muted)", marginBottom: 0 }}>
-            管理员将在合适的时间开放第一页或第二页的竞猜结果。
+            {t("marketResults.closedDesc")}
           </p>
         </div>
       </main>
@@ -81,17 +83,16 @@ export default function MarketResultsPage() {
   return (
     <main className="container">
       <nav className="nav-bar">
-        <Link href="/">← 返回首页</Link>
+        <Link href="/">{t("common.backHome")}</Link>
         <PublicFeatureNavLinks />
-        <Link href="/play">进入竞猜</Link>
+        <Link href="/play">{t("common.play")}</Link>
       </nav>
 
-      <h1 style={{ marginTop: 0 }}>单场竞猜结果</h1>
+      <h1 style={{ marginTop: 0 }}>{t("marketResults.title")}</h1>
       <p className="page-lead">
-        每道题列出各选项的竞猜玩家。对每个选项，假设它猜对：选它的记 1（Double 记 2 个 1）、选另一项记 0（Double 记 2
-        个 0），全体 0/1 减均值、除以标准差、再 ×10，显示为「如果猜对，奖金 xx 分」。已录入赛果的选项以绿色边框标出。
-        {!page1Public && page2Public && "（当前仅展示第二页）"}
-        {page1Public && !page2Public && "（当前仅展示第一页）"}
+        {t("marketResults.lead")}
+        {!page1Public && page2Public && t("common.onlyPage2")}
+        {page1Public && !page2Public && t("common.onlyPage1")}
       </p>
 
       {filterOptions.length > 1 && (
@@ -111,11 +112,11 @@ export default function MarketResultsPage() {
 
       {players.length === 0 ? (
         <div className="card">
-          <p style={{ margin: 0, color: "var(--muted)" }}>暂无玩家提交，先去竞猜页提交答案吧。</p>
+          <p style={{ margin: 0, color: "var(--muted)" }}>{t("marketResults.emptyPlayers")}</p>
         </div>
       ) : sections.length === 0 ? (
         <div className="card">
-          <p style={{ margin: 0, color: "var(--muted)" }}>当前没有可展示的题目。</p>
+          <p style={{ margin: 0, color: "var(--muted)" }}>{t("marketResults.emptySections")}</p>
         </div>
       ) : (
         <div className="market-results-list">
@@ -124,7 +125,10 @@ export default function MarketResultsPage() {
               <div className="market-result-header">
                 <h2 className="market-result-title">{section.title}</h2>
                 <span className="market-result-meta">
-                  {section.totalPicks} 人作答 · {section.slotCount} 个计分位
+                  {t("marketResults.meta", {
+                    picks: section.totalPicks,
+                    slots: section.slotCount
+                  })}
                 </span>
               </div>
               <div className="market-result-options">
@@ -136,17 +140,19 @@ export default function MarketResultsPage() {
                     <div className="market-result-option-head">
                       <h3 className="market-result-option-label">
                         {option}
-                        {isWinner && <span className="market-result-winner-badge">猜对</span>}
+                        {isWinner && (
+                          <span className="market-result-winner-badge">{t("marketResults.winner")}</span>
+                        )}
                       </h3>
                       <span className="market-result-pool">
-                        如果猜对，奖金 {formatScore(ifCorrectBonus)} 分
+                        {t("marketResults.ifCorrect", { amount: formatScore(ifCorrectBonus) })}
                         {optionPicks.some((pick) => pick.isDouble) && (
-                          <span className="market-result-pool-meta">（Double 为 2 个计分位）</span>
+                          <span className="market-result-pool-meta">{t("marketResults.doubleSlots")}</span>
                         )}
                       </span>
                     </div>
                     {optionPicks.length === 0 ? (
-                      <p className="market-result-empty">暂无</p>
+                      <p className="market-result-empty">{t("common.empty")}</p>
                     ) : (
                       <ul className="market-result-players">
                         {optionPicks.map((pick) => (
@@ -157,8 +163,10 @@ export default function MarketResultsPage() {
                             <span className="market-result-player-name">{pick.playerName}</span>
                             {pick.isDouble && (
                               <span className="market-result-player-payout">
-                                如果猜对，奖金 {formatScore(pick.ifCorrectPayout)} 分
-                                <span className="pick-double-badge">Double</span>
+                                {t("marketResults.ifCorrect", {
+                                  amount: formatScore(pick.ifCorrectPayout)
+                                })}
+                                <span className="pick-double-badge">{t("common.double")}</span>
                               </span>
                             )}
                           </li>

@@ -1,4 +1,5 @@
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
+import type { PageSaveError } from "@/i18n/validation";
 import {
   page1CompletedCount,
   page2CompletedCount,
@@ -39,21 +40,21 @@ export function validatePageSave(
   mergedPickInputs: PlayerPickInput[],
   markets: Market[],
   pagePickInputs: PlayerPickInput[]
-): string | null {
+): PageSaveError | null {
   if (page === 1) {
     const stats = pickStatsFromPickInputs(pagePickInputs, markets);
     if (stats.page1Count < MIN_PAGE1_PICKS) {
-      return `第一页至少需答满 ${MIN_PAGE1_PICKS} 题才能保存（当前 ${stats.page1Count} 题）。`;
+      return { code: "page1_min", count: stats.page1Count, min: MIN_PAGE1_PICKS };
     }
     return null;
   }
 
   const stats = pickStatsFromPickInputs(mergedPickInputs, markets);
   if (stats.page2Count < MIN_PAGE2_PICKS) {
-    return `第二页至少需答完 ${MIN_PAGE2_PICKS} 道大题才能保存（当前 ${stats.page2Count} 道）。`;
+    return { code: "page2_min", count: stats.page2Count, min: MIN_PAGE2_PICKS };
   }
   if (stats.totalCount < MIN_TOTAL_PICKS) {
-    return `总计至少需答满 ${MIN_TOTAL_PICKS} 题才能保存第二页（当前 ${stats.totalCount} 题）。`;
+    return { code: "total_min", count: stats.totalCount, min: MIN_TOTAL_PICKS };
   }
   return null;
 }

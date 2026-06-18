@@ -5,11 +5,12 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import {
   isAdminAuthed,
   setAdminSession,
-  clearAdminAuthed
 } from "@/lib/admin-auth";
 import { adminLogin } from "@/lib/api-client";
+import { useLocale } from "@/context/LocaleContext";
 
 export function AdminGate({ children }: { children: ReactNode }) {
+  const { t } = useLocale();
   const [checked, setChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState("");
@@ -31,7 +32,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
       setAuthed(true);
       setPassword("");
     } catch {
-      setError("密码错误，请重试。");
+      setError(t("adminGate.wrongPassword"));
     } finally {
       setSubmitting(false);
     }
@@ -40,7 +41,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
   if (!checked) {
     return (
       <main className="container">
-        <p>加载中…</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -49,14 +50,14 @@ export function AdminGate({ children }: { children: ReactNode }) {
     return (
       <main className="container">
         <nav className="nav-bar">
-          <Link href="/">← 返回首页</Link>
+          <Link href="/">{t("common.backHome")}</Link>
         </nav>
         <section className="card admin-login-card">
-          <h1 style={{ marginTop: 0 }}>管理员验证</h1>
-          <p style={{ color: "var(--muted)", marginTop: 0 }}>请输入管理员密码以继续。</p>
+          <h1 style={{ marginTop: 0 }}>{t("adminGate.title")}</h1>
+          <p style={{ color: "var(--muted)", marginTop: 0 }}>{t("adminGate.desc")}</p>
           <form onSubmit={handleSubmit}>
             <div className="field">
-              <label htmlFor="admin-password">密码</label>
+              <label htmlFor="admin-password">{t("adminGate.password")}</label>
               <input
                 id="admin-password"
                 type="password"
@@ -70,7 +71,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
             </div>
             {error && <div className="message error">{error}</div>}
             <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? "验证中…" : "进入管理"}
+              {submitting ? t("adminGate.verifying") : t("adminGate.enter")}
             </button>
           </form>
         </section>

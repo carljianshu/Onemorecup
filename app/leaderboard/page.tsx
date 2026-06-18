@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Fragment, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { formatScore } from "@/lib/score-format";
+import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
 import { computeMissingItemCount } from "@/lib/pick-stats";
@@ -16,12 +17,13 @@ function scoreClass(score: number) {
 
 export default function LeaderboardPage() {
   const { ready, markets, leaderboard } = useGame();
+  const { t } = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (!ready) {
     return (
       <main className="container">
-        <p>加载中…</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -29,31 +31,31 @@ export default function LeaderboardPage() {
   return (
     <main className="container">
       <nav className="nav-bar">
-        <Link href="/">← 返回首页</Link>
+        <Link href="/">{t("common.backHome")}</Link>
         <PublicFeatureNavLinks />
-        <Link href="/play">进入竞猜</Link>
+        <Link href="/play">{t("common.play")}</Link>
       </nav>
 
-      <h1 style={{ marginTop: 0 }}>排行榜</h1>
+      <h1 style={{ marginTop: 0 }}>{t("leaderboard.title")}</h1>
 
       {leaderboard.length === 0 ? (
         <div className="card">
-          <p style={{ margin: 0, color: "var(--muted)" }}>暂无提交记录，成为第一个参与者吧！</p>
+          <p style={{ margin: 0, color: "var(--muted)" }}>{t("leaderboard.empty")}</p>
         </div>
       ) : (
         <div className="card table-wrap">
           <table>
             <thead>
               <tr>
-                <th>排名</th>
-                <th>玩家</th>
-                <th>第一页</th>
-                <th>第二页</th>
-                <th>总计答题</th>
-                <th>总分</th>
-                <th>已结算项目数</th>
-                <th>缺少的项目数</th>
-                <th>详情</th>
+                <th>{t("common.rank")}</th>
+                <th>{t("common.player")}</th>
+                <th>{t("common.page1Short")}</th>
+                <th>{t("common.page2Short")}</th>
+                <th>{t("leaderboard.totalPicks")}</th>
+                <th>{t("common.score")}</th>
+                <th>{t("leaderboard.settled")}</th>
+                <th>{t("leaderboard.missing")}</th>
+                <th>{t("leaderboard.details")}</th>
               </tr>
             </thead>
             <tbody>
@@ -84,7 +86,9 @@ export default function LeaderboardPage() {
                           setExpanded(expanded === entry.playerId ? null : entry.playerId)
                         }
                       >
-                        {expanded === entry.playerId ? "收起" : "每场得分"}
+                        {expanded === entry.playerId
+                          ? t("leaderboard.collapse")
+                          : t("leaderboard.perMarket")}
                       </button>
                     </td>
                   </tr>

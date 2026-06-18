@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { useLocale } from "@/context/LocaleContext";
 import { formatScore } from "@/lib/score-format";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS } from "@/data/markets";
@@ -14,11 +15,11 @@ type ViewFilter = "all" | PlayPage;
 
 export default function AnswersPage() {
   const { ready, config, players, markets, picks, leaderboard } = useGame();
+  const { t } = useLocale();
   const [filter, setFilter] = useState<ViewFilter>("all");
 
   const page1Public = ready && isAnswersPagePublic(config, 1);
   const page2Public = ready && isAnswersPagePublic(config, 2);
-  const anyPublic = page1Public || page2Public;
 
   useEffect(() => {
     if (!ready) return;
@@ -56,16 +57,16 @@ export default function AnswersPage() {
 
   const filterOptions = useMemo(() => {
     const options: { value: ViewFilter; label: string }[] = [];
-    if (showAllFilter) options.push({ value: "all", label: "全部题目" });
-    if (page1Public) options.push({ value: 1, label: "仅第一页" });
-    if (page2Public) options.push({ value: 2, label: "仅第二页" });
+    if (showAllFilter) options.push({ value: "all", label: t("common.filterAll") });
+    if (page1Public) options.push({ value: 1, label: t("common.filterPage1") });
+    if (page2Public) options.push({ value: 2, label: t("common.filterPage2") });
     return options;
-  }, [showAllFilter, page1Public, page2Public]);
+  }, [showAllFilter, page1Public, page2Public, t]);
 
   if (!ready) {
     return (
       <main className="container">
-        <p>加载中…</p>
+        <p>{t("common.loading")}</p>
       </main>
     );
   }
@@ -74,14 +75,14 @@ export default function AnswersPage() {
     return (
       <main className="container">
         <nav className="nav-bar">
-          <Link href="/">← 返回首页</Link>
-          <Link href="/leaderboard">排行榜</Link>
-          <Link href="/play">进入竞猜</Link>
+          <Link href="/">{t("common.backHome")}</Link>
+          <Link href="/leaderboard">{t("common.leaderboard")}</Link>
+          <Link href="/play">{t("common.play")}</Link>
         </nav>
         <div className="card" style={{ maxWidth: 480, margin: "2rem auto" }}>
-          <h1 style={{ marginTop: 0 }}>答题总览尚未开放</h1>
+          <h1 style={{ marginTop: 0 }}>{t("answers.closedTitle")}</h1>
           <p style={{ color: "var(--muted)", marginBottom: 0 }}>
-            管理员将在合适的时间开放第一页或第二页的答题总览。
+            {t("answers.closedDesc")}
           </p>
         </div>
       </main>
@@ -91,16 +92,16 @@ export default function AnswersPage() {
   return (
     <main className="container container-wide">
       <nav className="nav-bar">
-        <Link href="/">← 返回首页</Link>
+        <Link href="/">{t("common.backHome")}</Link>
         <PublicFeatureNavLinks />
-        <Link href="/play">进入竞猜</Link>
+        <Link href="/play">{t("common.play")}</Link>
       </nav>
 
-      <h1 style={{ marginTop: 0 }}>答题总览</h1>
+      <h1 style={{ marginTop: 0 }}>{t("answers.title")}</h1>
       <p className="page-lead">
-        每位玩家在各场比赛中的竞猜一览；横向滑动可查看全部题目。
-        {!page1Public && page2Public && "（当前仅展示第二页）"}
-        {page1Public && !page2Public && "（当前仅展示第一页）"}
+        {t("answers.lead")}
+        {!page1Public && page2Public && t("common.onlyPage2")}
+        {page1Public && !page2Public && t("common.onlyPage1")}
       </p>
 
       {filterOptions.length > 1 && (
@@ -120,7 +121,7 @@ export default function AnswersPage() {
 
       {players.length === 0 ? (
         <div className="card">
-          <p style={{ margin: 0, color: "var(--muted)" }}>暂无玩家提交，先去竞猜页提交答案吧。</p>
+          <p style={{ margin: 0, color: "var(--muted)" }}>{t("answers.empty")}</p>
         </div>
       ) : (
         <div className="card table-wrap answers-table-wrap">
@@ -129,19 +130,19 @@ export default function AnswersPage() {
               {filter === "all" && showAllFilter && (page1ColCount > 0 || page2ColCount > 0) && (
                 <tr className="answers-group-row">
                   <th rowSpan={2} className="sticky-col">
-                    玩家
+                    {t("common.player")}
                   </th>
-                  <th rowSpan={2}>第一页</th>
-                  <th rowSpan={2}>第二页</th>
-                  <th rowSpan={2}>总分</th>
+                  <th rowSpan={2}>{t("common.page1Short")}</th>
+                  <th rowSpan={2}>{t("common.page2Short")}</th>
+                  <th rowSpan={2}>{t("common.score")}</th>
                   {page1ColCount > 0 && (
                     <th colSpan={page1ColCount} className="group-header">
-                      第一页（{page1ColCount} 场）
+                      {t("answers.groupP1", { count: page1ColCount })}
                     </th>
                   )}
                   {page2ColCount > 0 && (
                     <th colSpan={page2ColCount} className="group-header">
-                      第二页（{page2ColCount} 小题）
+                      {t("answers.groupP2", { count: page2ColCount })}
                     </th>
                   )}
                 </tr>
@@ -149,10 +150,10 @@ export default function AnswersPage() {
               <tr>
                 {(filter !== "all" || !showAllFilter) && (
                   <>
-                    <th className="sticky-col">玩家</th>
-                    <th>第一页</th>
-                    <th>第二页</th>
-                    <th>总分</th>
+                    <th className="sticky-col">{t("common.player")}</th>
+                    <th>{t("common.page1Short")}</th>
+                    <th>{t("common.page2Short")}</th>
+                    <th>{t("common.score")}</th>
                   </>
                 )}
                 {columns.map((col) => (
@@ -180,7 +181,7 @@ export default function AnswersPage() {
                       if (!pick) {
                         return (
                           <td key={col.id} className="pick-empty">
-                            —
+                            {t("common.none")}
                           </td>
                         );
                       }
@@ -189,7 +190,11 @@ export default function AnswersPage() {
                         <td
                           key={col.id}
                           className={isDouble ? "pick-double" : undefined}
-                          title={isDouble ? `${pick.team}（Double · 20 分）` : pick.team}
+                          title={
+                            isDouble
+                              ? t("answers.doubleTitle", { team: pick.team })
+                              : pick.team
+                          }
                         >
                           {pick.team}
                           {isDouble && <span className="pick-double-badge">×2</span>}

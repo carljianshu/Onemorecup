@@ -1,0 +1,190 @@
+export const zh = {
+  meta: {
+    title: "淘汰赛竞猜",
+    description: "世界杯淘汰赛竞猜小游戏"
+  },
+  common: {
+    loading: "加载中…",
+    backHome: "← 返回首页",
+    play: "进入竞猜",
+    leaderboard: "排行榜",
+    answers: "答题总览",
+    marketResults: "单场竞猜结果",
+    viewLeaderboard: "查看排行榜",
+    adminEntry: "管理员入口",
+    none: "—",
+    skip: "不选",
+    delete: "删除",
+    double: "Double",
+    page1Short: "第一页",
+    page2Short: "第二页",
+    total: "总计",
+    player: "玩家",
+    rank: "排名",
+    score: "总分",
+    empty: "暂无",
+    filterAll: "全部题目",
+    filterPage1: "仅第一页",
+    filterPage2: "仅第二页",
+    onlyPage1: "（当前仅展示第一页）",
+    onlyPage2: "（当前仅展示第二页）",
+    langZh: "中文",
+    langEn: "English"
+  },
+  home: {
+    title: "淘汰赛竞猜",
+    subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
+    rulesTitle: "简单规则",
+    rule1: "提交竞猜共分两页：第一页 {page1} 题，第二页 {page2} 题，共 {total} 个项目。",
+    rule2: "每个项目选 1 支球队，也可以不选；每选 1 项默认下注 10 分。",
+    rule3: "每页最多可选 1 题 Double，该题下注 20 分。",
+    rule4:
+      "每题结算时：猜错记 0、猜对记 1；Double 记 2 个 0 或 2 个 1。全体 0/1 减去均值、除以标准差，再 ×10 作为该题得分（标准差为 0 时该题所有人得 0）。",
+    rule5: "第一页至少猜 {page1Min} 题，第二页至少猜 {page2Min} 题，一共至少猜 {totalMin} 题。",
+    rule6: "若所有参与者都猜对或都猜错，该项目所有人得 0 分。",
+    rule7: "总分最高者获胜，同分并列。"
+  },
+  markets: {
+    page1: "第一页（{count} 题）",
+    page2: "第二页（{count} 题，每题 {subs} 小题）",
+    whoAdvances: "谁会晋级？"
+  },
+  play: {
+    title: "玩家竞猜",
+    pageAnswered: "已答 {count}/{total}",
+    page2Hint:
+      "第二页每道大题含 4 个小题：须全部小题都作答，或点击大题旁的「不选」跳过该题。只答了部分小题时无法保存。",
+    page2HintStrong: "全部小题都作答",
+    loadedEdit: "已加载你上次的竞猜，可随时修改并点击「保存当页」。",
+    pageLocked: "{page} 已锁定，无法再修改本页题目。",
+    pageLockedSubmit: "{page} 已锁定，无法修改本页竞猜。",
+    yourName: "你的名字",
+    namePlaceholder: "输入昵称",
+    page1Answered: "第一页已答：",
+    page2Answered: "第二页已答：",
+    totalAnswered: "总计已答：",
+    pageDouble: "本页 Double：",
+    doubleNone: "未选",
+    doubleHint: "（每页最多 1 次{perMain}，20 分）",
+    doublePerMain: "，按大题",
+    pleaseChoose: "请选择：",
+    doubleTitle: "双倍投注（20 分）",
+    doublePoints: " · 20分",
+    doubleNeedAnswer: "请先选择答案再使用 Double",
+    doubleNeedComplete: "请先答完本大题全部小题再使用 Double",
+    skipped: "已选择不选",
+    subProgress: "小题 {done}/{total}",
+    subComplete: " · 已完成",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    saving: "保存中…",
+    savePage: "保存当页",
+    errName: "请输入你的名字。",
+    errSave: "保存失败，请重试。",
+    errDuplicateName: "该名字已被其他玩家使用。",
+    errTooManyDoublesP1: "第一页最多只能选 1 题 Double。",
+    errTooManyDoublesP2: "第二页最多只能选 1 道大题 Double。",
+    successP1: "第一页已保存！已答 {count}/{min} 题。锁定前可随时修改。",
+    successP2:
+      "第二页已保存！第一页 {p1} 题，第二页 {p2} 题，总计 {total} 题。锁定前可随时修改。"
+  },
+  validation: {
+    page1Min: "第一页至少需答满 {min} 题才能保存（当前 {count} 题）。",
+    page2Min: "第二页至少需答完 {min} 道大题才能保存（当前 {count} 道）。",
+    totalMin: "总计至少需答满 {min} 题才能保存第二页（当前 {count} 题）。",
+    mainIncomplete: "{market} 需答完全部 {subs} 个小题，或点击大题旁的「不选」。"
+  },
+  leaderboard: {
+    title: "排行榜",
+    empty: "暂无提交记录，成为第一个参与者吧！",
+    totalPicks: "总计答题",
+    settled: "已结算项目数",
+    missing: "缺少的项目数",
+    details: "详情",
+    collapse: "收起",
+    perMarket: "每场得分"
+  },
+  answers: {
+    title: "答题总览",
+    closedTitle: "答题总览尚未开放",
+    closedDesc: "管理员将在合适的时间开放第一页或第二页的答题总览。",
+    lead: "每位玩家在各场比赛中的竞猜一览；横向滑动可查看全部题目。",
+    empty: "暂无玩家提交，先去竞猜页提交答案吧。",
+    groupP1: "第一页（{count} 场）",
+    groupP2: "第二页（{count} 小题）",
+    doubleTitle: "{team}（Double · 20 分）"
+  },
+  marketResults: {
+    title: "单场竞猜结果",
+    closedTitle: "单场竞猜结果尚未开放",
+    closedDesc: "管理员将在合适的时间开放第一页或第二页的竞猜结果。",
+    lead:
+      "每道题列出各选项的竞猜玩家。对每个选项，假设它猜对：选它的记 1（Double 记 2 个 1）、选另一项记 0（Double 记 2 个 0），全体 0/1 减均值、除以标准差、再 ×10，显示为「如果猜对，奖金 xx 分」。已录入赛果的选项以绿色边框标出。",
+    emptyPlayers: "暂无玩家提交，先去竞猜页提交答案吧。",
+    emptySections: "当前没有可展示的题目。",
+    meta: "{picks} 人作答 · {slots} 个计分位",
+    ifCorrect: "如果猜对，奖金 {amount} 分",
+    doubleSlots: "（Double 为 2 个计分位）",
+    winner: "猜对"
+  },
+  adminGate: {
+    title: "管理员验证",
+    desc: "请输入管理员密码以继续。",
+    password: "密码",
+    wrongPassword: "密码错误，请重试。",
+    verifying: "验证中…",
+    enter: "进入管理"
+  },
+  admin: {
+    title: "管理员",
+    logout: "退出管理",
+    pageLocked: "已锁定",
+    pageOpen: "开放",
+    calcScores: "计算分数",
+    scoresRecalculated: "分数已重新计算。",
+    lockPage: "锁定{page}",
+    unlockPage: "解锁{page}",
+    publicAnswersTitle: "向玩家开放答题总览",
+    publicAnswersDesc:
+      "排行榜始终公开。答题总览默认隐藏，第一页与第二页可分别设置最早开放时间并手动开放。",
+    resultsP1: "录入比赛结果 — {page}",
+    resultsP2: "录入比赛结果 & 管理小题 — {page}",
+    unsettled: "未结算",
+    hide: "隐藏",
+    hidden: "已隐藏",
+    restoreHide: "撤回隐藏",
+    noSubs: "该题暂无小题。",
+    allSubsHidden: "该题所有小题均已隐藏，可在下方撤回。",
+    allPicks: "所有玩家选择",
+    noSubmissions: "暂无提交。",
+    action: "操作",
+    complete: "✓ 已完成",
+    subCount: "{done}/{total} 小题",
+    confirmHide:
+      "确定隐藏小题「{label}」？隐藏后玩家看不到该题；若其余小题均已作答，将视为答完该大题。",
+    hiddenSub: "已隐藏小题「{label}」。可在下方「已隐藏小题」中撤回。",
+    restoredSub: "已恢复小题「{label}」。",
+    confirmDelete: "确定删除玩家「{name}」及其全部竞猜记录？此操作不可撤销。",
+    deletedPlayer: "已删除玩家「{name}」。",
+    deleteFailed: "删除失败，请重试。",
+    featureAnswersP1: "答题总览 · 第一页",
+    featureAnswersP2: "答题总览 · 第二页",
+    opensAtLabel: "最早可开放时间（留空表示随时可开放）",
+    opensAtHint: "将于 {time} 后可向玩家开放。",
+    visible: "玩家可见",
+    enabledPending: "已开放，未到展示时间",
+    disabled: "未向玩家开放",
+    updatedOpensAt: "已更新「{label}」最早开放时间。",
+    cannotOpenYet: "未到开放时间{time}，暂无法向玩家开放{label}。",
+    opened: "已向玩家开放{label}。",
+    closed: "已关闭{label}，玩家不可见。",
+    openFeature: "向玩家开放{label}",
+    closeFeature: "关闭{label}"
+  }
+} as const;
+
+type DeepStringMap<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringMap<T[K]>;
+};
+
+export type Messages = DeepStringMap<typeof zh>;
