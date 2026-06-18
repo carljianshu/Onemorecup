@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { formatScore } from "@/lib/score-format";
 import { useGame } from "@/context/GameContext";
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
 import { computeMissingItemCount } from "@/lib/pick-stats";
@@ -11,13 +12,6 @@ function scoreClass(score: number) {
   if (score > 0) return "score-positive";
   if (score < 0) return "score-negative";
   return "score-zero";
-}
-
-function formatScore(score: number | undefined) {
-  if (score === undefined) return "—";
-  const text = score.toFixed(2);
-  if (score > 0) return `+${text}`;
-  return text;
 }
 
 export default function LeaderboardPage() {

@@ -20,6 +20,7 @@ import {
   toDatetimeLocalValue
 } from "@/lib/public-features";
 import { clearAdminAuthed } from "@/lib/admin-auth";
+import { formatScore } from "@/lib/score-format";
 import type { AnswersPageFeature } from "@/lib/public-features";
 import type { Market, PlayPage } from "@/types";
 
@@ -131,8 +132,7 @@ function AdminPageContent() {
 
   function scoreFor(playerId: string) {
     const score = leaderboard.find((e) => e.playerId === playerId)?.totalScore ?? 0;
-    const text = score.toFixed(2);
-    return score > 0 ? `+${text}` : text;
+    return formatScore(score);
   }
 
   function handleCalculate() {

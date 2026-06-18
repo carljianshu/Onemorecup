@@ -1,3 +1,4 @@
+import { roundScore } from "@/lib/score-format";
 import { DOUBLE_STAKE, STAKE_PER_PICK } from "@/data/markets";
 import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
 import {
@@ -7,9 +8,7 @@ import {
 } from "@/lib/market-helpers";
 import type { LeaderboardEntry, Market, Pick, Player, SubQuestion } from "@/types";
 
-export function roundScore(value: number) {
-  return Math.round(value * 100) / 100;
-}
+export { roundScore } from "@/lib/score-format";
 
 function binarySlotsForPick(pick: Pick, winner: string): number[] {
   const value = pick.team === winner ? 1 : 0;
@@ -56,9 +55,13 @@ export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<stri
 
   for (const pick of groupPicks) {
     for (const value of binarySlotsForPick(pick, winner)) {
-      const z = ((value - mean) / std) * 10;
+      const z = roundScore(((value - mean) / std) * 10);
       scores[pick.playerId] = roundScore((scores[pick.playerId] ?? 0) + z);
     }
+  }
+
+  for (const pick of groupPicks) {
+    scores[pick.playerId] = roundScore(scores[pick.playerId] ?? 0);
   }
 
   return scores;
@@ -95,7 +98,7 @@ export function computePlayerScores(
         const score = settled[player.id];
         if (score === undefined) continue;
         const entry = result.get(player.id)!;
-        entry.marketScores[market.id] = score;
+        entry.marketScores[market.id] = roundScore(score);
         entry.totalScore = roundScore(entry.totalScore + score);
         entry.settledCount += 1;
       }
@@ -119,7 +122,7 @@ export function computePlayerScores(
         const score = settled[player.id];
         if (score === undefined) continue;
         const entry = result.get(player.id)!;
-        entry.marketScores[sub.id] = score;
+        entry.marketScores[sub.id] = roundScore(score);
         entry.totalScore = roundScore(entry.totalScore + score);
         entry.settledCount += 1;
       }
@@ -145,13 +148,16 @@ export function buildLeaderboard(
         picks.filter((pick) => pick.playerId === player.id),
         markets
       );
-    let totalScore = computed.totalScore;
+    let totalScore = roundScore(computed.totalScore);
     if (page2Locked) {
       const missing = computeMissingItemCount(pickStats);
       if (missing > 0) {
         totalScore = roundScore(totalScore - missing * STAKE_PER_PICK);
       }
     }
+    const marketScores = Object.fromEntries(
+      Object.entries(computed.marketScores).map(([id, score]) => [id, roundScore(score)])
+    );
     return {
       playerId: player.id,
       name: player.name,
@@ -159,7 +165,7 @@ export function buildLeaderboard(
       settledCount: computed.settledCount,
       guessedCount: countPlayerGuessedItems(player.id, picks, markets),
       pickStats,
-      marketScores: computed.marketScores,
+      marketScores,
       createdAt: player.createdAt
     };
   });

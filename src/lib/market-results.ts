@@ -1,5 +1,6 @@
 import { DOUBLE_STAKE } from "@/data/markets";
 import { activeSubQuestions, allPickColumns, type PickColumn } from "@/lib/market-helpers";
+import { formatScore, roundScore } from "@/lib/score-format";
 import { settlePickGroup, singleCorrectSlotBonus } from "@/lib/scoring";
 import type { Market, Pick, Player, PlayPage } from "@/types";
 
@@ -29,12 +30,7 @@ export interface MarketResultSection {
   winner: string | null;
 }
 
-export function formatScoreAmount(value: number) {
-  const text = Math.abs(value).toFixed(2);
-  if (value > 0) return `+${text}`;
-  if (value < 0) return `-${text}`;
-  return text;
-}
+export { formatScore };
 
 function candidatesForColumn(markets: Market[], col: PickColumn): string[] {
   if (col.page === 1) {
@@ -81,14 +77,14 @@ export function buildMarketResultSections(
       const ifCorrectScores = settlePickGroup(option, questionPicks);
       return {
         option,
-        ifCorrectBonus: singleCorrectSlotBonus(option, questionPicks),
+        ifCorrectBonus: roundScore(singleCorrectSlotBonus(option, questionPicks)),
         picks: questionPicks
           .filter((pick) => pick.team === option)
           .map((pick) => ({
             playerId: pick.playerId,
             playerName: playerById.get(pick.playerId)?.name ?? "未知玩家",
             isDouble: pick.stake === DOUBLE_STAKE,
-            ifCorrectPayout: ifCorrectScores[pick.playerId] ?? 0
+            ifCorrectPayout: roundScore(ifCorrectScores[pick.playerId] ?? 0)
           }))
           .sort((a, b) => a.playerName.localeCompare(b.playerName, "zh-CN")),
         isWinner: winner !== null && option === winner

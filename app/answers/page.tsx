@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { formatScore } from "@/lib/score-format";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS } from "@/data/markets";
 import { allPickColumns, findPlayerPick } from "@/lib/market-helpers";
@@ -173,7 +174,7 @@ export default function AnswersPage() {
                     <td>
                       {player.pickStats.page2Count}/{MIN_PAGE2_PICKS}
                     </td>
-                    <td>{score > 0 ? `+${score.toFixed(2)}` : score.toFixed(2)}</td>
+                    <td>{formatScore(score)}</td>
                     {columns.map((col) => {
                       const pick = findPlayerPick(picks, player.id, col.id);
                       if (!pick) {

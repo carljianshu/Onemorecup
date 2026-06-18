@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useGame } from "@/context/GameContext";
-import { buildMarketResultSections, formatScoreAmount } from "@/lib/market-results";
+import { buildMarketResultSections, formatScore } from "@/lib/market-results";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
 import type { PlayPage } from "@/types";
 
@@ -139,7 +139,7 @@ export default function MarketResultsPage() {
                         {isWinner && <span className="market-result-winner-badge">猜对</span>}
                       </h3>
                       <span className="market-result-pool">
-                        如果猜对，奖金 {formatScoreAmount(ifCorrectBonus)} 分
+                        如果猜对，奖金 {formatScore(ifCorrectBonus)} 分
                         {optionPicks.some((pick) => pick.isDouble) && (
                           <span className="market-result-pool-meta">（Double 为 2 个计分位）</span>
                         )}
@@ -157,7 +157,7 @@ export default function MarketResultsPage() {
                             <span className="market-result-player-name">{pick.playerName}</span>
                             {pick.isDouble && (
                               <span className="market-result-player-payout">
-                                如果猜对，奖金 {formatScoreAmount(pick.ifCorrectPayout)} 分
+                                如果猜对，奖金 {formatScore(pick.ifCorrectPayout)} 分
                                 <span className="pick-double-badge">Double</span>
                               </span>
                             )}
