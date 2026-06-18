@@ -13,7 +13,6 @@ import {
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
   MIN_TOTAL_PICKS,
-  STAKE_PER_PICK,
   isPageLocked,
   marketsForPage,
   minPicksForPage,
@@ -24,7 +23,7 @@ import {
 import { translateMarketName } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave } from "@/lib/market-helpers";
-import { countSelections, describePickShortfall, validatePageSave } from "@/lib/pick-stats";
+import { countSelections, validatePageSave } from "@/lib/pick-stats";
 import { isValidInviteCode } from "@/lib/invite-code";
 import { isPlayerPromoted, promotionCutoffCount } from "@/lib/promotion";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
@@ -259,29 +258,12 @@ export default function PlayPage() {
           ? t("play.successP1", { count: savedStats.page1Count, min: MIN_PAGE1_PICKS })
           : step === 3
             ? t("play.successP3", { count: savedStats.page3Count, min: MIN_PAGE3_PICKS })
-            : (() => {
-              const base = t("play.successP2", {
+            : t("play.successP2", {
                 p1: savedStats.page1Count,
                 p2: savedStats.page2Count,
-                total: savedStats.totalCount
+                total: savedStats.page1Count + savedStats.page2Count
               });
-              const shortfall = describePickShortfall(savedStats);
-              if (!shortfall.hasShortfall) return base;
-              return `${base} ${t("play.warnP2Shortfall", {
-                missing: shortfall.penaltyItems,
-                p2: savedStats.page2Count,
-                page2Min: MIN_PAGE2_PICKS,
-                total: savedStats.totalCount,
-                totalMin: MIN_TOTAL_PICKS,
-                penalty: STAKE_PER_PICK,
-                penaltyTotal: shortfall.penaltyItems * STAKE_PER_PICK
-              })}`;
-            })();
-      const shortfall = step === 2 ? describePickShortfall(savedStats) : null;
-      setMessage({
-        type: shortfall?.hasShortfall ? "warning" : "success",
-        text: successText
-      });
+      setMessage({ type: "success", text: successText });
     } catch (error) {
       if (error instanceof ApiError) {
         const text =

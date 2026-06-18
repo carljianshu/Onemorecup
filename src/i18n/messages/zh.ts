@@ -42,8 +42,8 @@ export const zh = {
     title: "淘汰赛竞猜",
     subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
     rulesTitle: "简单规则",
-    rule1: "提交竞猜共分三页：1/16决赛 {page1} 题，1/8决赛 {page2} 题，1/4决赛及以后 {page3} 题，共 {total} 个项目。1/16决赛至少猜 {page1Min} 题才能保存；1/4决赛及以后至少猜 {page3Min} 题才能保存；1/8决赛要求完成 {page2Min} 道大题、总计 {totalMin} 题，不足仍可保存，1/8决赛锁定后每少答 1 题扣 10 分。",
-    rule2: "1/16决赛需至少竞猜{page1Min}场，1/8决赛需至少竞猜{page3Min}场，两阶段加起来需至少竞猜{totalMin}场。每阶段可选一场比赛 Double 双倍下注。",
+    rule1: "提交竞猜共分三页：1/16决赛 {page1} 题，1/8决赛 {page2} 题，1/4决赛及以后 {page3} 题，共 {total} 个项目。1/16决赛至少猜 {page1Min} 题才能保存；1/8决赛至少猜 {page2Min} 题，且与 1/16 合计至少 {totalMin} 题才能保存；1/4决赛及以后至少猜 {page3Min} 题才能保存。",
+    rule2: "1/16决赛需至少竞猜 {page1Min} 场，1/8决赛需至少竞猜 {page2Min} 场，两阶段合计需至少竞猜 {totalMin} 场。每阶段可选一场比赛 Double 双倍下注。",
     rule3:
       "本游戏模拟对赌投注，玩家竞猜投注1/16决赛和1/8决赛的结果，猜错者损失竞猜本金，猜对者平分猜错玩家的投注本金。具体投注规则请见",
     rule4: "若某场比赛所有玩家都猜对或都猜错，该场作废，所有玩家均无收益或损失。",
@@ -121,22 +121,19 @@ export const zh = {
     successP1: "1/16决赛已保存！已答 {count}/{min} 题。锁定前可随时修改。",
     successP3: "1/4决赛及以后已保存！已答 {count}/{min} 题。锁定前可随时修改。",
     successP2:
-      "1/8决赛已保存！1/16决赛 {p1} 题，1/8决赛 {p2} 题，总计 {total} 题。锁定前可随时修改。",
-    warnP2Shortfall:
-      "距要求题量还差 {missing} 题（1/8决赛 {p2}/{page2Min}，总计 {total}/{totalMin}）。1/8决赛锁定后每少 1 题扣 {penalty} 分，当前将扣 {penaltyTotal} 分。"
+      "1/8决赛已保存！1/16决赛 {p1} 题，1/8决赛 {p2} 题，两阶段合计 {total} 题。锁定前可随时修改。",
   },
   validation: {
     page1Min: "1/16决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
     page3Min: "1/4决赛及以后至少需答满 {min} 题才能保存（当前 {count} 题）。",
     page2Min: "1/8决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
-    totalMin: "总计要求 {min} 题（当前 {count} 题）。"
+    totalMin: "1/16决赛与1/8决赛合计至少需答满 {min} 题才能保存（当前 {count} 题）。"
   },
   leaderboard: {
     title: "排行榜",
     empty: "暂无提交记录，成为第一个参与者吧！",
     totalPicks: "总计答题",
     settled: "已结算项目数",
-    missing: "缺少的项目数",
     details: "详情",
     collapse: "收起",
     perMarket: "每场收益",

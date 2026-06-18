@@ -44,8 +44,8 @@ export const en: Messages = {
     title: "Knockout Bracket Pool",
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
-    rule1: "Picks are split into three phases: {page1} in the Round of 32, {page2} in the Round of 16, {page3} in quarter-finals and later ({total} items total). Round of 32 needs at least {page1Min} picks to save; quarter-finals and later needs at least {page3Min}; Round of 16 requires {page2Min} picks and {totalMin} total—you can still save if short; after the Round of 16 locks, each missing item costs 10 points.",
-    rule2: "Pick at least {page1Min} Round of 32 matches and {page3Min} Round of 16 matches ({totalMin} total across both phases). You may Double one pick per phase.",
+    rule1: "Picks are split into three phases: {page1} in the Round of 32, {page2} in the Round of 16, {page3} in quarter-finals and later ({total} items total). Round of 32 needs at least {page1Min} picks to save; Round of 16 needs at least {page2Min} picks and {totalMin} combined with Round of 32; quarter-finals and later needs at least {page3Min} picks to save.",
+    rule2: "Pick at least {page1Min} Round of 32 matches and {page2Min} Round of 16 matches ({totalMin} combined across both phases). You may Double one pick per phase.",
     rule3:
       "This game simulates parimutuel betting: you stake on Round of 32 and Round of 16 outcomes. Wrong picks lose their stake; winners split the stakes lost by wrong picks. See",
     rule4: "If all players are right or all players are wrong on a match, that match is void and no player gains or loses anything.",
@@ -123,22 +123,20 @@ export const en: Messages = {
     successP1: "Round of 32 saved! {count}/{min} answered. You can edit until locked.",
     successP3: "Quarter-finals and later saved! {count}/{min} answered. You can edit until locked.",
     successP2:
-      "Round of 16 saved! Round of 32: {p1}, Round of 16: {p2}, total: {total}. You can edit until locked.",
-    warnP2Shortfall:
-      "{missing} items short of the required minimum (Round of 16: {p2}/{page2Min}, total: {total}/{totalMin}). After the Round of 16 locks, each missing item costs {penalty} pts ({penaltyTotal} pts now)."
+      "Round of 16 saved! Round of 32: {p1}, Round of 16: {p2}, combined: {total}. You can edit until locked.",
   },
   validation: {
     page1Min: "Save the Round of 32 only after at least {min} picks (currently {count}).",
     page3Min: "Save quarter-finals and later only after at least {min} picks (currently {count}).",
     page2Min: "Round of 16 requires at least {min} picks (currently {count}).",
-    totalMin: "Total requires {min} picks (currently {count})."
+    totalMin:
+      "Round of 32 and Round of 16 combined need at least {min} picks to save (currently {count})."
   },
   leaderboard: {
     title: "Leaderboard",
     empty: "No entries yet. Be the first!",
     totalPicks: "Total picks",
     settled: "Settled / picked",
-    missing: "Missing items",
     details: "Details",
     collapse: "Collapse",
     perMarket: "Per-item earnings",

@@ -42,7 +42,7 @@ export function pickStatsFromPickInputs(
   return countSelections(answers, markets);
 }
 
-/** 保存当页前的题量下限校验；通过返回 null。第二页未达要求题量仍可保存。 */
+/** 保存当页前的题量下限校验；通过返回 null。 */
 export function validatePageSave(
   page: PlayPage,
   mergedPickInputs: PlayerPickInput[],
@@ -53,6 +53,18 @@ export function validatePageSave(
     const stats = pickStatsFromPickInputs(pagePickInputs, markets);
     if (stats.page1Count < MIN_PAGE1_PICKS) {
       return { code: "page1_min", count: stats.page1Count, min: MIN_PAGE1_PICKS };
+    }
+    return null;
+  }
+
+  if (page === 2) {
+    const stats = pickStatsFromPickInputs(mergedPickInputs, markets);
+    if (stats.page2Count < MIN_PAGE2_PICKS) {
+      return { code: "page2_min", count: stats.page2Count, min: MIN_PAGE2_PICKS };
+    }
+    const phase12Count = stats.page1Count + stats.page2Count;
+    if (phase12Count < MIN_TOTAL_PICKS) {
+      return { code: "total_min", count: phase12Count, min: MIN_TOTAL_PICKS };
     }
     return null;
   }
@@ -77,24 +89,4 @@ export const EMPTY_PICK_STATS: PickStats = {
 
 export function formatPickStats(stats: PickStats) {
   return `1/16决赛 ${stats.page1Count}/${MIN_PAGE1_PICKS}，1/8决赛 ${stats.page2Count}/${MIN_PAGE2_PICKS}，1/4决赛及以后 ${stats.page3Count}/${MIN_PAGE3_PICKS}，总计 ${stats.totalCount}/${MIN_TOTAL_PICKS}`;
-}
-
-/** max(max(16 − 总计, 4 − 第二页大题数), 0)；用于第二页锁定后的扣分题数。 */
-export function computeMissingItemCount(stats: PickStats): number {
-  return Math.max(
-    Math.max(MIN_TOTAL_PICKS - stats.totalCount, MIN_PAGE2_PICKS - stats.page2Count),
-    0
-  );
-}
-
-export function describePickShortfall(stats: PickStats) {
-  const page2Short = Math.max(0, MIN_PAGE2_PICKS - stats.page2Count);
-  const totalShort = Math.max(0, MIN_TOTAL_PICKS - stats.totalCount);
-  const penaltyItems = computeMissingItemCount(stats);
-  return {
-    page2Short,
-    totalShort,
-    penaltyItems,
-    hasShortfall: penaltyItems > 0
-  };
 }

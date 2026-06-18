@@ -1,6 +1,6 @@
 import { roundScore } from "@/lib/score-format";
 import { DOUBLE_STAKE, marketUsesDistributionAdjustment, STAKE_PER_PICK } from "@/data/markets";
-import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
+import { computePickStats } from "@/lib/pick-stats";
 import { countPlayerGuessedItems } from "@/lib/market-helpers";
 import type { LeaderboardEntry, Market, Pick, Player } from "@/types";
 
@@ -420,8 +420,7 @@ export function computePlayerScores(
 export function buildLeaderboard(
   players: Player[],
   markets: Market[],
-  picks: Pick[],
-  page2Locked = false
+  picks: Pick[]
 ): LeaderboardEntry[] {
   const scores = computePlayerScores(players, markets, picks);
 
@@ -433,13 +432,7 @@ export function buildLeaderboard(
         picks.filter((pick) => pick.playerId === player.id),
         markets
       );
-    let totalScore = roundScore(computed.totalScore);
-    if (page2Locked) {
-      const missing = computeMissingItemCount(pickStats);
-      if (missing > 0) {
-        totalScore = roundScore(totalScore - missing * STAKE_PER_PICK);
-      }
-    }
+    const totalScore = roundScore(computed.totalScore);
     const marketScores = Object.fromEntries(
       Object.entries(computed.marketScores).map(([id, score]) => [id, roundScore(score)])
     );

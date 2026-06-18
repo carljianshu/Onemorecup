@@ -39,13 +39,9 @@ function write<T>(key: string, value: T) {
 function refreshLeaderboard(
   players: Player[],
   markets: Market[],
-  picks: Pick[],
-  config?: GameConfig
+  picks: Pick[]
 ): LeaderboardEntry[] {
-  const effectiveConfig =
-    config ?? (isBrowser() ? normalizeConfig(read<unknown>(KEYS.config, null)) : defaultGameConfig());
-  const page2Locked = isPageLocked(effectiveConfig, 2);
-  const leaderboard = buildLeaderboard(players, markets, picks, page2Locked);
+  const leaderboard = buildLeaderboard(players, markets, picks);
   write(KEYS.leaderboard, leaderboard);
   return leaderboard;
 }
@@ -155,7 +151,7 @@ export function hydrateGameState(
   const config = normalizeConfig(snapshot.config);
   if (persist) saveConfig(config);
 
-  const leaderboard = refreshLeaderboard(players, markets, picks, config);
+  const leaderboard = refreshLeaderboard(players, markets, picks);
   if (persist) write(KEYS.leaderboard, leaderboard);
 
   return { players, markets, picks, config, leaderboard };
@@ -348,7 +344,7 @@ export function deletePlayer(
   const picks = state.picks.filter((p) => p.playerId !== playerId);
   savePlayers(players);
   savePicks(picks);
-  const leaderboard = refreshLeaderboard(players, state.markets, picks, state.config);
+  const leaderboard = refreshLeaderboard(players, state.markets, picks);
   return { players, picks, leaderboard };
 }
 
@@ -372,7 +368,7 @@ export function setPageLocked(
 ) {
   const config = applyManualPageLock(state.config, page, locked);
   saveConfig(config);
-  const leaderboard = refreshLeaderboard(state.players, state.markets, state.picks, config);
+  const leaderboard = refreshLeaderboard(state.players, state.markets, state.picks);
   return { config, leaderboard };
 }
 
@@ -404,5 +400,5 @@ export function recalculateLeaderboard(state: {
   picks: Pick[];
   config?: GameConfig;
 }) {
-  return refreshLeaderboard(state.players, state.markets, state.picks, state.config);
+  return refreshLeaderboard(state.players, state.markets, state.picks);
 }

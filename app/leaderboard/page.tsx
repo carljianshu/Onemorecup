@@ -7,7 +7,6 @@ import { formatScore } from "@/lib/score-format";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
-import { computeMissingItemCount } from "@/lib/pick-stats";
 import { promotionCutoffCount, showPromotionCutoffLine } from "@/lib/promotion";
 
 function scoreClass(score: number) {
@@ -59,7 +58,6 @@ export default function LeaderboardPage() {
                 <th>{t("leaderboard.totalPicks")}</th>
                 <th>{t("leaderboard.earning")}</th>
                 <th>{t("leaderboard.settled")}</th>
-                <th>{t("leaderboard.missing")}</th>
                 <th>{t("leaderboard.details")}</th>
               </tr>
             </thead>
@@ -85,7 +83,6 @@ export default function LeaderboardPage() {
                     <td>
                       {entry.settledCount} / {entry.guessedCount}
                     </td>
-                    <td>{computeMissingItemCount(entry.pickStats)}</td>
                     <td>
                       <button
                         type="button"
@@ -102,7 +99,7 @@ export default function LeaderboardPage() {
                   </tr>
                   {expanded === entry.playerId && (
                     <tr className="submission-row">
-                      <td colSpan={10}>
+                      <td colSpan={9}>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 1rem" }}>
                           {markets.map((market) => {
                             const score = entry.marketScores[market.id];
@@ -118,7 +115,7 @@ export default function LeaderboardPage() {
                   )}
                   {showPromotionCutoff && index === promotionCount - 1 && (
                     <tr className="leaderboard-cutoff-row">
-                      <td colSpan={10}>
+                      <td colSpan={9}>
                         <div className="leaderboard-cutoff-line" aria-label={t("leaderboard.promotionZone")}>
                           <span>{t("leaderboard.promotionZone")}</span>
                         </div>
