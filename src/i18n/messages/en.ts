@@ -44,7 +44,7 @@ export const en: Messages = {
     rule2: "Pick one team per item, or skip; each pick stakes 10 points by default.",
     rule3: "At most one Double per page; that pick stakes 20 points.",
     rule4:
-      "Per settled item: wrong = 0, right = 10; Double counts as two 0s or two 10s. Stake per slot is 10÷std dev (Double = 20÷std dev); winners split losers' stakes (if std dev is 0, everyone scores 0).",
+      "Per settled item: wrong = 0, right = 10; Double counts as two 0s or two 10s. Stake per slot is 100÷std dev (Double = 200÷std dev); winners split losers' stakes (if std dev is 0, everyone scores 0).",
     rule5: "At least {page1Min} picks on page 1, {page2Min} main questions on page 2, and {totalMin} total to save page 2.",
     rule6: "If everyone is right or everyone is wrong on an item, everyone scores 0.",
     rule7: "Highest total wins; ties share rank."
@@ -124,7 +124,7 @@ export const en: Messages = {
     closedTitle: "Market results not public yet",
     closedDesc: "An admin will open page 1 and/or page 2 market results when ready.",
     lead:
-      "Players grouped by option per question. If an option were correct: its picks = 10 (Double = two 10s), others = 0 (Double = two 0s); stake = 10÷std dev, winners split losers' stakes, shown as “If correct, bonus xx pts”. Green border = actual winner entered.",
+      "Players grouped by option per question. If an option were correct: its picks = 10 (Double = two 10s), others = 0 (Double = two 0s); stake = 100÷std dev, winners split losers' stakes; each option shows if-right/if-wrong points. Green border = actual winner entered.",
     emptyPlayers: "No players yet. Go to Play to submit picks.",
     emptySections: "No questions to show.",
     meta: "{picks} players · {slots} scoring slots",

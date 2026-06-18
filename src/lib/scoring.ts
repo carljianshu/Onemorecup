@@ -1,5 +1,5 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, PARIMUTUEL_STAKE_PER_SLOT, STAKE_PER_PICK } from "@/data/markets";
 import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
 import {
   countPlayerGuessedItems,
@@ -66,7 +66,7 @@ export interface ParimutuelBreakdown {
   isVoid: boolean;
 }
 
-/** 猜对/猜错为 10/0；本金 10÷σ（Double 两计分位共 20÷σ）；赢家平分输家本金。 */
+/** 猜对/猜错为 10/0；本金 100÷σ（Double 两计分位共 200÷σ）；赢家平分输家本金。 */
 function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlement | null {
   if (groupPicks.length === 0) return null;
 
@@ -92,7 +92,7 @@ function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlem
     };
   }
 
-  const stakePerSlot = STAKE_PER_PICK / std;
+  const stakePerSlot = PARIMUTUEL_STAKE_PER_SLOT / std;
   let totalLoss = 0;
   let winningSlotCount = 0;
 
