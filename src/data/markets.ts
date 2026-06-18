@@ -10,6 +10,13 @@ export const MIN_PAGE3_PICKS = 4;
 export const MIN_TOTAL_PICKS = 16;
 export const TOTAL_MARKETS = PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT;
 
+/** 不展示「猜对/猜错」旁预览积分的题目（多选项题）。 */
+export const MARKETS_WITHOUT_PAYOUT_HINTS = new Set<string>(["p3-5", "p3-6", "p3-7"]);
+
+export function marketShowsPayoutHints(marketId: string): boolean {
+  return !MARKETS_WITHOUT_PAYOUT_HINTS.has(marketId);
+}
+
 export const PLAY_PAGES = [1, 2, 3] as const satisfies readonly PlayPage[];
 
 /**
@@ -251,7 +258,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-5",
     round: "P3",
     name: "第一场半决赛谁会晋级？",
-    candidates: ["1/4区", "2/4区"],
+    candidates: ["待填 1", "待填 2", "待填 3", "待填 4"],
     winner: null,
     page: 3
   },
@@ -259,7 +266,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-6",
     round: "P3",
     name: "第二场半决赛谁会晋级？",
-    candidates: ["3/4区", "4/4区"],
+    candidates: ["待填 1", "待填 2", "待填 3", "待填 4"],
     winner: null,
     page: 3
   },
@@ -267,7 +274,16 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-7",
     round: "P3",
     name: "谁能夺冠？",
-    candidates: ["上半区", "下半区"],
+    candidates: [
+      "待填 1",
+      "待填 2",
+      "待填 3",
+      "待填 4",
+      "待填 5",
+      "待填 6",
+      "待填 7",
+      "待填 8"
+    ],
     winner: null,
     page: 3
   }

@@ -6,6 +6,7 @@ import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { OptionPayoutHints } from "@/components/OptionPayoutHints";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
+import { marketShowsPayoutHints } from "@/data/markets";
 import { buildMarketResultSections } from "@/lib/market-results";
 import { formatScorePlain } from "@/lib/score-format";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
@@ -151,6 +152,7 @@ export default function MarketResultsPage() {
               <div className="market-result-options">
                 {section.options.map((optionResult) => {
                   const { option, picks: optionPicks, isWinner } = optionResult;
+                  const showPayoutHints = marketShowsPayoutHints(section.id);
 
                   return (
                     <div
@@ -160,12 +162,14 @@ export default function MarketResultsPage() {
                       <div className="market-result-option-head">
                         <h3 className="market-result-option-label">
                           <span className="market-result-option-name">{option}</span>
-                          <OptionPayoutHints
-                            option={option}
-                            candidates={section.options.map((item) => item.option)}
-                            questionPicks={picks.filter((pick) => pick.marketId === section.id)}
-                            className="market-result-option-payout"
-                          />
+                          {showPayoutHints && (
+                            <OptionPayoutHints
+                              option={option}
+                              candidates={section.options.map((item) => item.option)}
+                              questionPicks={picks.filter((pick) => pick.marketId === section.id)}
+                              className="market-result-option-payout"
+                            />
+                          )}
                           {isWinner && (
                             <span className="market-result-winner-badge">{t("marketResults.winner")}</span>
                           )}
@@ -192,7 +196,7 @@ export default function MarketResultsPage() {
                                 }
                               >
                                 <span className="market-result-player-name">{pick.playerName}</span>
-                                {pick.isDouble ? (
+                                {showPayoutHints && pick.isDouble ? (
                                   <OptionPayoutHints
                                     option={option}
                                     candidates={candidates}
