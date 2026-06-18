@@ -25,7 +25,7 @@ export default function ScoringRulesPage() {
   const { t } = useLocale();
 
   return (
-    <main className="container">
+    <main className="container container-wide scoring-rules-page">
       <nav className="nav-bar">
         <Link href="/">{t("common.backHome")}</Link>
       </nav>

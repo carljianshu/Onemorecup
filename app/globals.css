@@ -79,8 +79,14 @@ a {
   margin: 0 0.15rem;
 }
 
+.scoring-rules-page {
+  padding-bottom: 4rem;
+}
+
 .scoring-rules-card {
-  max-width: 640px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 2.25rem;
 }
 
 .scoring-rules-block + .scoring-rules-block {
