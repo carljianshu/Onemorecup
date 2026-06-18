@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -19,6 +20,7 @@ import {
   type LeaderboardResponse
 } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
+import { LEADERBOARD_POLL_MS, pathNeedsLiveSync } from "@/lib/leaderboard-poll";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
 import { isPageLocked } from "@/data/markets";
 import {
@@ -87,8 +89,10 @@ function applyLeaderboardData(
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [apiSync, setApiSync] = useState(false);
+  const [tabVisible, setTabVisible] = useState(true);
   const [players, setPlayers] = useState<Player[]>([]);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [picks, setPicks] = useState<Pick[]>([]);
@@ -117,7 +121,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    let pollId: ReturnType<typeof setInterval> | undefined;
 
     async function init() {
       try {
@@ -125,14 +128,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         applyResponse(data);
         setApiSync(true);
-
-        pollId = setInterval(() => {
-          fetchLeaderboard()
-            .then((next) => {
-              if (!cancelled) applyResponse(next);
-            })
-            .catch(() => undefined);
-        }, 5000);
       } catch {
         if (cancelled) return;
         const local = loadGameState();
@@ -152,9 +147,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
-      if (pollId) clearInterval(pollId);
     };
   }, [applyResponse]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      setTabVisible(document.visibilityState !== "hidden");
+    };
+    onVisibilityChange();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !apiSync || !tabVisible || !pathNeedsLiveSync(pathname)) return;
+
+    let cancelled = false;
+
+    const pull = () => {
+      fetchLeaderboard()
+        .then((next) => {
+          if (!cancelled) applyResponse(next);
+        })
+        .catch(() => undefined);
+    };
+
+    pull();
+    const pollId = window.setInterval(pull, LEADERBOARD_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollId);
+    };
+  }, [ready, apiSync, tabVisible, pathname, applyResponse]);
 
   useEffect(() => {
     if (!ready) return;
