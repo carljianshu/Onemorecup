@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, isPageLocked, marketsForPage } from "@/data/markets";
+import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, STAKE_PER_PICK, isPageLocked, marketsForPage } from "@/data/markets";
 import { translateMarketName } from "@/i18n";
 import { translatePageSaveError, translatePage2StructureError } from "@/i18n/validation";
 import {
@@ -20,7 +20,7 @@ import {
   mergePickInputsForPageSave,
   validatePage2MainQuestionState
 } from "@/lib/market-helpers";
-import { countSelections, validatePageSave } from "@/lib/pick-stats";
+import { countSelections, describePickShortfall, validatePageSave } from "@/lib/pick-stats";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
 
 function buildPickInputsForPage(
@@ -295,12 +295,29 @@ export default function PlayPage() {
       const successText =
         step === 1
           ? t("play.successP1", { count: savedStats.page1Count, min: MIN_PAGE1_PICKS })
-          : t("play.successP2", {
-              p1: savedStats.page1Count,
-              p2: savedStats.page2Count,
-              total: savedStats.totalCount
-            });
-      setMessage({ type: "success", text: successText });
+          : (() => {
+              const base = t("play.successP2", {
+                p1: savedStats.page1Count,
+                p2: savedStats.page2Count,
+                total: savedStats.totalCount
+              });
+              const shortfall = describePickShortfall(savedStats);
+              if (!shortfall.hasShortfall) return base;
+              return `${base} ${t("play.warnP2Shortfall", {
+                missing: shortfall.penaltyItems,
+                p2: savedStats.page2Count,
+                page2Min: MIN_PAGE2_PICKS,
+                total: savedStats.totalCount,
+                totalMin: MIN_TOTAL_PICKS,
+                penalty: STAKE_PER_PICK,
+                penaltyTotal: shortfall.penaltyItems * STAKE_PER_PICK
+              })}`;
+            })();
+      const shortfall = step === 2 ? describePickShortfall(savedStats) : null;
+      setMessage({
+        type: shortfall?.hasShortfall ? "warning" : "success",
+        text: successText
+      });
     } catch (error) {
       if (error instanceof ApiError) {
         const text =

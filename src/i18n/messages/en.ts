@@ -40,7 +40,7 @@ export const en: Messages = {
     title: "Knockout Bracket Pool",
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
-    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). At least {page1Min} picks on page 1, {page2Min} main questions on page 2, and {totalMin} total to save page 2.",
+    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). Page 1 needs at least {page1Min} picks to save. Page 2 recommends {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
     rule2: "Pick one team per item, or skip. At most one Double per page; that pick doubles your stake.",
     rule3:
       "Each question uses a parimutuel system: wrong picks lose their stake on that question; right picks split the losers' stakes. The stake is not fixed—it adjusts with how picks split among options: more lopsided support means a lower stake; closer splits mean a higher stake.",
@@ -89,12 +89,14 @@ export const en: Messages = {
     errTooManyDoublesP2: "At most one Double main question on page 2.",
     successP1: "Page 1 saved! {count}/{min} answered. You can edit until locked.",
     successP2:
-      "Page 2 saved! Page 1: {p1}, page 2: {p2}, total: {total}. You can edit until locked."
+      "Page 2 saved! Page 1: {p1}, page 2: {p2}, total: {total}. You can edit until locked.",
+    warnP2Shortfall:
+      "{missing} items short of the recommended minimum (page 2: {p2}/{page2Min}, total: {total}/{totalMin}). After page 2 locks, each missing item costs {penalty} pts ({penaltyTotal} pts now)."
   },
   validation: {
     page1Min: "Save page 1 only after at least {min} picks (currently {count}).",
-    page2Min: "Save page 2 only after at least {min} main questions (currently {count}).",
-    totalMin: "Save page 2 only after at least {min} total picks (currently {count}).",
+    page2Min: "Page 2 recommends {min} main questions (currently {count}).",
+    totalMin: "Total recommends {min} picks (currently {count}).",
     mainIncomplete: "{market}: complete all {subs} subs or tap Skip on the main question."
   },
   leaderboard: {

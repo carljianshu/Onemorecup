@@ -38,7 +38,7 @@ export const zh = {
     title: "淘汰赛竞猜",
     subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
     rulesTitle: "简单规则",
-    rule1: "提交竞猜共分两页：第一页 {page1} 题，第二页 {page2} 题，共 {total} 个项目。第一页至少猜 {page1Min} 题，第二页至少猜 {page2Min} 题，一共至少猜 {totalMin} 题。",
+    rule1: "提交竞猜共分两页：第一页 {page1} 题，第二页 {page2} 题，共 {total} 个项目。第一页至少猜 {page1Min} 题才能保存；第二页建议完成 {page2Min} 道大题、总计 {totalMin} 题，不足仍可保存，第二页锁定后每少答 1 题扣 10 分。",
     rule2: "每个项目选 1 支球队，也可以不选。每页最多可选 1 题 Double，该题下注翻倍。",
     rule3:
       "每题采用对赌积分制：猜错的玩家会失去本题投入的积分，猜对的玩家平分这些积分。每题投入积分不是固定值，会根据两个选项支持人数自动调整，支持人数越悬殊，本题投入越低；支持人数越接近，本题投入越高。",
@@ -87,12 +87,14 @@ export const zh = {
     errTooManyDoublesP2: "第二页最多只能选 1 道大题 Double。",
     successP1: "第一页已保存！已答 {count}/{min} 题。锁定前可随时修改。",
     successP2:
-      "第二页已保存！第一页 {p1} 题，第二页 {p2} 题，总计 {total} 题。锁定前可随时修改。"
+      "第二页已保存！第一页 {p1} 题，第二页 {p2} 题，总计 {total} 题。锁定前可随时修改。",
+    warnP2Shortfall:
+      "距建议题量还差 {missing} 题（第二页 {p2}/{page2Min}，总计 {total}/{totalMin}）。第二页锁定后每少 1 题扣 {penalty} 分，当前将扣 {penaltyTotal} 分。"
   },
   validation: {
     page1Min: "第一页至少需答满 {min} 题才能保存（当前 {count} 题）。",
-    page2Min: "第二页至少需答完 {min} 道大题才能保存（当前 {count} 道）。",
-    totalMin: "总计至少需答满 {min} 题才能保存第二页（当前 {count} 题）。",
+    page2Min: "第二页建议完成 {min} 道大题（当前 {count} 道）。",
+    totalMin: "总计建议 {min} 题（当前 {count} 题）。",
     mainIncomplete: "{market} 需答完全部 {subs} 个小题，或点击大题旁的「不选」。"
   },
   leaderboard: {

@@ -34,7 +34,7 @@ export function pickStatsFromPickInputs(
   return countSelections(answers, markets);
 }
 
-/** 保存当页前的题量下限校验；通过返回 null */
+/** 保存当页前的题量下限校验；通过返回 null。第二页未达建议题量仍可保存。 */
 export function validatePageSave(
   page: PlayPage,
   mergedPickInputs: PlayerPickInput[],
@@ -49,13 +49,6 @@ export function validatePageSave(
     return null;
   }
 
-  const stats = pickStatsFromPickInputs(mergedPickInputs, markets);
-  if (stats.page2Count < MIN_PAGE2_PICKS) {
-    return { code: "page2_min", count: stats.page2Count, min: MIN_PAGE2_PICKS };
-  }
-  if (stats.totalCount < MIN_TOTAL_PICKS) {
-    return { code: "total_min", count: stats.totalCount, min: MIN_TOTAL_PICKS };
-  }
   return null;
 }
 
@@ -69,10 +62,22 @@ export function formatPickStats(stats: PickStats) {
   return `第一页 ${stats.page1Count}/${MIN_PAGE1_PICKS}，第二页 ${stats.page2Count}/${MIN_PAGE2_PICKS}，总计 ${stats.totalCount}/${MIN_TOTAL_PICKS}`;
 }
 
-/** max(max(16 − 总计, 4 − 第二页大题数), 0) */
+/** max(max(16 − 总计, 4 − 第二页大题数), 0)；用于第二页锁定后的扣分题数。 */
 export function computeMissingItemCount(stats: PickStats): number {
   return Math.max(
     Math.max(MIN_TOTAL_PICKS - stats.totalCount, MIN_PAGE2_PICKS - stats.page2Count),
     0
   );
+}
+
+export function describePickShortfall(stats: PickStats) {
+  const page2Short = Math.max(0, MIN_PAGE2_PICKS - stats.page2Count);
+  const totalShort = Math.max(0, MIN_TOTAL_PICKS - stats.totalCount);
+  const penaltyItems = computeMissingItemCount(stats);
+  return {
+    page2Short,
+    totalShort,
+    penaltyItems,
+    hasShortfall: penaltyItems > 0
+  };
 }
