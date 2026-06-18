@@ -1,4 +1,4 @@
-import type { GameConfig, Market, PlayPage, SubQuestion } from "@/types";
+import type { Market, PlayPage, SubQuestion } from "@/types";
 
 export const PAGE1_COUNT = 16;
 export const PAGE2_COUNT = 8;
@@ -527,11 +527,7 @@ export function marketsForPage(markets: Market[], page: PlayPage) {
   return markets.filter((m) => m.page === page);
 }
 
-export function isPageLocked(config: GameConfig, page: PlayPage) {
-  if (page === 1) return config.page1Locked;
-  if (page === 2) return config.page2Locked;
-  return config.page3Locked;
-}
+export { isPageLocked, pageLocksAt, formatPageLockUtc } from "@/lib/page-lock";
 
 function defaultMarketById(id: string) {
   return DEFAULT_MARKETS.find((m) => m.id === id);

@@ -10,7 +10,7 @@ import {
   updateSubQuestionWinner,
   type GameSnapshot
 } from "@/lib/local-store";
-import { isPageLocked } from "@/data/markets";
+import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
 import { validatePage2MainQuestionState } from "@/lib/market-helpers";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, getStorageBackend } from "@/server/storage";
@@ -225,9 +225,15 @@ export function patchGameConfig(
       });
       config = result.config;
     } else {
-      if (patch.page1Locked !== undefined) config = { ...config, page1Locked: patch.page1Locked };
-      if (patch.page2Locked !== undefined) config = { ...config, page2Locked: patch.page2Locked };
-      if (patch.page3Locked !== undefined) config = { ...config, page3Locked: patch.page3Locked };
+      if (patch.page1Locked !== undefined) {
+        config = applyManualPageLock(config, 1, patch.page1Locked);
+      }
+      if (patch.page2Locked !== undefined) {
+        config = applyManualPageLock(config, 2, patch.page2Locked);
+      }
+      if (patch.page3Locked !== undefined) {
+        config = applyManualPageLock(config, 3, patch.page3Locked);
+      }
       if (patch.answersPage1Public !== undefined) {
         config = { ...config, answersPage1Public: patch.answersPage1Public };
       }

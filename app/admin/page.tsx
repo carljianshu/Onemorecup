@@ -6,6 +6,12 @@ import { AdminGate } from "@/components/AdminGate";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS, PLAY_PAGES, isPageLocked, marketsForPage } from "@/data/markets";
+import {
+  formatPageLockUtc,
+  isPageAutoLocked,
+  isPageManuallyLocked,
+  pageLocksAt
+} from "@/lib/page-lock";
 import { answersFeatureLabelKey, translateMarketName } from "@/i18n";
 import {
   activeSubQuestions,
@@ -205,9 +211,16 @@ function AdminPageContent() {
         <div className="lock-badges">
           {PLAY_PAGES.map((page) => {
             const locked = isPageLocked(config, page);
+            const status = locked
+              ? isPageManuallyLocked(config, page)
+                ? t("admin.pageLockedManual")
+                : isPageAutoLocked(config, page)
+                  ? t("admin.pageLockedAuto")
+                  : t("admin.pageLocked")
+              : t("admin.pageOpen");
             return (
               <span key={page} className={`badge ${locked ? "locked" : "open"}`}>
-                {pageLabel(page)}：{locked ? t("admin.pageLocked") : t("admin.pageOpen")}
+                {pageLabel(page)}：{status}
               </span>
             );
           })}
@@ -248,6 +261,22 @@ function AdminPageContent() {
           );
         })}
       </div>
+
+      <section className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 style={{ marginTop: 0 }}>{t("admin.autoLockTitle")}</h2>
+        <p style={{ color: "var(--muted)", marginTop: 0 }}>{t("admin.autoLockDesc")}</p>
+        <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+          {PLAY_PAGES.map((page) => {
+            const at = formatPageLockUtc(pageLocksAt(config, page));
+            return (
+              <li key={page}>
+                <strong>{pageLabel(page)}</strong>
+                {at ? ` — ${at}` : ""}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
       <section className="card" style={{ marginBottom: "1.5rem" }}>
         <h2 style={{ marginTop: 0 }}>{t("admin.publicAnswersTitle")}</h2>

@@ -1,5 +1,6 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, syncMarkets } from "@/data/markets";
 import { findSubQuestion } from "@/lib/market-helpers";
+import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/lib/page-lock";
 import { computePickStats } from "@/lib/pick-stats";
 import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, LeaderboardEntry, Market, Pick, Player, PlayerPickInput, PlayPage } from "@/types";
@@ -38,12 +39,12 @@ function refreshLeaderboard(
   players: Player[],
   markets: Market[],
   picks: Pick[],
-  page2Locked?: boolean
+  config?: GameConfig
 ): LeaderboardEntry[] {
-  const locked =
-    page2Locked ??
-    (isBrowser() ? normalizeConfig(read<unknown>(KEYS.config, null)).page2Locked : false);
-  const leaderboard = buildLeaderboard(players, markets, picks, locked);
+  const effectiveConfig =
+    config ?? (isBrowser() ? normalizeConfig(read<unknown>(KEYS.config, null)) : defaultGameConfig());
+  const page2Locked = isPageLocked(effectiveConfig, 2);
+  const leaderboard = buildLeaderboard(players, markets, picks, page2Locked);
   write(KEYS.leaderboard, leaderboard);
   return leaderboard;
 }
@@ -53,6 +54,7 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
     page1Locked: false,
     page2Locked: false,
     page3Locked: false,
+    ...defaultPageLockSchedule(),
     answersPage1Public: false,
     answersPage2Public: false,
     answersPage3Public: false,
@@ -78,6 +80,12 @@ function normalizeConfig(raw: unknown): GameConfig {
     page1Locked: config?.page1Locked ?? false,
     page2Locked: config?.page2Locked ?? false,
     page3Locked: config?.page3Locked ?? false,
+    page1LocksAt: config?.page1LocksAt ?? defaultPageLockSchedule().page1LocksAt,
+    page2LocksAt: config?.page2LocksAt ?? defaultPageLockSchedule().page2LocksAt,
+    page3LocksAt: config?.page3LocksAt ?? defaultPageLockSchedule().page3LocksAt,
+    page1LockOverridden: config?.page1LockOverridden ?? false,
+    page2LockOverridden: config?.page2LockOverridden ?? false,
+    page3LockOverridden: config?.page3LockOverridden ?? false,
     answersPage1Public: config?.answersPage1Public ?? legacyAnswersPublic,
     answersPage2Public: config?.answersPage2Public ?? legacyAnswersPublic,
     answersPage3Public: config?.answersPage3Public ?? false,
@@ -146,7 +154,7 @@ export function hydrateGameState(
   const config = normalizeConfig(snapshot.config);
   if (persist) saveConfig(config);
 
-  const leaderboard = refreshLeaderboard(players, markets, picks, config.page2Locked);
+  const leaderboard = refreshLeaderboard(players, markets, picks, config);
   if (persist) write(KEYS.leaderboard, leaderboard);
 
   return { players, markets, picks, config, leaderboard };
@@ -335,12 +343,7 @@ export function deletePlayer(
   const picks = state.picks.filter((p) => p.playerId !== playerId);
   savePlayers(players);
   savePicks(picks);
-  const leaderboard = refreshLeaderboard(
-    players,
-    state.markets,
-    picks,
-    state.config?.page2Locked
-  );
+  const leaderboard = refreshLeaderboard(players, state.markets, picks, state.config);
   return { players, picks, leaderboard };
 }
 
@@ -420,19 +423,9 @@ export function setPageLocked(
   locked: boolean,
   state: ReturnType<typeof loadGameState>
 ) {
-  const config: GameConfig =
-    page === 1
-      ? { ...state.config, page1Locked: locked }
-      : page === 2
-        ? { ...state.config, page2Locked: locked }
-        : { ...state.config, page3Locked: locked };
+  const config = applyManualPageLock(state.config, page, locked);
   saveConfig(config);
-  const leaderboard = refreshLeaderboard(
-    state.players,
-    state.markets,
-    state.picks,
-    config.page2Locked
-  );
+  const leaderboard = refreshLeaderboard(state.players, state.markets, state.picks, config);
   return { config, leaderboard };
 }
 
@@ -464,10 +457,5 @@ export function recalculateLeaderboard(state: {
   picks: Pick[];
   config?: GameConfig;
 }) {
-  return refreshLeaderboard(
-    state.players,
-    state.markets,
-    state.picks,
-    state.config?.page2Locked
-  );
+  return refreshLeaderboard(state.players, state.markets, state.picks, state.config);
 }

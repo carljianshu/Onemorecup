@@ -175,7 +175,12 @@ export const en: Messages = {
     title: "Admin",
     logout: "Sign out",
     pageLocked: "Locked",
+    pageLockedManual: "Manually locked",
+    pageLockedAuto: "Auto-locked",
     pageOpen: "Open",
+    autoLockTitle: "Scheduled play lock (UTC)",
+    autoLockDesc:
+      "Pages auto-lock at the scheduled time. Admins can still lock or unlock manually; unlocking overrides auto-lock until you lock again.",
     calcScores: "Recalculate scores",
     scoresRecalculated: "Scores recalculated.",
     lockPage: "Lock {page}",

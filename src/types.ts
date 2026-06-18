@@ -45,6 +45,13 @@ export interface GameConfig {
   page1Locked: boolean;
   page2Locked: boolean;
   page3Locked: boolean;
+  /** UTC ISO；到达后自动锁定，管理员手动解锁可覆盖至下次手动锁定 */
+  page1LocksAt: string | null;
+  page2LocksAt: string | null;
+  page3LocksAt: string | null;
+  page1LockOverridden: boolean;
+  page2LockOverridden: boolean;
+  page3LockOverridden: boolean;
   /** 管理员手动开放后，玩家可见答题总览第一页 */
   answersPage1Public: boolean;
   /** 管理员手动开放后，玩家可见答题总览第二页 */

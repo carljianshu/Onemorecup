@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { getStore } from "@netlify/blobs";
 import type { GameSnapshot } from "@/lib/local-store";
+import { defaultPageLockSchedule } from "@/lib/page-lock";
 
 export class VersionConflictError extends Error {
   constructor() {
@@ -29,6 +30,7 @@ function emptyPayload(): GameSnapshot {
       page1Locked: false,
       page2Locked: false,
       page3Locked: false,
+      ...defaultPageLockSchedule(),
       answersPage1Public: false,
       answersPage2Public: false,
       answersPage3Public: false,

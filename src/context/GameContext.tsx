@@ -22,6 +22,7 @@ import {
   type LeaderboardResponse
 } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
+import { defaultPageLockSchedule } from "@/lib/page-lock";
 import { isPageLocked } from "@/data/markets";
 import {
   getCurrentPlayerId,
@@ -100,6 +101,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     page1Locked: false,
     page2Locked: false,
     page3Locked: false,
+    ...defaultPageLockSchedule(),
     answersPage1Public: false,
     answersPage2Public: false,
     answersPage3Public: false,
@@ -109,6 +111,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
+  const [lockTick, setLockTick] = useState(0);
 
   const settersRef = useRef({ setPlayers, setMarkets, setPicks, setConfig, setLeaderboard });
   settersRef.current = { setPlayers, setMarkets, setPicks, setConfig, setLeaderboard };
@@ -157,6 +160,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (pollId) clearInterval(pollId);
     };
   }, [applyResponse]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const id = window.setInterval(() => setLockTick((tick) => tick + 1), 30_000);
+    return () => clearInterval(id);
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || apiSync) return;
+    setLeaderboard(recalculateLeaderboard({ players, markets, picks, config }));
+  }, [lockTick, ready, apiSync, players, markets, picks, config]);
 
   const submitPicks = useCallback(
     async (
