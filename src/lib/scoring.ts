@@ -43,6 +43,49 @@ function zeroScoresForParticipants(groupPicks: Pick[]): Record<string, number> {
   return scores;
 }
 
+function countWinningAndLosingSlots(slots: ScoringSlot[]): {
+  winningSlotCount: number;
+  losingSlotCount: number;
+} {
+  let winningSlotCount = 0;
+  let losingSlotCount = 0;
+  for (const slot of slots) {
+    if (slot.correct) winningSlotCount += 1;
+    else losingSlotCount += 1;
+  }
+  return { winningSlotCount, losingSlotCount };
+}
+
+/** 按给定对错计分位数量，构造固定本金 parimutuel 的计分位得分序列。 */
+function buildFixedStakeSlotScores(
+  winningSlotCount: number,
+  losingSlotCount: number,
+  stakePerSlot: number
+): number[] {
+  if (winningSlotCount === 0 || losingSlotCount === 0) return [];
+
+  const gainPerWinningSlot = (losingSlotCount * stakePerSlot) / winningSlotCount;
+  const scores: number[] = [];
+  for (let i = 0; i < winningSlotCount; i++) scores.push(gainPerWinningSlot);
+  for (let i = 0; i < losingSlotCount; i++) scores.push(-stakePerSlot);
+  return scores;
+}
+
+/**
+ * 第一遍探测用得分序列：猜对计分位多于猜错时，对调两者数量再构造序列（如 2 对 1 错 → 按 1 对 2 错得 [20,-10,-10]）。
+ */
+function slotScoresForAdjustment(
+  slots: ScoringSlot[],
+  pass1SlotScores: number[],
+  stakePerSlot: number
+): number[] {
+  const { winningSlotCount, losingSlotCount } = countWinningAndLosingSlots(slots);
+  if (winningSlotCount > losingSlotCount) {
+    return buildFixedStakeSlotScores(losingSlotCount, winningSlotCount, stakePerSlot);
+  }
+  return pass1SlotScores;
+}
+
 function populationStd(values: number[]): number {
   if (values.length === 0) return 0;
   const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -121,7 +164,7 @@ export interface ParimutuelBreakdown {
 }
 
 /**
- * 两阶段对赌：先按 10 分本金结算得得分序列 → σ ÷ 10 = 调整值 → 新本金 = 10 ÷ 调整值 → 再结算。
+ * 两阶段对赌：先按 10 分本金结算得探测序列（猜对位多于猜错位时对调数量）→ σ ÷ 10 = 调整值 → 新本金 = 10 ÷ 调整值 → 再结算。
  * Double 视为两个计分位，得失在计分位层面累加。
  */
 function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlement | null {
@@ -150,7 +193,13 @@ function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlem
     };
   }
 
-  const scoreStd = populationStd(pass1.slotScores);
+  const slots = slotsForGroup(winner, groupPicks);
+  const adjustmentSlotScores = slotScoresForAdjustment(
+    slots,
+    pass1.slotScores,
+    STAKE_PER_PICK
+  );
+  const scoreStd = populationStd(adjustmentSlotScores);
   if (scoreStd === 0) {
     return {
       scores: zeroScoresForParticipants(groupPicks),
