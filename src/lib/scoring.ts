@@ -1,5 +1,5 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, isFlatPlayPage, STAKE_PER_PICK } from "@/data/markets";
 import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
 import {
   countPlayerGuessedItems,
@@ -336,7 +336,7 @@ export function computePlayerScores(
   }
 
   for (const market of markets) {
-    if (market.page === 1) {
+    if (isFlatPlayPage(market.page)) {
       if (!market.winner) continue;
       const marketPicks = picks.filter((p) => p.marketId === market.id);
       const settled = settlePickGroup(market.winner, marketPicks);
@@ -351,6 +351,8 @@ export function computePlayerScores(
       }
       continue;
     }
+
+    if (market.page !== 2) continue;
 
     for (const sub of market.subQuestions ?? []) {
       if (sub.deleted || !sub.winner) continue;
@@ -442,11 +444,13 @@ export function buildLeaderboard(
 export function settledMarketCount(markets: Market[]) {
   let count = 0;
   for (const market of markets) {
-    if (market.page === 1) {
+    if (isFlatPlayPage(market.page)) {
       if (market.winner) count += 1;
       continue;
     }
-    count += (market.subQuestions ?? []).filter((s) => !s.deleted && s.winner).length;
+    if (market.page === 2) {
+      count += (market.subQuestions ?? []).filter((s) => !s.deleted && s.winner).length;
+    }
   }
   return count;
 }

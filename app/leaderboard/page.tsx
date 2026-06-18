@@ -6,7 +6,7 @@ import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { formatScore } from "@/lib/score-format";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
+import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
 import { computeMissingItemCount } from "@/lib/pick-stats";
 
 function scoreClass(score: number) {
@@ -51,6 +51,7 @@ export default function LeaderboardPage() {
                 <th>{t("common.player")}</th>
                 <th>{t("common.page1Short")}</th>
                 <th>{t("common.page2Short")}</th>
+                <th>{t("common.page3Short")}</th>
                 <th>{t("leaderboard.totalPicks")}</th>
                 <th>{t("common.score")}</th>
                 <th>{t("leaderboard.settled")}</th>
@@ -69,6 +70,9 @@ export default function LeaderboardPage() {
                     </td>
                     <td>
                       {entry.pickStats.page2Count} / {MIN_PAGE2_PICKS}
+                    </td>
+                    <td>
+                      {entry.pickStats.page3Count} / {MIN_PAGE3_PICKS}
                     </td>
                     <td>
                       {entry.pickStats.totalCount} / {MIN_TOTAL_PICKS}
@@ -94,7 +98,7 @@ export default function LeaderboardPage() {
                   </tr>
                   {expanded === entry.playerId && (
                     <tr className="submission-row">
-                      <td colSpan={9}>
+                      <td colSpan={10}>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 1rem" }}>
                           {markets.map((market) => {
                             const score = entry.marketScores[market.id];

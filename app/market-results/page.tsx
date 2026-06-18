@@ -20,27 +20,23 @@ export default function MarketResultsPage() {
 
   const page1Public = ready && isAnswersPagePublic(config, 1);
   const page2Public = ready && isAnswersPagePublic(config, 2);
-  const showAllFilter = page1Public && page2Public;
+  const page3Public = ready && isAnswersPagePublic(config, 3);
+  const showAllFilter = [page1Public, page2Public, page3Public].filter(Boolean).length > 1;
 
   const visiblePages = useMemo(() => {
     const pages: PlayPage[] = [];
     if (page1Public) pages.push(1);
     if (page2Public) pages.push(2);
+    if (page3Public) pages.push(3);
     return pages;
-  }, [page1Public, page2Public]);
+  }, [page1Public, page2Public, page3Public]);
 
   useEffect(() => {
     if (!ready) return;
-    if (filter === 1 && !page1Public) {
-      setFilter(page2Public ? 2 : "all");
-    } else if (filter === 2 && !page2Public) {
-      setFilter(page1Public ? 1 : "all");
-    } else if (filter === "all" && page1Public && !page2Public) {
-      setFilter(1);
-    } else if (filter === "all" && page2Public && !page1Public) {
-      setFilter(2);
+    if (filter !== "all" && !isAnswersPagePublic(config, filter)) {
+      setFilter(visiblePages[0] ?? "all");
     }
-  }, [ready, filter, page1Public, page2Public]);
+  }, [ready, filter, config, visiblePages]);
 
   const sections = useMemo(() => {
     const all = buildMarketResultSections(markets, picks, players, visiblePages);
@@ -53,8 +49,9 @@ export default function MarketResultsPage() {
     if (showAllFilter) options.push({ value: "all", label: t("common.filterAll") });
     if (page1Public) options.push({ value: 1, label: t("common.filterPage1") });
     if (page2Public) options.push({ value: 2, label: t("common.filterPage2") });
+    if (page3Public) options.push({ value: 3, label: t("common.filterPage3") });
     return options;
-  }, [showAllFilter, page1Public, page2Public, t]);
+  }, [showAllFilter, page1Public, page2Public, page3Public, t]);
 
   if (!ready) {
     return (

@@ -52,10 +52,13 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
   return {
     page1Locked: false,
     page2Locked: false,
+    page3Locked: false,
     answersPage1Public: false,
     answersPage2Public: false,
+    answersPage3Public: false,
     answersPage1OpensAt: null,
     answersPage2OpensAt: null,
+    answersPage3OpensAt: null,
     ...overrides
   };
 }
@@ -74,10 +77,13 @@ function normalizeConfig(raw: unknown): GameConfig {
   return defaultGameConfig({
     page1Locked: config?.page1Locked ?? false,
     page2Locked: config?.page2Locked ?? false,
+    page3Locked: config?.page3Locked ?? false,
     answersPage1Public: config?.answersPage1Public ?? legacyAnswersPublic,
     answersPage2Public: config?.answersPage2Public ?? legacyAnswersPublic,
+    answersPage3Public: config?.answersPage3Public ?? false,
     answersPage1OpensAt: config?.answersPage1OpensAt ?? legacyAnswersOpensAt,
-    answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt
+    answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt,
+    answersPage3OpensAt: config?.answersPage3OpensAt ?? null
   });
 }
 
@@ -201,6 +207,7 @@ export function getPicksForPlayer(playerId: string, picks: Pick[]) {
 function validatePickInputs(pickInputs: PlayerPickInput[], markets: Market[]) {
   const seen = new Set<string>();
   let page1Doubles = 0;
+  let page3Doubles = 0;
   const page2DoubleParents = new Set<string>();
 
   for (const input of pickInputs) {
@@ -213,8 +220,9 @@ function validatePickInputs(pickInputs: PlayerPickInput[], markets: Market[]) {
         page2DoubleParents.add(subMatch.market.id);
       } else {
         const market = markets.find((m) => m.id === input.marketId);
-        if (!market || market.page !== 1) throw new Error("INVALID_MARKET");
-        page1Doubles += 1;
+        if (!market || (market.page !== 1 && market.page !== 3)) throw new Error("INVALID_MARKET");
+        if (market.page === 1) page1Doubles += 1;
+        else page3Doubles += 1;
       }
     }
 
@@ -229,11 +237,13 @@ function validatePickInputs(pickInputs: PlayerPickInput[], markets: Market[]) {
     }
 
     const market = markets.find((m) => m.id === input.marketId);
-    if (!market || market.page !== 1) throw new Error("INVALID_MARKET");
+    if (!market || (market.page !== 1 && market.page !== 3)) throw new Error("INVALID_MARKET");
     if (!market.candidates?.includes(input.team)) throw new Error("INVALID_TEAM");
   }
 
-  if (page1Doubles > 1 || page2DoubleParents.size > 1) throw new Error("TOO_MANY_DOUBLES");
+  if (page1Doubles > 1 || page3Doubles > 1 || page2DoubleParents.size > 1) {
+    throw new Error("TOO_MANY_DOUBLES");
+  }
 }
 
 function buildPicksForPlayer(playerId: string, pickInputs: PlayerPickInput[]): Pick[] {
@@ -413,7 +423,9 @@ export function setPageLocked(
   const config: GameConfig =
     page === 1
       ? { ...state.config, page1Locked: locked }
-      : { ...state.config, page2Locked: locked };
+      : page === 2
+        ? { ...state.config, page2Locked: locked }
+        : { ...state.config, page3Locked: locked };
   saveConfig(config);
   const leaderboard = refreshLeaderboard(
     state.players,
@@ -434,9 +446,12 @@ export function updatePublicFeature(
   if (feature === "answersPage1") {
     if (patch.public !== undefined) config.answersPage1Public = patch.public;
     if (patch.opensAt !== undefined) config.answersPage1OpensAt = patch.opensAt;
-  } else {
+  } else if (feature === "answersPage2") {
     if (patch.public !== undefined) config.answersPage2Public = patch.public;
     if (patch.opensAt !== undefined) config.answersPage2OpensAt = patch.opensAt;
+  } else {
+    if (patch.public !== undefined) config.answersPage3Public = patch.public;
+    if (patch.opensAt !== undefined) config.answersPage3OpensAt = patch.opensAt;
   }
 
   saveConfig(config);

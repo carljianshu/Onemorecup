@@ -3,9 +3,11 @@ import { zh, type Messages } from "./messages/zh";
 import {
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
+  MIN_PAGE3_PICKS,
   MIN_TOTAL_PICKS,
   PAGE1_COUNT,
   PAGE2_COUNT,
+  PAGE3_COUNT,
   SUBS_PER_PAGE2_QUESTION
 } from "@/data/markets";
 import type { PlayPage } from "@/types";
@@ -40,16 +42,24 @@ export function translate(locale: Locale, key: string, values?: TranslationValue
 }
 
 export function pageLabel(locale: Locale, page: PlayPage): string {
-  return page === 1
-    ? translate(locale, "markets.page1", { count: PAGE1_COUNT })
-    : translate(locale, "markets.page2", {
-        count: PAGE2_COUNT,
-        subs: SUBS_PER_PAGE2_QUESTION
-      });
+  if (page === 1) {
+    return translate(locale, "markets.page1", { count: PAGE1_COUNT });
+  }
+  if (page === 2) {
+    return translate(locale, "markets.page2", {
+      count: PAGE2_COUNT,
+      subs: SUBS_PER_PAGE2_QUESTION
+    });
+  }
+  return translate(locale, "markets.page3", { count: PAGE3_COUNT });
 }
 
-export function answersFeatureLabelKey(feature: "answersPage1" | "answersPage2") {
-  return feature === "answersPage1" ? "admin.featureAnswersP1" : "admin.featureAnswersP2";
+export function answersFeatureLabelKey(
+  feature: "answersPage1" | "answersPage2" | "answersPage3"
+) {
+  if (feature === "answersPage1") return "admin.featureAnswersP1";
+  if (feature === "answersPage2") return "admin.featureAnswersP2";
+  return "admin.featureAnswersP3";
 }
 
 export function translateMarketName(locale: Locale, name: string) {
@@ -61,9 +71,11 @@ export function homeRuleValues() {
   return {
     page1: PAGE1_COUNT,
     page2: PAGE2_COUNT,
-    total: PAGE1_COUNT + PAGE2_COUNT,
+    page3: PAGE3_COUNT,
+    total: PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT,
     page1Min: MIN_PAGE1_PICKS,
     page2Min: MIN_PAGE2_PICKS,
+    page3Min: MIN_PAGE3_PICKS,
     totalMin: MIN_TOTAL_PICKS
   };
 }

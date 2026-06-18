@@ -1,4 +1,9 @@
-import { DOUBLE_STAKE, SUBS_PER_PAGE2_QUESTION } from "@/data/markets";
+import {
+  DOUBLE_STAKE,
+  isFlatPlayPage,
+  PLAY_PAGES,
+  SUBS_PER_PAGE2_QUESTION
+} from "@/data/markets";
 import type { Page2StructureError } from "@/i18n/validation";
 import type { Market, Pick, PlayPage, PlayerPickInput, SubQuestion } from "@/types";
 
@@ -15,8 +20,8 @@ export function hiddenSubQuestions(market: Market): SubQuestion[] {
 }
 
 export function pickIdsForPage(markets: Market[], page: PlayPage): string[] {
-  if (page === 1) {
-    return markets.filter((m) => m.page === 1).map((m) => m.id);
+  if (isFlatPlayPage(page)) {
+    return markets.filter((m) => m.page === page).map((m) => m.id);
   }
   const ids: string[] = [];
   for (const market of markets.filter((m) => m.page === 2)) {
@@ -27,7 +32,7 @@ export function pickIdsForPage(markets: Market[], page: PlayPage): string[] {
   return ids;
 }
 
-/** 每页 Double 可选 id：第一页为大题 id，第二页为大题 id（非小题） */
+/** 每页 Double 可选 id：第一页/第三页为大题 id，第二页为大题 id（非小题） */
 export function doubleIdsForPage(markets: Market[], page: PlayPage): string[] {
   return markets.filter((m) => m.page === page).map((m) => m.id);
 }
@@ -48,17 +53,19 @@ export interface PickColumn {
   fullLabel: string;
 }
 
-/** 表格列：第一页大题 + 第二页各小题（未删除） */
+/** 表格列：第一页/第三页大题 + 第二页各小题（未删除） */
 export function allPickColumns(markets: Market[]): PickColumn[] {
   const columns: PickColumn[] = [];
 
-  for (const market of markets.filter((m) => m.page === 1)) {
-    columns.push({
-      id: market.id,
-      page: 1,
-      shortLabel: market.id.toUpperCase(),
-      fullLabel: `${market.id.toUpperCase()}：${market.name}`
-    });
+  for (const page of [1, 3] as const) {
+    for (const market of markets.filter((m) => m.page === page)) {
+      columns.push({
+        id: market.id,
+        page,
+        shortLabel: market.id.toUpperCase(),
+        fullLabel: `${market.id.toUpperCase()}：${market.name}`
+      });
+    }
   }
 
   for (const market of markets.filter((m) => m.page === 2)) {
@@ -88,13 +95,13 @@ export function findSubQuestion(markets: Market[], subId: string) {
   return null;
 }
 
-/** 玩家已猜项目数：第一页每大题 1 项，第二页每小题 1 项（不含已隐藏小题） */
+/** 玩家已猜项目数：第一页/第三页每大题 1 项，第二页每小题 1 项（不含已隐藏小题） */
 export function countPlayerGuessedItems(playerId: string, picks: Pick[], markets: Market[]): number {
   let count = 0;
   for (const pick of picks) {
     if (pick.playerId !== playerId) continue;
     const market = markets.find((m) => m.id === pick.marketId);
-    if (market?.page === 1) {
+    if (market && isFlatPlayPage(market.page)) {
       count += 1;
       continue;
     }
@@ -183,16 +190,28 @@ export function page2CompletedCount(markets: Market[], answers: Record<string, s
     .filter((m) => isMainQuestionComplete(m, answers)).length;
 }
 
-export function page1CompletedCount(markets: Market[], answers: Record<string, string | null>) {
+export function flatPageCompletedCount(
+  markets: Market[],
+  page: 1 | 3,
+  answers: Record<string, string | null>
+) {
   return markets.filter(
-    (m) => m.page === 1 && answers[m.id] != null && answers[m.id] !== MAIN_QUESTION_SKIP
+    (m) => m.page === page && answers[m.id] != null && answers[m.id] !== MAIN_QUESTION_SKIP
   ).length;
+}
+
+export function page1CompletedCount(markets: Market[], answers: Record<string, string | null>) {
+  return flatPageCompletedCount(markets, 1, answers);
+}
+
+export function page3CompletedCount(markets: Market[], answers: Record<string, string | null>) {
+  return flatPageCompletedCount(markets, 3, answers);
 }
 
 export function initSelectionMap(markets: Market[]): Record<string, string | null> {
   const map: Record<string, string | null> = {};
   for (const market of markets) {
-    if (market.page === 1) {
+    if (isFlatPlayPage(market.page)) {
       map[market.id] = null;
       continue;
     }
@@ -236,9 +255,9 @@ export function pickInputsFromStoredPicks(
       continue;
     }
 
-    if (page === 1 && !subMatch) {
+    if (isFlatPlayPage(page) && !subMatch) {
       const market = markets.find((m) => m.id === pick.marketId);
-      if (market?.page === 1) {
+      if (market?.page === page) {
         result.push({
           marketId: pick.marketId,
           team: pick.team,
@@ -251,7 +270,7 @@ export function pickInputsFromStoredPicks(
   return result;
 }
 
-/** 保存当页时，与另一页已保存的竞猜合并 */
+/** 保存当页时，与其他页已保存的竞猜合并 */
 export function mergePickInputsForPageSave(
   page: PlayPage,
   pageInputs: PlayerPickInput[],
@@ -259,11 +278,13 @@ export function mergePickInputsForPageSave(
   editingPlayerId: string | null,
   picks: Pick[]
 ): PlayerPickInput[] {
-  const otherPage = (page === 1 ? 2 : 1) as PlayPage;
+  const otherPages = PLAY_PAGES.filter((p) => p !== page);
   const otherInputs = editingPlayerId
-    ? pickInputsFromStoredPicks(otherPage, markets, editingPlayerId, picks)
+    ? otherPages.flatMap((otherPage) =>
+        pickInputsFromStoredPicks(otherPage, markets, editingPlayerId, picks)
+      )
     : [];
-  return page === 1 ? [...pageInputs, ...otherInputs] : [...otherInputs, ...pageInputs];
+  return [...otherInputs, ...pageInputs];
 }
 
 export { SUBS_PER_PAGE2_QUESTION };

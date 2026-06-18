@@ -22,6 +22,7 @@ import {
   type LeaderboardResponse
 } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
+import { isPageLocked } from "@/data/markets";
 import {
   getCurrentPlayerId,
   hydrateGameState,
@@ -98,10 +99,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<GameConfig>({
     page1Locked: false,
     page2Locked: false,
+    page3Locked: false,
     answersPage1Public: false,
     answersPage2Public: false,
+    answersPage3Public: false,
     answersPage1OpensAt: null,
-    answersPage2OpensAt: null
+    answersPage2OpensAt: null,
+    answersPage3OpensAt: null
   });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
@@ -278,7 +282,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const togglePageLocked = useCallback(
     async (page: PlayPage) => {
-      const currentlyLocked = page === 1 ? config.page1Locked : config.page2Locked;
+      const currentlyLocked = isPageLocked(config, page);
       if (apiSync) {
         applyResponse(
           await patchAdminConfigApi(requireAdminToken(), {

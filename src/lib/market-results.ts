@@ -53,7 +53,7 @@ export interface MarketResultSection {
 export { formatScore };
 
 function candidatesForColumn(markets: Market[], col: PickColumn): string[] {
-  if (col.page === 1) {
+  if (col.page === 1 || col.page === 3) {
     const market = markets.find((m) => m.id === col.id);
     return market?.candidates ?? [];
   }
@@ -65,7 +65,7 @@ function candidatesForColumn(markets: Market[], col: PickColumn): string[] {
 }
 
 function winnerForColumn(markets: Market[], col: PickColumn): string | null {
-  if (col.page === 1) {
+  if (col.page === 1 || col.page === 3) {
     return markets.find((m) => m.id === col.id)?.winner ?? null;
   }
   for (const market of markets.filter((m) => m.page === 2)) {

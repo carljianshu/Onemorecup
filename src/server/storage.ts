@@ -28,10 +28,13 @@ function emptyPayload(): GameSnapshot {
     config: {
       page1Locked: false,
       page2Locked: false,
+      page3Locked: false,
       answersPage1Public: false,
       answersPage2Public: false,
+      answersPage3Public: false,
       answersPage1OpensAt: null,
-      answersPage2OpensAt: null
+      answersPage2OpensAt: null,
+      answersPage3OpensAt: null
     }
   };
 }

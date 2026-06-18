@@ -20,6 +20,7 @@ export const zh = {
     payoutIfWrong: "猜错 {amount}",
     page1Short: "第一页",
     page2Short: "第二页",
+    page3Short: "第三页",
     total: "总计",
     player: "玩家",
     rank: "排名",
@@ -28,8 +29,10 @@ export const zh = {
     filterAll: "全部题目",
     filterPage1: "仅第一页",
     filterPage2: "仅第二页",
+    filterPage3: "仅第三页",
     onlyPage1: "（当前仅展示第一页）",
     onlyPage2: "（当前仅展示第二页）",
+    onlyPage3: "（当前仅展示第三页）",
     langZh: "中文",
     langEn: "English",
     language: "语言"
@@ -38,7 +41,7 @@ export const zh = {
     title: "淘汰赛竞猜",
     subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
     rulesTitle: "简单规则",
-    rule1: "提交竞猜共分两页：第一页 {page1} 题，第二页 {page2} 题，共 {total} 个项目。第一页至少猜 {page1Min} 题才能保存；第二页要求完成 {page2Min} 道大题、总计 {totalMin} 题，不足仍可保存，第二页锁定后每少答 1 题扣 10 分。",
+    rule1: "提交竞猜共分三页：第一页 {page1} 题，第二页 {page2} 题，第三页 {page3} 题，共 {total} 个项目。第一页至少猜 {page1Min} 题才能保存；第三页至少猜 {page3Min} 题才能保存；第二页要求完成 {page2Min} 道大题、总计 {totalMin} 题，不足仍可保存，第二页锁定后每少答 1 题扣 10 分。",
     rule2: "每个项目选 1 支球队，也可以不选。每页最多可选 1 题 Double，该题下注翻倍。",
     rule3:
       "本游戏采用对赌积分制，玩家竞猜投注每场比赛的结果，猜对者平分猜错玩家的投注积分。具体投注规则请见",
@@ -63,6 +66,7 @@ export const zh = {
   markets: {
     page1: "第一页（{count} 题）",
     page2: "第二页（{count} 题，每题 {subs} 小题）",
+    page3: "第三页（{count} 题）",
     whoAdvances: "谁会晋级？"
   },
   play: {
@@ -78,6 +82,7 @@ export const zh = {
     namePlaceholder: "输入昵称",
     page1Answered: "第一页已答：",
     page2Answered: "第二页已答：",
+    page3Answered: "第三页已答：",
     totalAnswered: "总计已答：",
     pageDouble: "本页 Double：",
     doubleNone: "未选",
@@ -99,8 +104,10 @@ export const zh = {
     errSave: "保存失败，请重试。",
     errDuplicateName: "该名字已被其他玩家使用。",
     errTooManyDoublesP1: "第一页最多只能选 1 题 Double。",
+    errTooManyDoublesP3: "第三页最多只能选 1 题 Double。",
     errTooManyDoublesP2: "第二页最多只能选 1 道大题 Double。",
     successP1: "第一页已保存！已答 {count}/{min} 题。锁定前可随时修改。",
+    successP3: "第三页已保存！已答 {count}/{min} 题。锁定前可随时修改。",
     successP2:
       "第二页已保存！第一页 {p1} 题，第二页 {p2} 题，总计 {total} 题。锁定前可随时修改。",
     warnP2Shortfall:
@@ -108,6 +115,7 @@ export const zh = {
   },
   validation: {
     page1Min: "第一页至少需答满 {min} 题才能保存（当前 {count} 题）。",
+    page3Min: "第三页至少需答满 {min} 题才能保存（当前 {count} 题）。",
     page2Min: "第二页要求完成 {min} 道大题（当前 {count} 道）。",
     totalMin: "总计要求 {min} 题（当前 {count} 题）。",
     mainIncomplete: "{market} 需答完全部 {subs} 个小题，或点击大题旁的「不选」。"
@@ -130,6 +138,7 @@ export const zh = {
     empty: "暂无玩家提交，先去竞猜页提交答案吧。",
     groupP1: "第一页（{count} 场）",
     groupP2: "第二页（{count} 小题）",
+    groupP3: "第三页（{count} 场）",
     doubleTitle: "{team}（Double · 20 分）"
   },
   marketResults: {
@@ -194,6 +203,7 @@ export const zh = {
     deleteFailed: "删除失败，请重试。",
     featureAnswersP1: "答题总览 · 第一页",
     featureAnswersP2: "答题总览 · 第二页",
+    featureAnswersP3: "答题总览 · 第三页",
     opensAtLabel: "最早可开放时间（留空表示随时可开放）",
     opensAtHint: "将于 {time} 后可向玩家开放。",
     visible: "玩家可见",

@@ -2,12 +2,20 @@ import type { GameConfig, Market, PlayPage, SubQuestion } from "@/types";
 
 export const PAGE1_COUNT = 16;
 export const PAGE2_COUNT = 8;
+export const PAGE3_COUNT = 7;
 export const MIN_PAGE1_PICKS = 8;
 export const MIN_PAGE2_PICKS = 4;
+export const MIN_PAGE3_PICKS = 4;
 /** 总计 = 第一页已答题数 + 第二页已完成大题数，至少 16 才能保存第二页 */
 export const MIN_TOTAL_PICKS = 16;
 export const SUBS_PER_PAGE2_QUESTION = 4;
-export const TOTAL_MARKETS = PAGE1_COUNT + PAGE2_COUNT;
+export const TOTAL_MARKETS = PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT;
+
+export const PLAY_PAGES = [1, 2, 3] as const satisfies readonly PlayPage[];
+
+export function isFlatPlayPage(page: PlayPage) {
+  return page === 1 || page === 3;
+}
 
 /**
  * 题目配置：直接改下面的 candidates / name / label 即可。
@@ -440,6 +448,63 @@ export const DEFAULT_MARKETS: Market[] = [
         winner: null
       }
     ]
+  },
+  // ==================== 第三页：7 题（每题 2 个选项 + 不选，规则同第一页） ====================
+  {
+    id: "p3-1",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A1", "P3-B1"],
+    winner: null,
+    page: 3
+  },
+  {
+    id: "p3-2",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A2", "P3-B2"],
+    winner: null,
+    page: 3
+  },
+  {
+    id: "p3-3",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A3", "P3-B3"],
+    winner: null,
+    page: 3
+  },
+  {
+    id: "p3-4",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A4", "P3-B4"],
+    winner: null,
+    page: 3
+  },
+  {
+    id: "p3-5",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A5", "P3-B5"],
+    winner: null,
+    page: 3
+  },
+  {
+    id: "p3-6",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A6", "P3-B6"],
+    winner: null,
+    page: 3
+  },
+  {
+    id: "p3-7",
+    round: "P3",
+    name: "谁会晋级？",
+    candidates: ["P3-A7", "P3-B7"],
+    winner: null,
+    page: 3
   }
 ];
 
@@ -448,15 +513,24 @@ export const DOUBLE_STAKE = 20 as const;
 
 export const PAGE_LABELS: Record<PlayPage, string> = {
   1: `第一页（${PAGE1_COUNT} 题）`,
-  2: `第二页（${PAGE2_COUNT} 题，每题 ${SUBS_PER_PAGE2_QUESTION} 小题）`
+  2: `第二页（${PAGE2_COUNT} 题，每题 ${SUBS_PER_PAGE2_QUESTION} 小题）`,
+  3: `第三页（${PAGE3_COUNT} 题）`
 };
+
+export function minPicksForPage(page: PlayPage) {
+  if (page === 1) return MIN_PAGE1_PICKS;
+  if (page === 2) return MIN_PAGE2_PICKS;
+  return MIN_PAGE3_PICKS;
+}
 
 export function marketsForPage(markets: Market[], page: PlayPage) {
   return markets.filter((m) => m.page === page);
 }
 
 export function isPageLocked(config: GameConfig, page: PlayPage) {
-  return page === 1 ? config.page1Locked : config.page2Locked;
+  if (page === 1) return config.page1Locked;
+  if (page === 2) return config.page2Locked;
+  return config.page3Locked;
 }
 
 function defaultMarketById(id: string) {

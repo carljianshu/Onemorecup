@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, STAKE_PER_PICK, isPageLocked, marketsForPage } from "@/data/markets";
+import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS, STAKE_PER_PICK, isFlatPlayPage, isPageLocked, marketsForPage, minPicksForPage, PLAY_PAGES } from "@/data/markets";
 import { translateMarketName } from "@/i18n";
 import { translatePageSaveError, translatePage2StructureError } from "@/i18n/validation";
 import {
@@ -38,7 +38,7 @@ function buildPickInputsForPage(
   for (const market of markets) {
     if (market.page !== page) continue;
 
-    if (page === 1) {
+    if (isFlatPlayPage(page)) {
       if (locked && editingPlayerId) {
         const existing = picks.find(
           (p) => p.playerId === editingPlayerId && p.marketId === market.id
@@ -295,7 +295,9 @@ export default function PlayPage() {
       const successText =
         step === 1
           ? t("play.successP1", { count: savedStats.page1Count, min: MIN_PAGE1_PICKS })
-          : (() => {
+          : step === 3
+            ? t("play.successP3", { count: savedStats.page3Count, min: MIN_PAGE3_PICKS })
+            : (() => {
               const base = t("play.successP2", {
                 p1: savedStats.page1Count,
                 p2: savedStats.page2Count,
@@ -326,7 +328,9 @@ export default function PlayPage() {
             : error.code === "TOO_MANY_DOUBLES"
               ? step === 1
                 ? t("play.errTooManyDoublesP1")
-                : t("play.errTooManyDoublesP2")
+                : step === 3
+                  ? t("play.errTooManyDoublesP3")
+                  : t("play.errTooManyDoublesP2")
               : error.message;
         setMessage({ type: "error", text });
         return;
@@ -338,7 +342,9 @@ export default function PlayPage() {
           : code === "TOO_MANY_DOUBLES"
             ? step === 1
               ? t("play.errTooManyDoublesP1")
-              : t("play.errTooManyDoublesP2")
+              : step === 3
+                ? t("play.errTooManyDoublesP3")
+                : t("play.errTooManyDoublesP2")
             : t("play.errSave");
       setMessage({ type: "error", text });
     } finally {
@@ -364,9 +370,14 @@ export default function PlayPage() {
       <h1 style={{ marginTop: 0 }}>{t("play.title")}</h1>
 
       <div className="page-steps">
-        {([1, 2] as PlayPage[]).map((page) => {
-          const count = page === 1 ? pickStats.page1Count : pickStats.page2Count;
-          const total = page === 1 ? MIN_PAGE1_PICKS : MIN_PAGE2_PICKS;
+        {PLAY_PAGES.map((page) => {
+          const count =
+            page === 1
+              ? pickStats.page1Count
+              : page === 2
+                ? pickStats.page2Count
+                : pickStats.page3Count;
+          const total = minPicksForPage(page);
           return (
             <button
               key={page}
@@ -429,6 +440,9 @@ export default function PlayPage() {
           {t("play.page2Answered")}<strong>{pickStats.page2Count}</strong> / {MIN_PAGE2_PICKS}
         </span>
         <span>
+          {t("play.page3Answered")}<strong>{pickStats.page3Count}</strong> / {MIN_PAGE3_PICKS}
+        </span>
+        <span>
           {t("play.totalAnswered")}<strong>{pickStats.totalCount}</strong> / {MIN_TOTAL_PICKS}
         </span>
         <span>
@@ -442,7 +456,7 @@ export default function PlayPage() {
         </span>
       </div>
 
-      {step === 1 &&
+      {isFlatPlayPage(step) &&
         pageMarkets.map((market) => (
           <section key={market.id} className="card item-card">
             <h3>
@@ -541,13 +555,21 @@ export default function PlayPage() {
       )}
 
       <div className="actions page-nav">
-        {step === 2 && (
-          <button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>
+        {step > 1 && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setStep((step - 1) as PlayPage)}
+          >
             {t("play.prevPage")}
           </button>
         )}
-        {step === 1 && (
-          <button type="button" className="btn btn-secondary" onClick={() => setStep(2)}>
+        {step < 3 && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setStep((step + 1) as PlayPage)}
+          >
             {t("play.nextPage")}
           </button>
         )}

@@ -1,10 +1,11 @@
 import type { GameConfig, PlayPage } from "@/types";
 
-export type AnswersPageFeature = "answersPage1" | "answersPage2";
+export type AnswersPageFeature = "answersPage1" | "answersPage2" | "answersPage3";
 
 const FEATURE_LABELS: Record<AnswersPageFeature, string> = {
   answersPage1: "答题总览 · 第一页",
-  answersPage2: "答题总览 · 第二页"
+  answersPage2: "答题总览 · 第二页",
+  answersPage3: "答题总览 · 第三页"
 };
 
 export function answersFeatureLabel(feature: AnswersPageFeature) {
@@ -18,14 +19,22 @@ function answersPageFields(config: GameConfig, page: PlayPage) {
       opensAt: config.answersPage1OpensAt
     };
   }
+  if (page === 2) {
+    return {
+      public: config.answersPage2Public,
+      opensAt: config.answersPage2OpensAt
+    };
+  }
   return {
-    public: config.answersPage2Public,
-    opensAt: config.answersPage2OpensAt
+    public: config.answersPage3Public,
+    opensAt: config.answersPage3OpensAt
   };
 }
 
 function answersFeaturePage(feature: AnswersPageFeature): PlayPage {
-  return feature === "answersPage1" ? 1 : 2;
+  if (feature === "answersPage1") return 1;
+  if (feature === "answersPage2") return 2;
+  return 3;
 }
 
 export function canAdminEnableAnswersPage(config: GameConfig, page: PlayPage) {
@@ -42,7 +51,11 @@ export function isAnswersPagePublic(config: GameConfig, page: PlayPage) {
 }
 
 export function isAnswersAnyPublic(config: GameConfig) {
-  return isAnswersPagePublic(config, 1) || isAnswersPagePublic(config, 2);
+  return (
+    isAnswersPagePublic(config, 1) ||
+    isAnswersPagePublic(config, 2) ||
+    isAnswersPagePublic(config, 3)
+  );
 }
 
 export function canAdminEnableFeature(config: GameConfig, feature: AnswersPageFeature) {

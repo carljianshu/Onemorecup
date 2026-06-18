@@ -10,6 +10,7 @@ import {
   updateSubQuestionWinner,
   type GameSnapshot
 } from "@/lib/local-store";
+import { isPageLocked } from "@/data/markets";
 import { validatePage2MainQuestionState } from "@/lib/market-helpers";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, getStorageBackend } from "@/server/storage";
@@ -53,8 +54,7 @@ function selectionsFromPickInputs(pickInputs: PlayerPickInput[]) {
 }
 
 function assertPageUnlocked(config: GameConfig, page: PlayPage) {
-  const locked = page === 1 ? config.page1Locked : config.page2Locked;
-  if (locked) throw new Error("PAGE_LOCKED");
+  if (isPageLocked(config, page)) throw new Error("PAGE_LOCKED");
 }
 
 function validatePlayerSave(
@@ -227,17 +227,24 @@ export function patchGameConfig(
     } else {
       if (patch.page1Locked !== undefined) config = { ...config, page1Locked: patch.page1Locked };
       if (patch.page2Locked !== undefined) config = { ...config, page2Locked: patch.page2Locked };
+      if (patch.page3Locked !== undefined) config = { ...config, page3Locked: patch.page3Locked };
       if (patch.answersPage1Public !== undefined) {
         config = { ...config, answersPage1Public: patch.answersPage1Public };
       }
       if (patch.answersPage2Public !== undefined) {
         config = { ...config, answersPage2Public: patch.answersPage2Public };
       }
+      if (patch.answersPage3Public !== undefined) {
+        config = { ...config, answersPage3Public: patch.answersPage3Public };
+      }
       if (patch.answersPage1OpensAt !== undefined) {
         config = { ...config, answersPage1OpensAt: patch.answersPage1OpensAt };
       }
       if (patch.answersPage2OpensAt !== undefined) {
         config = { ...config, answersPage2OpensAt: patch.answersPage2OpensAt };
+      }
+      if (patch.answersPage3OpensAt !== undefined) {
+        config = { ...config, answersPage3OpensAt: patch.answersPage3OpensAt };
       }
       if (patch.feature) {
         const result = updatePublicFeature(

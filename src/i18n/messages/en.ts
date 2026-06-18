@@ -22,6 +22,7 @@ export const en: Messages = {
     payoutIfWrong: "If wrong {amount}",
     page1Short: "Page 1",
     page2Short: "Page 2",
+    page3Short: "Page 3",
     total: "Total",
     player: "Player",
     rank: "Rank",
@@ -30,8 +31,10 @@ export const en: Messages = {
     filterAll: "All questions",
     filterPage1: "Page 1 only",
     filterPage2: "Page 2 only",
+    filterPage3: "Page 3 only",
     onlyPage1: "(Showing page 1 only)",
     onlyPage2: "(Showing page 2 only)",
+    onlyPage3: "(Showing page 3 only)",
     langZh: "中文",
     langEn: "English",
     language: "Language"
@@ -40,7 +43,7 @@ export const en: Messages = {
     title: "Knockout Bracket Pool",
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
-    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). Page 1 needs at least {page1Min} picks to save. Page 2 requires {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
+    rule1: "Picks are split into three pages: {page1} on page 1, {page2} on page 2, {page3} on page 3 ({total} items total). Page 1 needs at least {page1Min} picks to save; page 3 needs at least {page3Min}; page 2 requires {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
     rule2: "Pick one team per item, or skip. At most one Double per page; that pick doubles your stake.",
     rule3:
       "This game uses parimutuel scoring: you stake on each match outcome; winners split the stakes of losers. See",
@@ -65,6 +68,7 @@ export const en: Messages = {
   markets: {
     page1: "Page 1 ({count} picks)",
     page2: "Page 2 ({count} mains, {subs} subs each)",
+    page3: "Page 3 ({count} picks)",
     whoAdvances: "Who advances?"
   },
   play: {
@@ -80,6 +84,7 @@ export const en: Messages = {
     namePlaceholder: "Nickname",
     page1Answered: "Page 1:",
     page2Answered: "Page 2:",
+    page3Answered: "Page 3:",
     totalAnswered: "Total:",
     pageDouble: "Double this page:",
     doubleNone: "None",
@@ -101,8 +106,10 @@ export const en: Messages = {
     errSave: "Save failed. Please try again.",
     errDuplicateName: "That name is already taken.",
     errTooManyDoublesP1: "At most one Double on page 1.",
+    errTooManyDoublesP3: "At most one Double on page 3.",
     errTooManyDoublesP2: "At most one Double main question on page 2.",
     successP1: "Page 1 saved! {count}/{min} answered. You can edit until locked.",
+    successP3: "Page 3 saved! {count}/{min} answered. You can edit until locked.",
     successP2:
       "Page 2 saved! Page 1: {p1}, page 2: {p2}, total: {total}. You can edit until locked.",
     warnP2Shortfall:
@@ -110,6 +117,7 @@ export const en: Messages = {
   },
   validation: {
     page1Min: "Save page 1 only after at least {min} picks (currently {count}).",
+    page3Min: "Save page 3 only after at least {min} picks (currently {count}).",
     page2Min: "Page 2 requires {min} main questions (currently {count}).",
     totalMin: "Total requires {min} picks (currently {count}).",
     mainIncomplete: "{market}: complete all {subs} subs or tap Skip on the main question."
@@ -132,6 +140,7 @@ export const en: Messages = {
     empty: "No players yet. Go to Play to submit picks.",
     groupP1: "Page 1 ({count} items)",
     groupP2: "Page 2 ({count} subs)",
+    groupP3: "Page 3 ({count} picks)",
     doubleTitle: "{team} (Double · 20 pts)"
   },
   marketResults: {
@@ -196,6 +205,7 @@ export const en: Messages = {
     deleteFailed: "Delete failed. Try again.",
     featureAnswersP1: "All picks · page 1",
     featureAnswersP2: "All picks · page 2",
+    featureAnswersP3: "All picks · page 3",
     opensAtLabel: "Earliest open time (empty = anytime)",
     opensAtHint: "Can open after {time}.",
     visible: "Visible to players",

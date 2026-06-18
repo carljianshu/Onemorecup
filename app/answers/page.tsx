@@ -6,7 +6,7 @@ import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { formatScore } from "@/lib/score-format";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS } from "@/data/markets";
+import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS } from "@/data/markets";
 import { allPickColumns, findPlayerPick } from "@/lib/market-helpers";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
 import type { PlayPage } from "@/types";
@@ -20,27 +20,29 @@ export default function AnswersPage() {
 
   const page1Public = ready && isAnswersPagePublic(config, 1);
   const page2Public = ready && isAnswersPagePublic(config, 2);
+  const page3Public = ready && isAnswersPagePublic(config, 3);
 
   useEffect(() => {
     if (!ready) return;
-    if (filter === 1 && !page1Public) {
-      setFilter(page2Public ? 2 : "all");
-    } else if (filter === 2 && !page2Public) {
-      setFilter(page1Public ? 1 : "all");
-    } else if (filter === "all" && page1Public && !page2Public) {
-      setFilter(1);
-    } else if (filter === "all" && page2Public && !page1Public) {
-      setFilter(2);
+    if (filter !== "all" && !isAnswersPagePublic(config, filter)) {
+      const visible: PlayPage[] = [];
+      if (page1Public) visible.push(1);
+      if (page2Public) visible.push(2);
+      if (page3Public) visible.push(3);
+      setFilter(visible.length > 1 ? "all" : visible[0] ?? "all");
     }
-  }, [ready, filter, page1Public, page2Public]);
+  }, [ready, filter, config, page1Public, page2Public, page3Public]);
 
   const columns = useMemo(() => {
     const all = allPickColumns(markets).filter(
-      (col) => (col.page === 1 && page1Public) || (col.page === 2 && page2Public)
+      (col) =>
+        (col.page === 1 && page1Public) ||
+        (col.page === 2 && page2Public) ||
+        (col.page === 3 && page3Public)
     );
     if (filter === "all") return all;
     return all.filter((col) => col.page === filter);
-  }, [markets, filter, page1Public, page2Public]);
+  }, [markets, filter, page1Public, page2Public, page3Public]);
 
   const sortedPlayers = useMemo(() => {
     const rankById = new Map(leaderboard.map((e) => [e.playerId, e.rank]));
@@ -53,15 +55,17 @@ export default function AnswersPage() {
 
   const page1ColCount = columns.filter((c) => c.page === 1).length;
   const page2ColCount = columns.filter((c) => c.page === 2).length;
-  const showAllFilter = page1Public && page2Public;
+  const page3ColCount = columns.filter((c) => c.page === 3).length;
+  const showAllFilter = [page1Public, page2Public, page3Public].filter(Boolean).length > 1;
 
   const filterOptions = useMemo(() => {
     const options: { value: ViewFilter; label: string }[] = [];
     if (showAllFilter) options.push({ value: "all", label: t("common.filterAll") });
     if (page1Public) options.push({ value: 1, label: t("common.filterPage1") });
     if (page2Public) options.push({ value: 2, label: t("common.filterPage2") });
+    if (page3Public) options.push({ value: 3, label: t("common.filterPage3") });
     return options;
-  }, [showAllFilter, page1Public, page2Public, t]);
+  }, [showAllFilter, page1Public, page2Public, page3Public, t]);
 
   if (!ready) {
     return (
@@ -127,13 +131,14 @@ export default function AnswersPage() {
         <div className="card table-wrap answers-table-wrap">
           <table className="answers-table">
             <thead>
-              {filter === "all" && showAllFilter && (page1ColCount > 0 || page2ColCount > 0) && (
+              {filter === "all" && showAllFilter && (page1ColCount > 0 || page2ColCount > 0 || page3ColCount > 0) && (
                 <tr className="answers-group-row">
                   <th rowSpan={2} className="sticky-col">
                     {t("common.player")}
                   </th>
                   <th rowSpan={2}>{t("common.page1Short")}</th>
                   <th rowSpan={2}>{t("common.page2Short")}</th>
+                  <th rowSpan={2}>{t("common.page3Short")}</th>
                   <th rowSpan={2}>{t("common.score")}</th>
                   {page1ColCount > 0 && (
                     <th colSpan={page1ColCount} className="group-header">
@@ -145,6 +150,11 @@ export default function AnswersPage() {
                       {t("answers.groupP2", { count: page2ColCount })}
                     </th>
                   )}
+                  {page3ColCount > 0 && (
+                    <th colSpan={page3ColCount} className="group-header">
+                      {t("answers.groupP3", { count: page3ColCount })}
+                    </th>
+                  )}
                 </tr>
               )}
               <tr>
@@ -153,6 +163,7 @@ export default function AnswersPage() {
                     <th className="sticky-col">{t("common.player")}</th>
                     <th>{t("common.page1Short")}</th>
                     <th>{t("common.page2Short")}</th>
+                    <th>{t("common.page3Short")}</th>
                     <th>{t("common.score")}</th>
                   </>
                 )}
@@ -174,6 +185,9 @@ export default function AnswersPage() {
                     </td>
                     <td>
                       {player.pickStats.page2Count}/{MIN_PAGE2_PICKS}
+                    </td>
+                    <td>
+                      {player.pickStats.page3Count}/{MIN_PAGE3_PICKS}
                     </td>
                     <td>{formatScore(score)}</td>
                     {columns.map((col) => {

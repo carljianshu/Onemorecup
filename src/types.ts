@@ -1,8 +1,9 @@
-export type PlayPage = 1 | 2;
+export type PlayPage = 1 | 2 | 3;
 
 export interface PickStats {
   page1Count: number;
   page2Count: number;
+  page3Count: number;
   totalCount: number;
 }
 
@@ -43,13 +44,17 @@ export interface Pick {
 export interface GameConfig {
   page1Locked: boolean;
   page2Locked: boolean;
+  page3Locked: boolean;
   /** 管理员手动开放后，玩家可见答题总览第一页 */
   answersPage1Public: boolean;
   /** 管理员手动开放后，玩家可见答题总览第二页 */
   answersPage2Public: boolean;
+  /** 管理员手动开放后，玩家可见答题总览第三页 */
+  answersPage3Public: boolean;
   /** 可选：第一页最早可开放/展示时间（ISO） */
   answersPage1OpensAt: string | null;
   answersPage2OpensAt: string | null;
+  answersPage3OpensAt: string | null;
 }
 
 export interface LeaderboardEntry {

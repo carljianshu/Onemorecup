@@ -1,8 +1,14 @@
-import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
+import {
+  MIN_PAGE1_PICKS,
+  MIN_PAGE2_PICKS,
+  MIN_PAGE3_PICKS,
+  MIN_TOTAL_PICKS
+} from "@/data/markets";
 import type { PageSaveError } from "@/i18n/validation";
 import {
   page1CompletedCount,
   page2CompletedCount,
+  page3CompletedCount,
   playerAnswersFromPicks
 } from "@/lib/market-helpers";
 import type { Market, Pick, PickStats, PlayerPickInput, PlayPage } from "@/types";
@@ -11,7 +17,8 @@ export function computePickStats(playerPicks: Pick[], markets: Market[]): PickSt
   const answers = playerAnswersFromPicks(playerPicks);
   const page1Count = page1CompletedCount(markets, answers);
   const page2Count = page2CompletedCount(markets, answers);
-  return { page1Count, page2Count, totalCount: page1Count + page2Count };
+  const page3Count = page3CompletedCount(markets, answers);
+  return { page1Count, page2Count, page3Count, totalCount: page1Count + page2Count + page3Count };
 }
 
 export function countSelections(
@@ -20,7 +27,8 @@ export function countSelections(
 ): PickStats {
   const page1Count = page1CompletedCount(markets, selections);
   const page2Count = page2CompletedCount(markets, selections);
-  return { page1Count, page2Count, totalCount: page1Count + page2Count };
+  const page3Count = page3CompletedCount(markets, selections);
+  return { page1Count, page2Count, page3Count, totalCount: page1Count + page2Count + page3Count };
 }
 
 export function pickStatsFromPickInputs(
@@ -49,17 +57,26 @@ export function validatePageSave(
     return null;
   }
 
+  if (page === 3) {
+    const stats = pickStatsFromPickInputs(pagePickInputs, markets);
+    if (stats.page3Count < MIN_PAGE3_PICKS) {
+      return { code: "page3_min", count: stats.page3Count, min: MIN_PAGE3_PICKS };
+    }
+    return null;
+  }
+
   return null;
 }
 
 export const EMPTY_PICK_STATS: PickStats = {
   page1Count: 0,
   page2Count: 0,
+  page3Count: 0,
   totalCount: 0
 };
 
 export function formatPickStats(stats: PickStats) {
-  return `第一页 ${stats.page1Count}/${MIN_PAGE1_PICKS}，第二页 ${stats.page2Count}/${MIN_PAGE2_PICKS}，总计 ${stats.totalCount}/${MIN_TOTAL_PICKS}`;
+  return `第一页 ${stats.page1Count}/${MIN_PAGE1_PICKS}，第二页 ${stats.page2Count}/${MIN_PAGE2_PICKS}，第三页 ${stats.page3Count}/${MIN_PAGE3_PICKS}，总计 ${stats.totalCount}/${MIN_TOTAL_PICKS}`;
 }
 
 /** max(max(16 − 总计, 4 − 第二页大题数), 0)；用于第二页锁定后的扣分题数。 */

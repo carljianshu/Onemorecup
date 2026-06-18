@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AdminGate } from "@/components/AdminGate";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_TOTAL_PICKS, marketsForPage } from "@/data/markets";
+import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS, PLAY_PAGES, isPageLocked, marketsForPage } from "@/data/markets";
 import { answersFeatureLabelKey, translateMarketName } from "@/i18n";
 import {
   activeSubQuestions,
@@ -30,7 +30,7 @@ function cellForMarket(
   picks: Pick[],
   t: (key: string, values?: Record<string, string | number>) => string
 ) {
-  if (market.page === 1) {
+  if (market.page === 1 || market.page === 3) {
     const pick = picks.find((p) => p.playerId === playerId && p.marketId === market.id);
     if (!pick) return t("common.none");
     return pick.stake === DOUBLE_STAKE ? `${pick.team} ×2` : pick.team;
@@ -53,9 +53,17 @@ function PublicFeatureControl({
   const { t, formatOpensAt } = useLocale();
   const label = t(answersFeatureLabelKey(feature));
   const enabled =
-    feature === "answersPage1" ? config.answersPage1Public : config.answersPage2Public;
+    feature === "answersPage1"
+      ? config.answersPage1Public
+      : feature === "answersPage2"
+        ? config.answersPage2Public
+        : config.answersPage3Public;
   const opensAt =
-    feature === "answersPage1" ? config.answersPage1OpensAt : config.answersPage2OpensAt;
+    feature === "answersPage1"
+      ? config.answersPage1OpensAt
+      : feature === "answersPage2"
+        ? config.answersPage2OpensAt
+        : config.answersPage3OpensAt;
   const canEnable = canAdminEnableFeature(config, feature);
   const visible = isAnswersFeaturePublic(config, feature);
 
@@ -195,8 +203,8 @@ function AdminPageContent() {
       <nav className="nav-bar">
         <Link href="/">{t("common.backHome")}</Link>
         <div className="lock-badges">
-          {([1, 2] as PlayPage[]).map((page) => {
-            const locked = page === 1 ? config.page1Locked : config.page2Locked;
+          {PLAY_PAGES.map((page) => {
+            const locked = isPageLocked(config, page);
             return (
               <span key={page} className={`badge ${locked ? "locked" : "open"}`}>
                 {pageLabel(page)}：{locked ? t("admin.pageLocked") : t("admin.pageOpen")}
@@ -224,8 +232,8 @@ function AdminPageContent() {
         <button type="button" className="btn btn-primary" onClick={handleCalculate}>
           {t("admin.calcScores")}
         </button>
-        {([1, 2] as PlayPage[]).map((page) => {
-          const locked = page === 1 ? config.page1Locked : config.page2Locked;
+        {PLAY_PAGES.map((page) => {
+          const locked = isPageLocked(config, page);
           return (
             <button
               key={page}
@@ -249,6 +257,7 @@ function AdminPageContent() {
         <div className="public-feature-grid">
           <PublicFeatureControl feature="answersPage1" onMessage={setMessage} />
           <PublicFeatureControl feature="answersPage2" onMessage={setMessage} />
+          <PublicFeatureControl feature="answersPage3" onMessage={setMessage} />
         </div>
       </section>
 
@@ -331,6 +340,30 @@ function AdminPageContent() {
         ))}
       </section>
 
+      <section className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 style={{ marginTop: 0 }}>{t("admin.resultsP1", { page: pageLabel(3) })}</h2>
+        <div className="admin-grid">
+          {marketsForPage(markets, 3).map((market) => (
+            <div key={market.id} className="admin-item">
+              <strong>
+                [{market.round}] {market.id}：{translateMarketName(locale, market.name)}
+              </strong>
+              <select
+                value={market.winner ?? ""}
+                onChange={(e) => setMarketWinner(market.id, e.target.value || null)}
+              >
+                <option value="">{t("admin.unsettled")}</option>
+                {(market.candidates ?? []).map((team) => (
+                  <option key={team} value={team}>
+                    {team}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="card table-wrap">
         <h2 style={{ marginTop: 0 }}>{t("admin.allPicks")}</h2>
         {players.length === 0 ? (
@@ -342,6 +375,7 @@ function AdminPageContent() {
                 <th>{t("common.player")}</th>
                 <th>{t("common.page1Short")}</th>
                 <th>{t("common.page2Short")}</th>
+                <th>{t("common.page3Short")}</th>
                 <th>{t("common.total")}</th>
                 {markets.map((market) => (
                   <th key={market.id}>{market.id}</th>
@@ -359,6 +393,9 @@ function AdminPageContent() {
                   </td>
                   <td>
                     {player.pickStats.page2Count} / {MIN_PAGE2_PICKS}
+                  </td>
+                  <td>
+                    {player.pickStats.page3Count} / {MIN_PAGE3_PICKS}
                   </td>
                   <td>
                     {player.pickStats.totalCount} / {MIN_TOTAL_PICKS}
