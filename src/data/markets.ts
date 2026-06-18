@@ -261,7 +261,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-5",
     round: "P3",
     name: "第一场半决赛谁会晋级？",
-    candidates: ["待填 1", "待填 2", "待填 3", "待填 4"],
+    candidates: ["E1/I1区", "F1区", "H1区", "D1/G1区"],
     winner: null,
     page: 3
   },
@@ -269,7 +269,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-6",
     round: "P3",
     name: "第二场半决赛谁会晋级？",
-    candidates: ["待填 1", "待填 2", "待填 3", "待填 4"],
+    candidates: ["C1区", "A1/L1区", "J1区", "B1/K1区"],
     winner: null,
     page: 3
   },
@@ -278,14 +278,14 @@ export const DEFAULT_MARKETS: Market[] = [
     round: "P3",
     name: "谁能夺冠？",
     candidates: [
-      "待填 1",
-      "待填 2",
-      "待填 3",
-      "待填 4",
-      "待填 5",
-      "待填 6",
-      "待填 7",
-      "待填 8"
+      "E1/I1区",
+      "F1区",
+      "H1区",
+      "D1/G1区",
+      "C1区",
+      "A1/L1区",
+      "J1区",
+      "B1/K1区"
     ],
     winner: null,
     page: 3
