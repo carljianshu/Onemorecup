@@ -50,8 +50,30 @@ export const en: Messages = {
   scoringRules: {
     linkLabel: "stake scoring",
     title: "Stake scoring",
-    placeholder: "Scoring rules will be added soon.",
-    suffix: "."
+    suffix: ".",
+    summary:
+      "Winners split losers' stakes—but first we derive an adjustment from how picks split, then settle again at the adjusted stake.",
+    s1Title: "Basics",
+    s1Item1: "Each question pools all players who bet on it.",
+    s1Item2: "Wrong picks lose stake; right picks split what wrong picks lost.",
+    s1Item3: "Normal bet: 10 pts. Double counts as 2 slots (~2× P/L).",
+    s2Title: "Per question (two passes)",
+    s2Item1: "Pass 1 (probe): settle at 10 pts/slot only to measure volatility.",
+    s2Item2:
+      "Adjustment: if more slots are right than wrong, swap those counts before building the score sequence; otherwise use pass-1 scores. Adjustment = std dev of that sequence ÷ 10.",
+    s2Item3:
+      "Pass 2 (final): new stake = 10 ÷ adjustment; settle again on actual right/wrong—this is the question score.",
+    s3Title: "Special cases",
+    s3Item1: "Everyone right or everyone wrong → 0 for all on that question.",
+    s3Item2: "After page 2 locks: −10 pts per missing item (separate from parimutuel).",
+    s4Title: "Total score",
+    s4Item1: "Sum of question scores − missing-pick penalty = leaderboard total.",
+    s5Title: "Examples",
+    s5Ex1Title: "3 players, 2 right / 1 wrong",
+    s5Ex1Body:
+      "Probe treats it as 1 right / 2 wrong; adjustment ≈ 1.41, pass-2 stake ≈ 7.07. Each winner ≈ +3.54; loser −7.07.",
+    s5Ex2Title: "10 players, 5 right / 5 wrong",
+    s5Ex2Body: "Adjustment = 1, pass-2 stake stays 10. Winners +10 each; losers −10 each."
   },
   markets: {
     page1: "Page 1 ({count} picks)",
