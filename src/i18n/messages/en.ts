@@ -131,7 +131,7 @@ export const en: Messages = {
     settledMeta: "σ = {std} · stake {stake}/slot · Double stake {doubleStake}",
     voidSettled: "Everyone right or wrong — all scores are 0",
     hypothetical: "If this option were correct",
-    stakeLine: "σ = {std} · stake {stake}/slot · +{gain} per correct slot",
+    stakeLine: "σ = {std} · stake {stake}/slot · {gain} per correct slot",
     voidHypothetical: "If this option were correct, everyone ties — all scores 0",
     ifCorrect: "If correct, net {amount} pts",
     actualScore: "Actual net {amount} pts",

@@ -6,7 +6,8 @@ import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { OptionPayoutHints } from "@/components/OptionPayoutHints";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { buildMarketResultSections, formatScore } from "@/lib/market-results";
+import { buildMarketResultSections } from "@/lib/market-results";
+import { formatScorePlain } from "@/lib/score-format";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
 import type { PlayPage } from "@/types";
 
@@ -140,9 +141,9 @@ export default function MarketResultsPage() {
                   ) : (
                     <p className="market-result-settled-meta">
                       {t("marketResults.settledMeta", {
-                        std: formatScore(section.stdDev ?? 0),
-                        stake: formatScore(section.stakePerSlot ?? 0),
-                        doubleStake: formatScore((section.stakePerSlot ?? 0) * 2)
+                        std: formatScorePlain(section.stdDev ?? 0),
+                        stake: formatScorePlain(section.stakePerSlot ?? 0),
+                        doubleStake: formatScorePlain((section.stakePerSlot ?? 0) * 2)
                       })}
                     </p>
                   )}

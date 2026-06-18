@@ -2,17 +2,9 @@
 
 import { useMemo } from "react";
 import { useLocale } from "@/context/LocaleContext";
-import { formatScore } from "@/lib/score-format";
+import { formatScorePlain } from "@/lib/score-format";
 import { computeOptionPayoutHints } from "@/lib/scoring";
 import type { Pick } from "@/types";
-
-function formatSignedGain(value: number) {
-  return `+${formatScore(value)}`;
-}
-
-function formatSignedLoss(value: number) {
-  return `-${formatScore(Math.abs(value))}`;
-}
 
 export function OptionPayoutHints({
   option,
@@ -36,10 +28,10 @@ export function OptionPayoutHints({
   return (
     <span className={className ? `option-payout-hints ${className}` : "option-payout-hints"}>
       <span className="option-payout-hints-correct">
-        {t("common.payoutIfCorrect", { amount: formatSignedGain(hints.gainPerSlot) })}
+        {t("common.payoutIfCorrect", { amount: `+${formatScorePlain(hints.gainPerSlot)}` })}
       </span>
       <span className="option-payout-hints-wrong">
-        {t("common.payoutIfWrong", { amount: formatSignedLoss(hints.lossPerSlot) })}
+        {t("common.payoutIfWrong", { amount: `-${formatScorePlain(hints.lossPerSlot)}` })}
       </span>
     </span>
   );

@@ -129,7 +129,7 @@ export const zh = {
     settledMeta: "σ = {std} · 本金 {stake}/计分位 · Double 本金 {doubleStake}",
     voidSettled: "全员猜对或猜错，本题所有人得 0 分",
     hypothetical: "假设该选项猜对",
-    stakeLine: "σ = {std} · 本金 {stake}/计分位 · 每猜对计分位 +{gain}",
+    stakeLine: "σ = {std} · 本金 {stake}/计分位 · 每猜对计分位 {gain}",
     voidHypothetical: "若该选项猜对，全员同对或同错，所有人得 0 分",
     ifCorrect: "如果猜对，净得分 {amount} 分",
     actualScore: "实际净得分 {amount} 分",
