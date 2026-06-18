@@ -131,7 +131,8 @@ export const zh = {
     missing: "缺少的项目数",
     details: "详情",
     collapse: "收起",
-    perMarket: "每场得分"
+    perMarket: "每场得分",
+    promotionZone: "晋级区"
   },
   answers: {
     title: "答题总览",

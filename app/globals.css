@@ -759,6 +759,34 @@ th {
   color: var(--muted);
 }
 
+.leaderboard-cutoff-row td {
+  padding: 0.35rem 0 0.65rem;
+  border-bottom: none;
+}
+
+.leaderboard-cutoff-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.leaderboard-cutoff-line::before,
+.leaderboard-cutoff-line::after {
+  content: "";
+  flex: 1;
+  height: 3px;
+  background: #ef4444;
+  border-radius: 2px;
+}
+
+.leaderboard-cutoff-line span {
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
 .admin-grid {
   display: grid;
   gap: 1rem;

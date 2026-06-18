@@ -28,6 +28,9 @@ export default function LeaderboardPage() {
     );
   }
 
+  const promotionCount = Math.ceil((leaderboard.length * 2) / 3);
+  const showPromotionCutoff = promotionCount < leaderboard.length;
+
   return (
     <main className="container">
       <nav className="nav-bar">
@@ -60,7 +63,7 @@ export default function LeaderboardPage() {
               </tr>
             </thead>
             <tbody>
-              {leaderboard.map((entry) => (
+              {leaderboard.map((entry, index) => (
                 <Fragment key={entry.playerId}>
                   <tr>
                     <td>#{entry.rank}</td>
@@ -108,6 +111,15 @@ export default function LeaderboardPage() {
                               </span>
                             );
                           })}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {showPromotionCutoff && index === promotionCount - 1 && (
+                    <tr className="leaderboard-cutoff-row">
+                      <td colSpan={10}>
+                        <div className="leaderboard-cutoff-line" aria-label={t("leaderboard.promotionZone")}>
+                          <span>{t("leaderboard.promotionZone")}</span>
                         </div>
                       </td>
                     </tr>
