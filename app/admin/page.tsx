@@ -14,12 +14,6 @@ import {
 } from "@/lib/page-lock";
 import { answersFeatureLabelKey, translateMarketName } from "@/i18n";
 import {
-  activeSubQuestions,
-  formatMainQuestionProgress,
-  hiddenSubQuestions,
-  playerAnswersFromPicks
-} from "@/lib/market-helpers";
-import {
   canAdminEnableFeature,
   fromDatetimeLocalValue,
   isAnswersFeaturePublic,
@@ -36,16 +30,9 @@ function cellForMarket(
   picks: Pick[],
   t: (key: string, values?: Record<string, string | number>) => string
 ) {
-  if (market.page === 1 || market.page === 3) {
-    const pick = picks.find((p) => p.playerId === playerId && p.marketId === market.id);
-    if (!pick) return t("common.none");
-    return pick.stake === DOUBLE_STAKE ? `${pick.team} ×2` : pick.team;
-  }
-  const answers = playerAnswersFromPicks(picks.filter((p) => p.playerId === playerId));
-  const progress = formatMainQuestionProgress(market, answers);
-  if (progress.complete) return t("admin.complete");
-  if (progress.done === 0) return t("common.none");
-  return t("admin.subCount", { done: progress.done, total: progress.total });
+  const pick = picks.find((p) => p.playerId === playerId && p.marketId === market.id);
+  if (!pick) return t("common.none");
+  return pick.stake === DOUBLE_STAKE ? `${pick.team} ×2` : pick.team;
 }
 
 function PublicFeatureControl({
@@ -151,9 +138,6 @@ function AdminPageContent() {
     config,
     leaderboard,
     setMarketWinner,
-    setSubQuestionWinner,
-    deleteSubQuestion,
-    restoreSubQuestion,
     togglePageLocked,
     deletePlayer,
     refreshScores
@@ -169,19 +153,6 @@ function AdminPageContent() {
   function handleCalculate() {
     refreshScores();
     setMessage({ type: "success", text: t("admin.scoresRecalculated") });
-  }
-
-  function handleHideSub(marketId: string, subId: string, subLabel: string) {
-    if (!confirm(t("admin.confirmHide", { label: subLabel }))) {
-      return;
-    }
-    deleteSubQuestion(marketId, subId);
-    setMessage({ type: "success", text: t("admin.hiddenSub", { label: subLabel }) });
-  }
-
-  function handleRestoreSub(marketId: string, subId: string, subLabel: string) {
-    restoreSubQuestion(marketId, subId);
-    setMessage({ type: "success", text: t("admin.restoredSub", { label: subLabel }) });
   }
 
   async function handleDeletePlayer(playerId: string, playerName: string) {
@@ -315,58 +286,27 @@ function AdminPageContent() {
       </section>
 
       <section className="card" style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ marginTop: 0 }}>{t("admin.resultsP2", { page: pageLabel(2) })}</h2>
-        {marketsForPage(markets, 2).map((market) => (
-          <div key={market.id} className="admin-main-question">
-            <strong>
-              [{market.round}] {market.id}：{translateMarketName(locale, market.name)}
-            </strong>
-            <div className="admin-sub-list">
-              {activeSubQuestions(market).map((sub) => (
-                <div key={sub.id} className="admin-sub-item">
-                  <span>{sub.label}</span>
-                  <select
-                    value={sub.winner ?? ""}
-                    onChange={(e) => setSubQuestionWinner(market.id, sub.id, e.target.value || null)}
-                  >
-                    <option value="">{t("admin.unsettled")}</option>
-                    {sub.candidates.map((team) => (
-                      <option key={team} value={team}>
-                        {team}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleHideSub(market.id, sub.id, sub.label)}
-                  >
-                    {t("admin.hide")}
-                  </button>
-                </div>
-              ))}
-              {hiddenSubQuestions(market).map((sub) => (
-                <div key={sub.id} className="admin-sub-item admin-sub-item-hidden">
-                  <span>{sub.label}</span>
-                  <span className="hidden-tag">{t("admin.hidden")}</span>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleRestoreSub(market.id, sub.id, sub.label)}
-                  >
-                    {t("admin.restoreHide")}
-                  </button>
-                </div>
-              ))}
-              {activeSubQuestions(market).length === 0 && hiddenSubQuestions(market).length === 0 && (
-                <p style={{ color: "var(--muted)", margin: 0 }}>{t("admin.noSubs")}</p>
-              )}
-              {activeSubQuestions(market).length === 0 && hiddenSubQuestions(market).length > 0 && (
-                <p style={{ color: "var(--muted)", margin: 0 }}>{t("admin.allSubsHidden")}</p>
-              )}
+        <h2 style={{ marginTop: 0 }}>{t("admin.resultsP1", { page: pageLabel(2) })}</h2>
+        <div className="admin-grid">
+          {marketsForPage(markets, 2).map((market) => (
+            <div key={market.id} className="admin-item">
+              <strong>
+                [{market.round}] {market.id}：{translateMarketName(locale, market.name)}
+              </strong>
+              <select
+                value={market.winner ?? ""}
+                onChange={(e) => setMarketWinner(market.id, e.target.value || null)}
+              >
+                <option value="">{t("admin.unsettled")}</option>
+                {(market.candidates ?? []).map((team) => (
+                  <option key={team} value={team}>
+                    {team}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
       <section className="card" style={{ marginBottom: "1.5rem" }}>

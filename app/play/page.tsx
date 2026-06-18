@@ -6,20 +6,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS, STAKE_PER_PICK, isFlatPlayPage, isPageLocked, marketsForPage, minPicksForPage, PLAY_PAGES } from "@/data/markets";
-import { translateMarketName } from "@/i18n";
-import { translatePageSaveError, translatePage2StructureError } from "@/i18n/validation";
 import {
-  activeSubQuestions,
-  doubleIdsForPage,
-  findSubQuestion,
-  formatMainQuestionProgress,
-  initSelectionMap,
-  isMainQuestionSkipped,
-  MAIN_QUESTION_SKIP,
-  mergePickInputsForPageSave,
-  validatePage2MainQuestionState
-} from "@/lib/market-helpers";
+  DOUBLE_STAKE,
+  MIN_PAGE1_PICKS,
+  MIN_PAGE2_PICKS,
+  MIN_PAGE3_PICKS,
+  MIN_TOTAL_PICKS,
+  STAKE_PER_PICK,
+  isPageLocked,
+  marketsForPage,
+  minPicksForPage,
+  PLAY_PAGES
+} from "@/data/markets";
+import { translateMarketName } from "@/i18n";
+import { translatePageSaveError } from "@/i18n/validation";
+import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { countSelections, describePickShortfall, validatePageSave } from "@/lib/pick-stats";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
 
@@ -38,52 +39,25 @@ function buildPickInputsForPage(
   for (const market of markets) {
     if (market.page !== page) continue;
 
-    if (isFlatPlayPage(page)) {
-      if (locked && editingPlayerId) {
-        const existing = picks.find(
-          (p) => p.playerId === editingPlayerId && p.marketId === market.id
-        );
-        if (existing) {
-          result.push({
-            marketId: market.id,
-            team: existing.team,
-            double: existing.stake === DOUBLE_STAKE
-          });
-        }
-        continue;
-      }
-      if (selections[market.id] !== null) {
+    if (locked && editingPlayerId) {
+      const existing = picks.find(
+        (p) => p.playerId === editingPlayerId && p.marketId === market.id
+      );
+      if (existing) {
         result.push({
           marketId: market.id,
-          team: selections[market.id] as string,
-          double: doubles[market.id] ?? false
+          team: existing.team,
+          double: existing.stake === DOUBLE_STAKE
         });
       }
       continue;
     }
-
-    for (const sub of activeSubQuestions(market)) {
-      if (isMainQuestionSkipped(market, selections)) continue;
-      if (locked && editingPlayerId) {
-        const existing = picks.find(
-          (p) => p.playerId === editingPlayerId && p.marketId === sub.id
-        );
-        if (existing) {
-          result.push({
-            marketId: sub.id,
-            team: existing.team,
-            double: doubles[market.id] ?? false
-          });
-        }
-        continue;
-      }
-      if (selections[sub.id] !== null) {
-        result.push({
-          marketId: sub.id,
-          team: selections[sub.id] as string,
-          double: doubles[market.id] ?? false
-        });
-      }
+    if (selections[market.id] !== null) {
+      result.push({
+        marketId: market.id,
+        team: selections[market.id] as string,
+        double: doubles[market.id] ?? false
+      });
     }
   }
 
@@ -130,12 +104,6 @@ export default function PlayPage() {
           if (pick.marketId in initial) {
             initial[pick.marketId] = pick.team;
             if (pick.stake === DOUBLE_STAKE) initialDoubles[pick.marketId] = true;
-            continue;
-          }
-          const subMatch = findSubQuestion(markets, pick.marketId);
-          if (subMatch) {
-            initial[pick.marketId] = pick.team;
-            if (pick.stake === DOUBLE_STAKE) initialDoubles[subMatch.market.id] = true;
           }
         }
       }
@@ -162,42 +130,10 @@ export default function PlayPage() {
 
   function selectAnswer(pickId: string, team: string | null) {
     selectionsDirtyRef.current = true;
-    setSelections((prev) => {
-      const next = { ...prev, [pickId]: team };
-      const subMatch = findSubQuestion(markets, pickId);
-      if (subMatch && team !== null) {
-        next[subMatch.market.id] = null;
-      }
-      return next;
-    });
+    setSelections((prev) => ({ ...prev, [pickId]: team }));
     if (team === null) {
-      setDoubles((prev) => {
-        const next = { ...prev, [pickId]: false };
-        const subMatch = findSubQuestion(markets, pickId);
-        if (subMatch) next[subMatch.market.id] = false;
-        return next;
-      });
+      setDoubles((prev) => ({ ...prev, [pickId]: false }));
     }
-    setMessage(null);
-  }
-
-  function toggleMainQuestionSkip(marketId: string) {
-    const market = markets.find((m) => m.id === marketId);
-    if (!market || market.page !== 2) return;
-
-    selectionsDirtyRef.current = true;
-    setSelections((prev) => {
-      const skipped = prev[marketId] === MAIN_QUESTION_SKIP;
-      if (skipped) {
-        return { ...prev, [marketId]: null };
-      }
-      const next = { ...prev, [marketId]: MAIN_QUESTION_SKIP };
-      for (const sub of activeSubQuestions(market)) {
-        next[sub.id] = null;
-      }
-      return next;
-    });
-    setDoubles((prev) => ({ ...prev, [marketId]: false }));
     setMessage(null);
   }
 
@@ -246,14 +182,6 @@ export default function PlayPage() {
         text: t("play.pageLockedSubmit", { page: playPageLabel(step) })
       });
       return;
-    }
-
-    if (step === 2) {
-      const structureError = validatePage2MainQuestionState(markets, selections);
-      if (structureError) {
-        setMessage({ type: "error", text: translatePage2StructureError(t, structureError) });
-        return;
-      }
     }
 
     const pageInputs = buildPickInputsForPage(
@@ -392,24 +320,6 @@ export default function PlayPage() {
         })}
       </div>
 
-      {step === 2 && (() => {
-        const strong = t("play.page2HintStrong");
-        const parts = t("play.page2Hint").split(strong);
-        return (
-          <div className="message" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--muted)" }}>
-            {parts.length === 2 ? (
-              <>
-                {parts[0]}
-                <strong style={{ color: "var(--text)" }}>{strong}</strong>
-                {parts[1]}
-              </>
-            ) : (
-              t("play.page2Hint")
-            )}
-          </div>
-        );
-      })()}
-
       {isEditing && !pageLocked && (
         <div className="message success">{t("play.loadedEdit")}</div>
       )}
@@ -448,105 +358,44 @@ export default function PlayPage() {
         <span>
           {t("play.pageDouble")}
           <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : t("play.doubleNone")}</strong>
-          <span className="muted-inline">
-            {t("play.doubleHint", {
-              perMain: step === 2 ? t("play.doublePerMain") : ""
-            })}
-          </span>
+          <span className="muted-inline">{t("play.doubleHint", { perMain: "" })}</span>
         </span>
       </div>
 
-      {isFlatPlayPage(step) &&
-        pageMarkets.map((market) => (
-          <section key={market.id} className="card item-card">
-            <h3>
-              {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
-            </h3>
-            <p className="prompt">{t("play.pleaseChoose")}</p>
-            <div className="team-options">
-              {(market.candidates ?? []).map((team) => (
-                <button
-                  key={team}
-                  type="button"
-                  className={`team-btn ${selections[market.id] === team ? "selected" : ""}`}
-                  onClick={() => selectAnswer(market.id, team)}
-                  disabled={pageLocked}
-                >
-                  {team}
-                </button>
-              ))}
+      {pageMarkets.map((market) => (
+        <section key={market.id} className="card item-card">
+          <h3>
+            {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
+          </h3>
+          <p className="prompt">{t("play.pleaseChoose")}</p>
+          <div className="team-options">
+            {(market.candidates ?? []).map((team) => (
               <button
+                key={team}
                 type="button"
-                className={`team-btn skip ${selections[market.id] === null ? "selected" : ""}`}
-                onClick={() => selectAnswer(market.id, null)}
+                className={`team-btn ${selections[market.id] === team ? "selected" : ""}`}
+                onClick={() => selectAnswer(market.id, team)}
                 disabled={pageLocked}
               >
-                {t("common.skip")}
+                {team}
               </button>
-              {renderDoubleButton(
-                market.id,
-                selections[market.id] !== null,
-                t("play.doubleNeedAnswer")
-              )}
-            </div>
-          </section>
-        ))}
-
-      {step === 2 &&
-        pageMarkets.map((market) => {
-          const progress = formatMainQuestionProgress(market, selections);
-          const skipped = progress.skipped;
-          return (
-            <section key={market.id} className="card item-card">
-              <div className="main-question-header">
-                <h3>
-                  {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
-                </h3>
-                <div className="main-question-actions">
-                  <span
-                    className={`completion-badge ${progress.complete ? "done" : ""} ${skipped ? "skipped" : ""}`}
-                  >
-                    {skipped
-                      ? t("play.skipped")
-                      : `${t("play.subProgress", { done: progress.done, total: progress.total })}${progress.complete ? t("play.subComplete") : ""}`}
-                  </span>
-                  <button
-                    type="button"
-                    className={`team-btn skip ${skipped ? "selected" : ""}`}
-                    onClick={() => toggleMainQuestionSkip(market.id)}
-                    disabled={pageLocked}
-                  >
-                    {t("common.skip")}
-                  </button>
-                  {renderDoubleButton(
-                    market.id,
-                    progress.complete,
-                    t("play.doubleNeedComplete")
-                  )}
-                </div>
-              </div>
-              {!skipped &&
-                activeSubQuestions(market).map((sub) => (
-                  <div key={sub.id} className="sub-question">
-                    <h4>{sub.label}</h4>
-                    <div className="team-options">
-                      {sub.candidates.map((team) => (
-                        <button
-                          key={team}
-                          type="button"
-                          className={`team-btn ${selections[sub.id] === team ? "selected" : ""}`}
-                          onClick={() => selectAnswer(sub.id, team)}
-                          disabled={pageLocked}
-                        >
-                          {team}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-            </section>
-          );
-        })}
+            ))}
+            <button
+              type="button"
+              className={`team-btn skip ${selections[market.id] === null ? "selected" : ""}`}
+              onClick={() => selectAnswer(market.id, null)}
+              disabled={pageLocked}
+            >
+              {t("common.skip")}
+            </button>
+            {renderDoubleButton(
+              market.id,
+              selections[market.id] !== null,
+              t("play.doubleNeedAnswer")
+            )}
+          </div>
+        </section>
+      ))}
 
       {message && (
         <div ref={bottomMessageRef} className={`message ${message.type}`}>

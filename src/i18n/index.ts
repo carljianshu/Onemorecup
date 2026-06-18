@@ -7,8 +7,7 @@ import {
   MIN_TOTAL_PICKS,
   PAGE1_COUNT,
   PAGE2_COUNT,
-  PAGE3_COUNT,
-  SUBS_PER_PAGE2_QUESTION
+  PAGE3_COUNT
 } from "@/data/markets";
 import type { PlayPage } from "@/types";
 
@@ -46,10 +45,7 @@ export function pageLabel(locale: Locale, page: PlayPage): string {
     return translate(locale, "markets.page1", { count: PAGE1_COUNT });
   }
   if (page === 2) {
-    return translate(locale, "markets.page2", {
-      count: PAGE2_COUNT,
-      subs: SUBS_PER_PAGE2_QUESTION
-    });
+    return translate(locale, "markets.page2", { count: PAGE2_COUNT });
   }
   return translate(locale, "markets.page3", { count: PAGE3_COUNT });
 }
@@ -60,10 +56,7 @@ export function playPageLabel(locale: Locale, page: PlayPage): string {
     return translate(locale, "play.tabPage1", { count: PAGE1_COUNT });
   }
   if (page === 2) {
-    return translate(locale, "play.tabPage2", {
-      count: PAGE2_COUNT,
-      subs: SUBS_PER_PAGE2_QUESTION
-    });
+    return translate(locale, "play.tabPage2", { count: PAGE2_COUNT });
   }
   return translate(locale, "play.tabPage3", { count: PAGE3_COUNT });
 }

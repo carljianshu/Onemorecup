@@ -1,5 +1,5 @@
 import { DOUBLE_STAKE } from "@/data/markets";
-import { activeSubQuestions, allPickColumns, type PickColumn } from "@/lib/market-helpers";
+import { allPickColumns, type PickColumn } from "@/lib/market-helpers";
 import { formatScore, roundScore } from "@/lib/score-format";
 import { computeParimutuelBreakdown } from "@/lib/scoring";
 import type { Market, Pick, Player, PlayPage } from "@/types";
@@ -8,9 +8,7 @@ export interface MarketResultPick {
   playerId: string;
   playerName: string;
   isDouble: boolean;
-  /** 假设该选项猜对时，该玩家本题净得分 */
   ifCorrectPayout: number;
-  /** 已录入赛果时的实际净得分 */
   actualPayout: number | null;
 }
 
@@ -20,7 +18,6 @@ export interface MarketOptionResult {
   stdDev: number;
   stakePerSlot: number;
   doubleStake: number;
-  /** 假设该选项猜对时，每个猜对计分位可赢得的奖金 */
   gainPerWinningSlot: number;
   isVoid: boolean;
   isWinner: boolean;
@@ -53,26 +50,11 @@ export interface MarketResultSection {
 export { formatScore };
 
 function candidatesForColumn(markets: Market[], col: PickColumn): string[] {
-  if (col.page === 1 || col.page === 3) {
-    const market = markets.find((m) => m.id === col.id);
-    return market?.candidates ?? [];
-  }
-  for (const market of markets.filter((m) => m.page === 2)) {
-    const sub = activeSubQuestions(market).find((s) => s.id === col.id);
-    if (sub) return [...sub.candidates];
-  }
-  return [];
+  return markets.find((m) => m.id === col.id)?.candidates ?? [];
 }
 
 function winnerForColumn(markets: Market[], col: PickColumn): string | null {
-  if (col.page === 1 || col.page === 3) {
-    return markets.find((m) => m.id === col.id)?.winner ?? null;
-  }
-  for (const market of markets.filter((m) => m.page === 2)) {
-    const sub = market.subQuestions?.find((s) => s.id === col.id);
-    if (sub) return sub.winner;
-  }
-  return null;
+  return markets.find((m) => m.id === col.id)?.winner ?? null;
 }
 
 export function buildMarketResultSections(

@@ -1,5 +1,4 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, syncMarkets } from "@/data/markets";
-import { findSubQuestion } from "@/lib/market-helpers";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/lib/page-lock";
 import { computePickStats } from "@/lib/pick-stats";
 import { buildLeaderboard } from "@/lib/scoring";
@@ -215,41 +214,25 @@ export function getPicksForPlayer(playerId: string, picks: Pick[]) {
 function validatePickInputs(pickInputs: PlayerPickInput[], markets: Market[]) {
   const seen = new Set<string>();
   let page1Doubles = 0;
+  let page2Doubles = 0;
   let page3Doubles = 0;
-  const page2DoubleParents = new Set<string>();
 
   for (const input of pickInputs) {
     if (seen.has(input.marketId)) throw new Error("DUPLICATE_MARKET");
     seen.add(input.marketId);
 
-    if (input.double) {
-      const subMatch = findSubQuestion(markets, input.marketId);
-      if (subMatch) {
-        page2DoubleParents.add(subMatch.market.id);
-      } else {
-        const market = markets.find((m) => m.id === input.marketId);
-        if (!market || (market.page !== 1 && market.page !== 3)) throw new Error("INVALID_MARKET");
-        if (market.page === 1) page1Doubles += 1;
-        else page3Doubles += 1;
-      }
-    }
-
-    const subMatch = findSubQuestion(markets, input.marketId);
-    if (subMatch) {
-      const { sub } = subMatch;
-      if (sub.deleted) throw new Error("INVALID_MARKET");
-      if (!sub.candidates.includes(input.team as (typeof sub.candidates)[number])) {
-        throw new Error("INVALID_TEAM");
-      }
-      continue;
-    }
-
     const market = markets.find((m) => m.id === input.marketId);
-    if (!market || (market.page !== 1 && market.page !== 3)) throw new Error("INVALID_MARKET");
+    if (!market) throw new Error("INVALID_MARKET");
     if (!market.candidates?.includes(input.team)) throw new Error("INVALID_TEAM");
+
+    if (input.double) {
+      if (market.page === 1) page1Doubles += 1;
+      else if (market.page === 2) page2Doubles += 1;
+      else page3Doubles += 1;
+    }
   }
 
-  if (page1Doubles > 1 || page3Doubles > 1 || page2DoubleParents.size > 1) {
+  if (page1Doubles > 1 || page2Doubles > 1 || page3Doubles > 1) {
     throw new Error("TOO_MANY_DOUBLES");
   }
 }
@@ -345,64 +328,6 @@ export function deletePlayer(
   savePicks(picks);
   const leaderboard = refreshLeaderboard(players, state.markets, picks, state.config);
   return { players, picks, leaderboard };
-}
-
-export function updateSubQuestionWinner(
-  marketId: string,
-  subId: string,
-  winner: string | null,
-  state: { players: Player[]; markets: Market[]; picks: Pick[] }
-) {
-  const markets = state.markets.map((m) => {
-    if (m.id !== marketId) return m;
-    return {
-      ...m,
-      subQuestions: m.subQuestions?.map((s) =>
-        s.id === subId ? { ...s, winner: winner || null } : s
-      )
-    };
-  });
-  saveMarkets(markets);
-  const leaderboard = refreshLeaderboard(state.players, markets, state.picks);
-  return { markets, leaderboard };
-}
-
-export function removeSubQuestion(
-  marketId: string,
-  subId: string,
-  state: { players: Player[]; markets: Market[]; picks: Pick[] }
-) {
-  const markets = state.markets.map((m) => {
-    if (m.id !== marketId) return m;
-    return {
-      ...m,
-      subQuestions: m.subQuestions?.map((s) => (s.id === subId ? { ...s, deleted: true } : s))
-    };
-  });
-  const players = enrichPlayers(state.players, state.picks, markets);
-  saveMarkets(markets);
-  savePlayers(players);
-  const leaderboard = refreshLeaderboard(players, markets, state.picks);
-  return { markets, picks: state.picks, players, leaderboard };
-}
-
-export function restoreSubQuestion(
-  marketId: string,
-  subId: string,
-  state: { players: Player[]; markets: Market[]; picks: Pick[] }
-) {
-  const markets = state.markets.map((m) => {
-    if (m.id !== marketId) return m;
-    return {
-      ...m,
-      subQuestions: m.subQuestions?.map((s) => (s.id === subId ? { ...s, deleted: false } : s))
-    };
-  });
-  const players = enrichPlayers(state.players, state.picks, markets);
-  saveMarkets(markets);
-  savePlayers(players);
-  const leaderboard = refreshLeaderboard(players, markets, state.picks);
-  return { markets, picks: state.picks, players, leaderboard };
 }
 
 export function updateMarketWinner(

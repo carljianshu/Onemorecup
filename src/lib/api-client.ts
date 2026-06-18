@@ -99,45 +99,6 @@ export async function patchMarketWinnerApi(token: string, marketId: string, winn
   return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
 
-export async function patchSubQuestionWinnerApi(
-  token: string,
-  marketId: string,
-  subId: string,
-  winner: string | null
-) {
-  const response = await fetch(
-    `/api/admin/markets/${encodeURIComponent(marketId)}/subs/${encodeURIComponent(subId)}`,
-    {
-      method: "PATCH",
-      headers: adminHeaders(token),
-      body: JSON.stringify({ winner })
-    }
-  );
-  return applyVersion(await parseResponse<LeaderboardResponse>(response));
-}
-
-export async function deleteSubQuestionApi(token: string, marketId: string, subId: string) {
-  const response = await fetch(
-    `/api/admin/markets/${encodeURIComponent(marketId)}/subs/${encodeURIComponent(subId)}`,
-    {
-      method: "DELETE",
-      headers: adminHeaders(token)
-    }
-  );
-  return applyVersion(await parseResponse<LeaderboardResponse>(response));
-}
-
-export async function restoreSubQuestionApi(token: string, marketId: string, subId: string) {
-  const response = await fetch(
-    `/api/admin/markets/${encodeURIComponent(marketId)}/subs/${encodeURIComponent(subId)}/restore`,
-    {
-      method: "POST",
-      headers: adminHeaders(token)
-    }
-  );
-  return applyVersion(await parseResponse<LeaderboardResponse>(response));
-}
-
 export async function patchAdminConfigApi(
   token: string,
   body: {

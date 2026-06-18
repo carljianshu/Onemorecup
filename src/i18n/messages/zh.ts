@@ -65,14 +65,14 @@ export const zh = {
   },
   markets: {
     page1: "第一页（{count} 题）",
-    page2: "第二页（{count} 题，每题 {subs} 小题）",
+    page2: "第二页（{count} 题）",
     page3: "第三页（{count} 题）",
     whoAdvances: "谁会晋级？"
   },
   play: {
     title: "玩家竞猜",
     tabPage1: "1/16决赛（{count} 题）",
-    tabPage2: "1/8决赛（{count} 题，每题 {subs} 小题）",
+    tabPage2: "1/8决赛（{count} 题）",
     tabPage3: "第三页（{count} 题）",
     pageAnswered: "已答 {count}/{total}",
     page2Hint:
@@ -119,9 +119,8 @@ export const zh = {
   validation: {
     page1Min: "1/16决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
     page3Min: "第三页至少需答满 {min} 题才能保存（当前 {count} 题）。",
-    page2Min: "1/8决赛要求完成 {min} 道大题（当前 {count} 道）。",
-    totalMin: "总计要求 {min} 题（当前 {count} 题）。",
-    mainIncomplete: "{market} 需答完全部 {subs} 个小题，或点击大题旁的「不选」。"
+    page2Min: "1/8决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
+    totalMin: "总计要求 {min} 题（当前 {count} 题）。"
   },
   leaderboard: {
     title: "排行榜",
@@ -140,7 +139,7 @@ export const zh = {
     lead: "每位玩家在各场比赛中的竞猜一览；横向滑动可查看全部题目。",
     empty: "暂无玩家提交，先去竞猜页提交答案吧。",
     groupP1: "第一页（{count} 场）",
-    groupP2: "第二页（{count} 小题）",
+    groupP2: "第二页（{count} 场）",
     groupP3: "第三页（{count} 场）",
     doubleTitle: "{team}（Double · 20 分）"
   },

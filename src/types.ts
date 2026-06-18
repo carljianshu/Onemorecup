@@ -14,14 +14,6 @@ export interface Player {
   pickStats: PickStats;
 }
 
-export interface SubQuestion {
-  id: string;
-  label: string;
-  candidates: [string, string];
-  deleted: boolean;
-  winner: string | null;
-}
-
 export interface Market {
   id: string;
   round: string;
@@ -29,7 +21,6 @@ export interface Market {
   page: PlayPage;
   winner: string | null;
   candidates?: string[];
-  subQuestions?: SubQuestion[];
 }
 
 export type StakeAmount = 10 | 20;

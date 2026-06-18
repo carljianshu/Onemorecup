@@ -67,14 +67,14 @@ export const en: Messages = {
   },
   markets: {
     page1: "Page 1 ({count} picks)",
-    page2: "Page 2 ({count} mains, {subs} subs each)",
+    page2: "Page 2 ({count} picks)",
     page3: "Page 3 ({count} picks)",
     whoAdvances: "Who advances?"
   },
   play: {
     title: "Your picks",
     tabPage1: "Round of 32 ({count} picks)",
-    tabPage2: "Round of 16 ({count} mains, {subs} subs each)",
+    tabPage2: "Round of 16 ({count} picks)",
     tabPage3: "Page 3 ({count} picks)",
     pageAnswered: "{count}/{total} answered",
     page2Hint:
@@ -121,9 +121,8 @@ export const en: Messages = {
   validation: {
     page1Min: "Save the Round of 32 only after at least {min} picks (currently {count}).",
     page3Min: "Save page 3 only after at least {min} picks (currently {count}).",
-    page2Min: "Round of 16 requires {min} main questions (currently {count}).",
-    totalMin: "Total requires {min} picks (currently {count}).",
-    mainIncomplete: "{market}: complete all {subs} subs or tap Skip on the main question."
+    page2Min: "Round of 16 requires at least {min} picks (currently {count}).",
+    totalMin: "Total requires {min} picks (currently {count})."
   },
   leaderboard: {
     title: "Leaderboard",
@@ -142,7 +141,7 @@ export const en: Messages = {
     lead: "Every player's picks across all questions; scroll horizontally to see all columns.",
     empty: "No players yet. Go to Play to submit picks.",
     groupP1: "Page 1 ({count} items)",
-    groupP2: "Page 2 ({count} subs)",
+    groupP2: "Page 2 ({count} items)",
     groupP3: "Page 3 ({count} picks)",
     doubleTitle: "{team} (Double · 20 pts)"
   },

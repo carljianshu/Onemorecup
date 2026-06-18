@@ -11,14 +11,11 @@ import {
   type ReactNode
 } from "react";
 import {
-  deleteSubQuestionApi,
   deletePlayerApi,
   fetchLeaderboard,
   patchAdminConfigApi,
   patchMarketWinnerApi,
-  patchSubQuestionWinnerApi,
   registerPlayer,
-  restoreSubQuestionApi,
   type LeaderboardResponse
 } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
@@ -45,9 +42,6 @@ interface GameContextValue {
     pagePickInputs: PlayerPickInput[]
   ) => Promise<{ isUpdate: boolean; playerId: string; pickStats: PickStats }>;
   setMarketWinner: (marketId: string, winner: string | null) => Promise<void>;
-  setSubQuestionWinner: (marketId: string, subId: string, winner: string | null) => Promise<void>;
-  deleteSubQuestion: (marketId: string, subId: string) => Promise<void>;
-  restoreSubQuestion: (marketId: string, subId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
   togglePageLocked: (page: PlayPage) => Promise<void>;
   setPublicFeature: (
@@ -235,50 +229,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [apiSync, players, markets, picks, applyResponse]
   );
 
-  const setSubQuestionWinner = useCallback(
-    async (marketId: string, subId: string, winner: string | null) => {
-      if (apiSync) {
-        applyResponse(await patchSubQuestionWinnerApi(requireAdminToken(), marketId, subId, winner));
-        return;
-      }
-      const { updateSubQuestionWinner } = await import("@/lib/local-store");
-      const result = updateSubQuestionWinner(marketId, subId, winner, { players, markets, picks });
-      setMarkets(result.markets);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
-  const deleteSubQuestion = useCallback(
-    async (marketId: string, subId: string) => {
-      if (apiSync) {
-        applyResponse(await deleteSubQuestionApi(requireAdminToken(), marketId, subId));
-        return;
-      }
-      const { removeSubQuestion } = await import("@/lib/local-store");
-      const result = removeSubQuestion(marketId, subId, { players, markets, picks });
-      setMarkets(result.markets);
-      setPlayers(result.players);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
-  const restoreSubQuestionAction = useCallback(
-    async (marketId: string, subId: string) => {
-      if (apiSync) {
-        applyResponse(await restoreSubQuestionApi(requireAdminToken(), marketId, subId));
-        return;
-      }
-      const { restoreSubQuestion } = await import("@/lib/local-store");
-      const result = restoreSubQuestion(marketId, subId, { players, markets, picks });
-      setMarkets(result.markets);
-      setPlayers(result.players);
-      setLeaderboard(result.leaderboard);
-    },
-    [apiSync, players, markets, picks, applyResponse]
-  );
-
   const deletePlayer = useCallback(
     async (playerId: string) => {
       if (apiSync) {
@@ -350,9 +300,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       currentPlayerId,
       submitPicks,
       setMarketWinner,
-      setSubQuestionWinner,
-      deleteSubQuestion,
-      restoreSubQuestion: restoreSubQuestionAction,
       deletePlayer,
       togglePageLocked,
       setPublicFeature,
@@ -369,9 +316,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       currentPlayerId,
       submitPicks,
       setMarketWinner,
-      setSubQuestionWinner,
-      deleteSubQuestion,
-      restoreSubQuestionAction,
       deletePlayer,
       togglePageLocked,
       setPublicFeature,

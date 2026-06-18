@@ -1,12 +1,8 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, isFlatPlayPage, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, STAKE_PER_PICK } from "@/data/markets";
 import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
-import {
-  countPlayerGuessedItems,
-  isMainQuestionComplete,
-  playerAnswersFromPicks
-} from "@/lib/market-helpers";
-import type { LeaderboardEntry, Market, Pick, Player, SubQuestion } from "@/types";
+import { countPlayerGuessedItems } from "@/lib/market-helpers";
+import type { LeaderboardEntry, Market, Pick, Player } from "@/types";
 
 export { roundScore } from "@/lib/score-format";
 
@@ -314,11 +310,6 @@ export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<stri
   return settleParimutuel(winner, groupPicks)?.scores ?? {};
 }
 
-export function settleSubQuestion(sub: SubQuestion, subPicks: Pick[]) {
-  if (!sub.winner) return {};
-  return settlePickGroup(sub.winner, subPicks);
-}
-
 export function settleMarket(market: Market, marketPicks: Pick[]) {
   if (!market.winner) return {};
   return settlePickGroup(market.winner, marketPicks);
@@ -336,45 +327,17 @@ export function computePlayerScores(
   }
 
   for (const market of markets) {
-    if (isFlatPlayPage(market.page)) {
-      if (!market.winner) continue;
-      const marketPicks = picks.filter((p) => p.marketId === market.id);
-      const settled = settlePickGroup(market.winner, marketPicks);
+    if (!market.winner) continue;
+    const marketPicks = picks.filter((p) => p.marketId === market.id);
+    const settled = settlePickGroup(market.winner, marketPicks);
 
-      for (const player of players) {
-        const score = settled[player.id];
-        if (score === undefined) continue;
-        const entry = result.get(player.id)!;
-        entry.marketScores[market.id] = roundScore(score);
-        entry.totalScore = roundScore(entry.totalScore + score);
-        entry.settledCount += 1;
-      }
-      continue;
-    }
-
-    if (market.page !== 2) continue;
-
-    for (const sub of market.subQuestions ?? []) {
-      if (sub.deleted || !sub.winner) continue;
-
-      const subPicks = picks.filter(
-        (p) =>
-          p.marketId === sub.id &&
-          isMainQuestionComplete(
-            market,
-            playerAnswersFromPicks(picks.filter((pick) => pick.playerId === p.playerId))
-          )
-      );
-      const settled = settlePickGroup(sub.winner, subPicks);
-
-      for (const player of players) {
-        const score = settled[player.id];
-        if (score === undefined) continue;
-        const entry = result.get(player.id)!;
-        entry.marketScores[sub.id] = roundScore(score);
-        entry.totalScore = roundScore(entry.totalScore + score);
-        entry.settledCount += 1;
-      }
+    for (const player of players) {
+      const score = settled[player.id];
+      if (score === undefined) continue;
+      const entry = result.get(player.id)!;
+      entry.marketScores[market.id] = roundScore(score);
+      entry.totalScore = roundScore(entry.totalScore + score);
+      entry.settledCount += 1;
     }
   }
 
@@ -442,15 +405,5 @@ export function buildLeaderboard(
 }
 
 export function settledMarketCount(markets: Market[]) {
-  let count = 0;
-  for (const market of markets) {
-    if (isFlatPlayPage(market.page)) {
-      if (market.winner) count += 1;
-      continue;
-    }
-    if (market.page === 2) {
-      count += (market.subQuestions ?? []).filter((s) => !s.deleted && s.winner).length;
-    }
-  }
-  return count;
+  return markets.filter((market) => market.winner).length;
 }

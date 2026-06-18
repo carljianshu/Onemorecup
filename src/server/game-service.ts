@@ -1,17 +1,13 @@
 import {
   hydrateGameState,
-  removeSubQuestion,
-  restoreSubQuestion,
   savePlayerPicks,
   setPageLocked,
   snapshotFromState,
   updateMarketWinner,
   updatePublicFeature,
-  updateSubQuestionWinner,
   type GameSnapshot
 } from "@/lib/local-store";
 import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
-import { validatePage2MainQuestionState } from "@/lib/market-helpers";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, getStorageBackend } from "@/server/storage";
 import type { AnswersPageFeature } from "@/lib/public-features";
@@ -45,14 +41,6 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
   return toResponse(stored);
 }
 
-function selectionsFromPickInputs(pickInputs: PlayerPickInput[]) {
-  const map: Record<string, string | null> = {};
-  for (const input of pickInputs) {
-    map[input.marketId] = input.team;
-  }
-  return map;
-}
-
 function assertPageUnlocked(config: GameConfig, page: PlayPage) {
   if (isPageLocked(config, page)) throw new Error("PAGE_LOCKED");
 }
@@ -63,11 +51,6 @@ function validatePlayerSave(
   pagePickInputs: PlayerPickInput[],
   markets: LeaderboardResponse["markets"]
 ) {
-  if (page === 2) {
-    const structureError = validatePage2MainQuestionState(markets, selectionsFromPickInputs(pickInputs));
-    if (structureError) throw new Error(structureError.code);
-  }
-
   const validationError = validatePageSave(page, pickInputs, markets, pagePickInputs);
   if (validationError) throw new Error(validationError.code);
 }
@@ -144,59 +127,6 @@ export function patchMarketWinner(
       players: state.players,
       markets: result.markets,
       picks: state.picks,
-      config: state.config
-    });
-  }, expectedVersion);
-}
-
-export function patchSubQuestionWinner(
-  marketId: string,
-  subId: string,
-  winner: string | null,
-  expectedVersion?: number
-) {
-  return mutateAdmin((state) => {
-    const result = updateSubQuestionWinner(marketId, subId, winner, {
-      players: state.players,
-      markets: state.markets,
-      picks: state.picks
-    });
-    return snapshotFromState({
-      players: state.players,
-      markets: result.markets,
-      picks: state.picks,
-      config: state.config
-    });
-  }, expectedVersion);
-}
-
-export function hideSubQuestion(marketId: string, subId: string, expectedVersion?: number) {
-  return mutateAdmin((state) => {
-    const result = removeSubQuestion(marketId, subId, {
-      players: state.players,
-      markets: state.markets,
-      picks: state.picks
-    });
-    return snapshotFromState({
-      players: result.players,
-      markets: result.markets,
-      picks: result.picks,
-      config: state.config
-    });
-  }, expectedVersion);
-}
-
-export function restoreSubQuestionAction(marketId: string, subId: string, expectedVersion?: number) {
-  return mutateAdmin((state) => {
-    const result = restoreSubQuestion(marketId, subId, {
-      players: state.players,
-      markets: state.markets,
-      picks: state.picks
-    });
-    return snapshotFromState({
-      players: result.players,
-      markets: result.markets,
-      picks: result.picks,
       config: state.config
     });
   }, expectedVersion);
