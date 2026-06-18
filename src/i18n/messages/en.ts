@@ -49,25 +49,18 @@ export const en: Messages = {
   },
   scoringRules: {
     linkLabel: "stake scoring",
-    title: "Stake rules",
+    title: "Stake scoring",
     suffix: ".",
-    formula: "Pass-2 stake = 10 ÷ adjustment",
-    formulaAdjustment: "Adjustment = σ ÷ 10",
-    formulaNote:
-      "A smaller adjustment means a higher pass-2 stake and larger score swings per question.",
-    formulaSigmaNote:
-      "σ is the std dev of the pass-1 probe score sequence; adjustment reflects score volatility.",
-    examplesTitle: "Examples",
-    formulaEx1:
-      "10 players, 5 right / 5 wrong: adjustment = 1, stake = 10. Winners +10 each; losers −10 each.",
-    formulaEx2:
-      "10 players, 1 right / 9 wrong: adjustment = 3, stake ≈ 3.33. Winner +30; each loser −3.33.",
-    formulaEx3:
-      "10 players, 2 right / 8 wrong: adjustment = 2, stake = 5. Winners +20 each; losers −5 each.",
-    formulaEx4:
-      "10 players, 9 right / 1 wrong: adjustment = 3, stake ≈ 3.33. Winners ≈ +0.37 each; loser −3.33.",
-    formulaEx5:
-      "3 players, 2 right / 1 wrong: adjustment ≈ 1.41, stake ≈ 7.07. Winners ≈ +3.54 each; loser −7.07."
+    s1Title: "1. Parimutuel rules",
+    s1Body:
+      "On each question every player stakes a principal. Wrong picks lose that principal; right picks split the principals lost by wrong picks.",
+    s1Example:
+      "Example: stake $16, 2 players right and 3 wrong—each loser loses $16; each winner gets 16 × 3 ÷ 2 = $24.",
+    s2Title: "2. How the stake is calculated",
+    s2Body:
+      "Let M = right picks and N = wrong picks. Build a sequence with max(M,N) entries of −10 and min(M,N) entries of 10 × max(M,N) ÷ min(M,N). Adjustment = std dev of that sequence ÷ 10. Stake = $10 ÷ adjustment.",
+    s2Example:
+      "Example: M = 2, N = 3 → sequence has three −10s and two +15s; std dev ≈ 12.25, adjustment ≈ 1.22, stake ≈ $8.17. Settling at that stake: each loser −$8.17; each winner 8.17 × 3 ÷ 2 ≈ $12.25."
   },
   markets: {
     page1: "Page 1 ({count} picks)",
