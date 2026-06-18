@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ScoringAdjustmentTable } from "@/components/ScoringAdjustmentTable";
 import { useLocale } from "@/context/LocaleContext";
 
 function RuleBlock({
@@ -44,6 +45,8 @@ export default function ScoringRulesPage() {
           example={t("scoringRules.s2Example")}
         />
       </div>
+
+      <ScoringAdjustmentTable />
     </main>
   );
 }

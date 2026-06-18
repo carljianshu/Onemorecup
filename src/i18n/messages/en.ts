@@ -64,7 +64,15 @@ export const en: Messages = {
     s2Body:
       "To balance popular and unpopular outcomes, each question's stake is adjusted automatically based on how many players picked each side.\n\nThe system builds a reference P/L sequence: the larger side gets −10, the smaller side gets +10 × (larger count ÷ smaller count). Take the std dev of that sequence and divide by 10 to get the adjustment factor.\n\nEach player's actual stake is:\n\nStake = 10 ÷ adjustment factor\n\nAt settlement, wrong picks lose the stake; right picks split the total lost by wrong picks.",
     s2Example:
-      "Example: 4 right and 1 wrong → reference sequence −10, −10, −10, −10, +40. Std dev = 20, adjustment factor = 2, stake = $5. The loser loses $5; each winner gets $1.25.\n\nExample: 1 right and 9 wrong → reference sequence nine −10s and one +90. Std dev = 30, adjustment factor = 3, stake ≈ $3.33. Each loser loses $3.33; the winner gets $30."
+      "Example: 4 right and 1 wrong → reference sequence −10, −10, −10, −10, +40. Std dev = 20, adjustment factor = 2, stake = $5. The loser loses $5; each winner gets $1.25.\n\nExample: 1 right and 9 wrong → reference sequence nine −10s and one +90. Std dev = 30, adjustment factor = 3, stake ≈ $3.33. Each loser loses $3.33; the winner gets $30.",
+    adjustmentTableTitle: "Adjustment and stake with 10 players",
+    adjustmentTableLead:
+      "Assumes 10 players on one question (1 right / 9 wrong through 9 right / 1 wrong). σ = std dev of the reference P/L sequence; adjustment = σ÷10; stake = 10÷adjustment (per scoring slot).",
+    adjustmentColCorrect: "Right",
+    adjustmentColWrong: "Wrong",
+    adjustmentColStd: "σ",
+    adjustmentColFactor: "Adjustment",
+    adjustmentColStake: "Stake"
   },
   markets: {
     page1: "Round of 32 ({count} picks)",

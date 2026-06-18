@@ -115,6 +115,36 @@ a {
   white-space: pre-line;
 }
 
+.scoring-rules-table-card {
+  margin-top: 1.25rem;
+}
+
+.scoring-rules-table-card .scoring-rules-body {
+  margin-bottom: 1rem;
+}
+
+.scoring-rules-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.scoring-rules-table th,
+.scoring-rules-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.scoring-rules-table th {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scoring-rules-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

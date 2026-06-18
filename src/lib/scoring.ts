@@ -90,6 +90,60 @@ function populationStd(values: number[]): number {
   return Math.sqrt(variance);
 }
 
+/** 标准对赌调整：较多一方 M 个 −10、较少一方 N 个 10×M/N → σ，调整系数 = σ÷10，本金 = 10÷调整系数。 */
+export function computeStandardParimutuelAdjustment(
+  correctCount: number,
+  wrongCount: number
+): { scoreStd: number; adjustment: number; stakePerSlot: number } {
+  const M = Math.max(correctCount, wrongCount);
+  const N = Math.min(correctCount, wrongCount);
+  if (N === 0) {
+    return { scoreStd: 0, adjustment: 0, stakePerSlot: 0 };
+  }
+
+  const positive = (STAKE_PER_PICK * M) / N;
+  const sequence = [
+    ...Array.from({ length: M }, () => -STAKE_PER_PICK),
+    ...Array.from({ length: N }, () => positive)
+  ];
+  const scoreStd = populationStd(sequence);
+  if (scoreStd === 0) {
+    return { scoreStd: 0, adjustment: 0, stakePerSlot: 0 };
+  }
+
+  const adjustment = scoreStd / STAKE_PER_PICK;
+  return {
+    scoreStd: roundScore(scoreStd),
+    adjustment: roundScore(adjustment),
+    stakePerSlot: roundScore(STAKE_PER_PICK / adjustment)
+  };
+}
+
+export interface StandardAdjustmentTableRow {
+  correctCount: number;
+  wrongCount: number;
+  scoreStd: number;
+  adjustment: number;
+  stakePerSlot: number;
+}
+
+/** 一题固定参与人数时，从 1 人对 (n−1) 人错到 (n−1) 人对 1 人错的调整系数与本金。 */
+export function buildStandardAdjustmentTableRows(
+  participantCount = 10
+): StandardAdjustmentTableRow[] {
+  const rows: StandardAdjustmentTableRow[] = [];
+  for (let correct = 1; correct < participantCount; correct++) {
+    const wrong = participantCount - correct;
+    const stats = computeStandardParimutuelAdjustment(correct, wrong);
+    rows.push({
+      correctCount: correct,
+      wrongCount: wrong,
+      ...stats
+    });
+  }
+  return rows;
+}
+
 /**
  * P3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
  * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10。
