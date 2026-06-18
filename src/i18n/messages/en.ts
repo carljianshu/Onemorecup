@@ -84,6 +84,8 @@ export const en: Messages = {
     pageLocked: "{page} is locked; you cannot edit these picks.",
     pageLockedSubmit: "{page} is locked; you cannot save changes.",
     pageDeadline: "Deadline: {time}",
+    page3NotPromoted:
+      "You are below the advancing cutoff and cannot submit quarter-finals picks. Stay in the top {cutoff}/{total} on the leaderboard.",
     yourName: "Your name",
     namePlaceholder: "Nickname",
     page1Answered: "Round of 32:",

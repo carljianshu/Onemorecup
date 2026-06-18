@@ -27,6 +27,10 @@ export function handleRouteError(error: unknown) {
       INVALID_MARKET: { message: "题目无效。", status: 400 },
       INVALID_TEAM: { message: "选项无效。", status: 400 },
       PAGE_LOCKED: { message: "该页已锁定，无法修改。", status: 400 },
+      PAGE3_NOT_PROMOTED: {
+        message: "你未进入晋级区，无法作答1/4决赛及以后的题目。",
+        status: 403
+      },
       PLAYER_NOT_FOUND: { message: "玩家不存在。", status: 404 }
     };
     const mapped = map[error.message];

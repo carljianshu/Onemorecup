@@ -193,7 +193,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
 
       const { savePlayerPicks } = await import("@/lib/local-store");
-      const result = savePlayerPicks(name, pickInputs, { players, markets, picks }, playerId);
+      const result = savePlayerPicks(
+        name,
+        pickInputs,
+        { players, markets, picks },
+        playerId,
+        page,
+        leaderboard
+      );
       setPlayers((prev) => {
         const exists = prev.some((p) => p.id === result.player.id);
         return exists ? prev.map((p) => (p.id === result.player.id ? result.player : p)) : [...prev, result.player];
@@ -206,7 +213,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setCurrentPlayerIdState(result.player.id);
       return { isUpdate: result.isUpdate, playerId: result.player.id, pickStats: result.player.pickStats };
     },
-    [apiSync, players, markets, picks, applyResponse]
+    [apiSync, players, markets, picks, leaderboard, applyResponse]
   );
 
   const requireAdminToken = () => {

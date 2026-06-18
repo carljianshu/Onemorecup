@@ -7,6 +7,7 @@ import {
   updatePublicFeature,
   type GameSnapshot
 } from "@/lib/local-store";
+import { applyPromotionToSave } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, getStorageBackend } from "@/server/storage";
@@ -70,13 +71,23 @@ export async function registerPlayer(
   const stored = await mutateStoredGame((current) => {
     const state = hydrateGameState(current.payload, { persist: false });
     assertPageUnlocked(state.config, body.page);
-    validatePlayerSave(body.page, body.pickInputs, body.pagePickInputs, state.markets);
+
+    const pickInputs = applyPromotionToSave(
+      body.pickInputs,
+      state.markets,
+      state.leaderboard,
+      body.playerId ?? null,
+      body.page
+    );
+    validatePlayerSave(body.page, pickInputs, body.pagePickInputs, state.markets);
 
     saveResult = savePlayerPicks(
       body.name,
-      body.pickInputs,
+      pickInputs,
       { players: state.players, markets: state.markets, picks: state.picks },
-      body.playerId || null
+      body.playerId || null,
+      body.page,
+      state.leaderboard
     );
 
     return snapshotFromState({

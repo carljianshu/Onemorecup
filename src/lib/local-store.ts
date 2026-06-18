@@ -1,5 +1,6 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/lib/page-lock";
+import { applyPromotionToSave } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
 import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, LeaderboardEntry, Market, Pick, Player, PlayerPickInput, PlayPage } from "@/types";
@@ -251,14 +252,31 @@ export function savePlayerPicks(
   name: string,
   pickInputs: PlayerPickInput[],
   state: { players: Player[]; markets: Market[]; picks: Pick[] },
-  playerId?: string | null
+  playerId?: string | null,
+  page?: PlayPage,
+  leaderboardForPromotion?: LeaderboardEntry[]
 ): { player: Player; picks: Pick[]; leaderboard: LeaderboardEntry[]; isUpdate: boolean } {
-  validatePickInputs(pickInputs, state.markets);
-
   const trimmedName = name.trim();
   let existing =
     (playerId ? state.players.find((p) => p.id === playerId) : undefined) ??
     state.players.find((p) => p.name.toLowerCase() === trimmedName.toLowerCase());
+
+  const promotionLeaderboard =
+    leaderboardForPromotion ??
+    refreshLeaderboard(state.players, state.markets, state.picks);
+  const effectivePlayerId = playerId ?? existing?.id ?? null;
+  const finalPickInputs =
+    page !== undefined
+      ? applyPromotionToSave(
+          pickInputs,
+          state.markets,
+          promotionLeaderboard,
+          effectivePlayerId,
+          page
+        )
+      : pickInputs;
+
+  validatePickInputs(finalPickInputs, state.markets);
 
   if (existing) {
     const nameTaken = state.players.some(
@@ -267,7 +285,7 @@ export function savePlayerPicks(
     if (nameTaken) throw new Error("DUPLICATE_NAME");
 
     const otherPicks = state.picks.filter((pick) => pick.playerId !== existing!.id);
-    const newPicks = buildPicksForPlayer(existing.id, pickInputs);
+    const newPicks = buildPicksForPlayer(existing.id, finalPickInputs);
     const pickStats = computePickStats(newPicks, state.markets);
     const player: Player = {
       ...existing,
@@ -290,7 +308,7 @@ export function savePlayerPicks(
   }
 
   const newPlayerId = crypto.randomUUID();
-  const newPicks = buildPicksForPlayer(newPlayerId, pickInputs);
+  const newPicks = buildPicksForPlayer(newPlayerId, finalPickInputs);
   const pickStats = computePickStats(newPicks, state.markets);
   const player: Player = {
     id: newPlayerId,

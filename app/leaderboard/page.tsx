@@ -8,6 +8,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
 import { computeMissingItemCount } from "@/lib/pick-stats";
+import { promotionCutoffCount, showPromotionCutoffLine } from "@/lib/promotion";
 
 function scoreClass(score: number) {
   if (score > 0) return "score-positive";
@@ -28,8 +29,8 @@ export default function LeaderboardPage() {
     );
   }
 
-  const promotionCount = Math.ceil((leaderboard.length * 2) / 3);
-  const showPromotionCutoff = promotionCount < leaderboard.length;
+  const promotionCount = promotionCutoffCount(leaderboard.length);
+  const showPromotionCutoff = showPromotionCutoffLine(leaderboard.length);
 
   return (
     <main className="container">

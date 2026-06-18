@@ -880,6 +880,11 @@ th {
   opacity: 0.75;
 }
 
+.page-step.not-promoted:not(.active) {
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
 .page-deadline-banner {
   padding: 1rem 1.15rem;
   margin-bottom: 1rem;

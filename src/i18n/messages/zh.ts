@@ -82,6 +82,8 @@ export const zh = {
     pageLocked: "{page} 已锁定，无法再修改本页题目。",
     pageLockedSubmit: "{page} 已锁定，无法修改本页竞猜。",
     pageDeadline: "截止时间：{time}",
+    page3NotPromoted:
+      "你未进入晋级区，无法作答1/4决赛及以后的题目。请在排行榜中保持前 {cutoff}/{total} 名。",
     yourName: "你的名字",
     namePlaceholder: "输入昵称",
     page1Answered: "1/16决赛已答：",
