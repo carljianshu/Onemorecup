@@ -112,6 +112,7 @@ a {
   margin: 0;
   color: var(--muted);
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .actions {
@@ -897,6 +898,20 @@ th {
   text-align: center;
   letter-spacing: 0.02em;
   box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15) inset;
+}
+
+.play-distribution-note {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.play-distribution-note p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text);
 }
 
 .page-nav {

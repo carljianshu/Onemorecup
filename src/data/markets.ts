@@ -13,6 +13,9 @@ export const TOTAL_MARKETS = PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT;
 /** 半决赛/决赛多选项题：按选项人数分布计算专用调整系数。 */
 export const MULTI_OPTION_FINAL_MARKET_IDS = new Set<string>(["p3-5", "p3-6", "p3-7"]);
 
+/** 竞猜页在此题之前展示多选项调整系数说明。 */
+export const DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID = "p3-5";
+
 export function marketUsesDistributionAdjustment(marketId: string): boolean {
   return MULTI_OPTION_FINAL_MARKET_IDS.has(marketId);
 }

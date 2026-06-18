@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { ApiError } from "@/lib/api-client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import {
   DOUBLE_STAKE,
+  DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID,
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
@@ -442,7 +443,13 @@ export default function PlayPage() {
       </div>
 
       {pageMarkets.map((market) => (
-        <section key={market.id} className="card item-card">
+        <Fragment key={market.id}>
+          {market.id === DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID && (
+            <div className="play-distribution-note card" role="note">
+              <p>{t("play.page3DistributionNote")}</p>
+            </div>
+          )}
+          <section className="card item-card">
           <h3>
             {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
           </h3>
@@ -474,6 +481,7 @@ export default function PlayPage() {
             )}
           </div>
         </section>
+        </Fragment>
       ))}
 
       {message && (

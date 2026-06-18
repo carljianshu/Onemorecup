@@ -62,9 +62,9 @@ export const en: Messages = {
       "Example: stake $16, 2 players right and 3 wrong—each loser loses $16; each winner gets 16 × 3 ÷ 2 = $24.",
     s2Title: "2. Stake adjustment",
     s2Body:
-      "To balance popular and unpopular outcomes, each question's stake is adjusted automatically based on how many players picked each side.\n\nLet M = players right and N = players wrong. The system builds a reference P/L sequence: the larger side gets −10, the smaller side gets +10 × (larger count ÷ smaller count). Take the std dev of that sequence and divide by 10 to get the adjustment factor.\n\nEach player's actual stake is:\n\nStake = 10 ÷ adjustment factor\n\nAt settlement, wrong picks lose the stake; right picks split the total lost by wrong picks.",
+      "To balance popular and unpopular outcomes, each question's stake is adjusted automatically based on how many players picked each side.\n\nThe system builds a reference P/L sequence: the larger side gets −10, the smaller side gets +10 × (larger count ÷ smaller count). Take the std dev of that sequence and divide by 10 to get the adjustment factor.\n\nEach player's actual stake is:\n\nStake = 10 ÷ adjustment factor\n\nAt settlement, wrong picks lose the stake; right picks split the total lost by wrong picks.",
     s2Example:
-      "Example: 2 right and 3 wrong → reference sequence −10, −10, −10, +15, +15. Std dev ≈ 12.25, adjustment factor ≈ 1.22, so stake ≈ $8.17. Each loser loses $8.17; each winner gets $12.25."
+      "Example: 4 right and 1 wrong → reference sequence −10, −10, −10, −10, +40. Std dev = 20, adjustment factor = 2, stake = $5. The loser loses $5; each winner gets $1.25.\n\nExample: 1 right and 9 wrong → reference sequence nine −10s and one +90. Std dev = 30, adjustment factor = 3, stake ≈ $3.33. Each loser loses $3.33; the winner gets $30."
   },
   markets: {
     page1: "Round of 32 ({count} picks)",
@@ -81,6 +81,8 @@ export const en: Messages = {
     page2Hint:
       "Each main question in the Round of 16 has 4 sub-questions: answer all subs, or tap Skip on the main question. Partial subs cannot be saved.",
     page2HintStrong: "answer all sub-questions",
+    page3DistributionNote:
+      "Questions P3-5–P3-7 use a multi-option adjustment: among picks on each question, let N = players on the least-chosen option and M = everyone else. Reference P/L = M entries at −10 and N at +10×M/N; adjustment = σ÷10 (std dev σ); stake per slot = 10÷adjustment.",
     loadedEdit: "Your previous picks are loaded. Edit anytime, then Save this page.",
     pageLocked: "{page} is locked; you cannot edit these picks.",
     pageLockedSubmit: "{page} is locked; you cannot save changes.",
