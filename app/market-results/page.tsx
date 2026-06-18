@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { OptionPayoutHints } from "@/components/OptionPayoutHints";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { buildMarketResultSections, formatScore } from "@/lib/market-results";
@@ -203,7 +204,13 @@ export default function MarketResultsPage() {
                     >
                       <div className="market-result-option-head">
                         <h3 className="market-result-option-label">
-                          {option}
+                          <span className="market-result-option-name">{option}</span>
+                          <OptionPayoutHints
+                            option={option}
+                            candidates={section.options.map((item) => item.option)}
+                            questionPicks={picks.filter((pick) => pick.marketId === section.id)}
+                            className="market-result-option-payout"
+                          />
                           {isWinner && (
                             <span className="market-result-winner-badge">{t("marketResults.winner")}</span>
                           )}

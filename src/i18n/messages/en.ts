@@ -18,6 +18,8 @@ export const en: Messages = {
     skip: "Skip",
     delete: "Delete",
     double: "Double",
+    payoutIfCorrect: "If right {amount}",
+    payoutIfWrong: "If wrong -{amount}",
     page1Short: "Page 1",
     page2Short: "Page 2",
     total: "Total",

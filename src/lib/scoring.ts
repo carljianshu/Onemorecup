@@ -157,6 +157,59 @@ export function computeParimutuelBreakdown(
   };
 }
 
+export interface OptionPayoutHints {
+  gainPerSlot: number;
+  lossPerSlot: number;
+  isVoid: boolean;
+}
+
+function slotCountForTeam(team: string, groupPicks: Pick[]): number {
+  return groupPicks
+    .filter((pick) => pick.team === team)
+    .reduce((sum, pick) => sum + (pick.stake === DOUBLE_STAKE ? 2 : 1), 0);
+}
+
+/** 选该选项但猜错时，按最可能胜出的其他选项结算的本金扣除。 */
+function lossStakeIfWrong(option: string, candidates: string[], groupPicks: Pick[]): number {
+  const others = candidates.filter((candidate) => candidate !== option);
+  if (others.length === 0) return 0;
+
+  let rival = others[0]!;
+  let rivalSlots = slotCountForTeam(rival, groupPicks);
+
+  for (const other of others.slice(1)) {
+    const slots = slotCountForTeam(other, groupPicks);
+    if (slots > rivalSlots) {
+      rival = other;
+      rivalSlots = slots;
+    }
+  }
+
+  return computeParimutuelBreakdown(rival, groupPicks)?.stakePerSlot ?? 0;
+}
+
+/** 每个竞猜选项旁展示：猜对每计分位得分、猜错每计分位扣分。 */
+export function computeOptionPayoutHints(
+  option: string,
+  candidates: string[],
+  groupPicks: Pick[]
+): OptionPayoutHints {
+  if (groupPicks.length === 0) {
+    return { gainPerSlot: 0, lossPerSlot: 0, isVoid: true };
+  }
+
+  const correct = computeParimutuelBreakdown(option, groupPicks);
+  if (!correct || correct.isVoid) {
+    return { gainPerSlot: 0, lossPerSlot: 0, isVoid: true };
+  }
+
+  return {
+    gainPerSlot: correct.gainPerWinningSlot,
+    lossPerSlot: roundScore(lossStakeIfWrong(option, candidates, groupPicks)),
+    isVoid: false
+  };
+}
+
 /** 假设该选项猜对时，单个计分位（普通下注）可赢得的奖金。 */
 export function singleCorrectSlotBonus(winner: string, groupPicks: Pick[]): number {
   return settleParimutuel(winner, groupPicks)?.gainPerWinningSlot ?? 0;

@@ -16,6 +16,8 @@ export const zh = {
     skip: "不选",
     delete: "删除",
     double: "Double",
+    payoutIfCorrect: "猜对 {amount}",
+    payoutIfWrong: "猜错 -{amount}",
     page1Short: "第一页",
     page2Short: "第二页",
     total: "总计",

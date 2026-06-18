@@ -216,6 +216,43 @@ a {
   font-size: 0.95rem;
 }
 
+.team-btn-with-payout {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  min-width: 5.5rem;
+}
+
+.team-btn-label {
+  font-weight: 600;
+}
+
+.option-payout-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.option-payout-hints-correct {
+  color: #86efac;
+}
+
+.option-payout-hints-wrong {
+  color: #fca5a5;
+}
+
+.team-btn.selected .option-payout-hints-correct {
+  color: #bbf7d0;
+}
+
+.team-btn.selected .option-payout-hints-wrong {
+  color: #fecaca;
+}
+
 .team-btn:hover {
   border-color: var(--accent);
 }
@@ -499,6 +536,19 @@ a {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.market-result-option-name {
+  font-weight: 700;
+}
+
+.market-result-option-payout {
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .market-result-pool {
