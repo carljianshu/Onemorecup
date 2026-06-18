@@ -43,9 +43,15 @@ export const en: Messages = {
     rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). Page 1 needs at least {page1Min} picks to save. Page 2 requires {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
     rule2: "Pick one team per item, or skip. At most one Double per page; that pick doubles your stake.",
     rule3:
-      "Each question uses parimutuel scoring: first settle at 10 pts/slot, divide the score std dev by 10 for an adjustment, then re-settle at the adjusted stake; wrong loses stake, right splits losers. Double counts as two slots with doubled P/L.",
+      "This game uses parimutuel scoring: you stake on each match outcome; winners split the stakes of losers. See",
     rule4: "If everyone is right or everyone is wrong on an item, everyone scores 0.",
     rule5: "Highest total wins; ties share rank."
+  },
+  scoringRules: {
+    linkLabel: "stake scoring",
+    title: "Stake scoring",
+    placeholder: "Scoring rules will be added soon.",
+    suffix: "."
   },
   markets: {
     page1: "Page 1 ({count} picks)",

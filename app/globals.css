@@ -74,6 +74,11 @@ a {
   margin-top: 0.5rem;
 }
 
+.rules-inline-link {
+  vertical-align: middle;
+  margin: 0 0.15rem;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
