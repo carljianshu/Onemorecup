@@ -53,6 +53,17 @@ export const en: Messages = {
     suffix: ".",
     summary:
       "Winners split losers' stakes—but first we derive an adjustment from how picks split, then settle again at the adjusted stake.",
+    formulaTitle: "Stake rules",
+    formula: "Pass-2 stake = 10 ÷ adjustment",
+    formulaAdjustment: "Adjustment = σ ÷ 10",
+    formulaNote:
+      "A smaller adjustment means a higher pass-2 stake and larger score swings per question.",
+    formulaSigmaNote:
+      "σ is the std dev of the pass-1 probe score sequence; adjustment reflects how volatile scores are.",
+    formulaEx1:
+      "10 players, 5 right / 5 wrong: adjustment = 1, stake = 10. Winners +10 each; losers −10 each.",
+    formulaEx2:
+      "1 right / 9 wrong: adjustment = 3, stake ≈ 3.33. Winner +30; each loser −3.33.",
     s1Title: "Basics",
     s1Item1: "Each question pools all players who bet on it.",
     s1Item2: "Wrong picks lose stake; right picks split what wrong picks lost.",
@@ -67,13 +78,7 @@ export const en: Messages = {
     s3Item1: "Everyone right or everyone wrong → 0 for all on that question.",
     s3Item2: "After page 2 locks: −10 pts per missing item (separate from parimutuel).",
     s4Title: "Total score",
-    s4Item1: "Sum of question scores − missing-pick penalty = leaderboard total.",
-    s5Title: "Examples",
-    s5Ex1Title: "3 players, 2 right / 1 wrong",
-    s5Ex1Body:
-      "Probe treats it as 1 right / 2 wrong; adjustment ≈ 1.41, pass-2 stake ≈ 7.07. Each winner ≈ +3.54; loser −7.07.",
-    s5Ex2Title: "10 players, 5 right / 5 wrong",
-    s5Ex2Body: "Adjustment = 1, pass-2 stake stays 10. Winners +10 each; losers −10 each."
+    s4Item1: "Sum of question scores − missing-pick penalty = leaderboard total."
   },
   markets: {
     page1: "Page 1 ({count} picks)",

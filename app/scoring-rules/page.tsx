@@ -30,6 +30,18 @@ export default function ScoringRulesPage() {
       <div className="card scoring-rules-card">
         <p className="scoring-rules-summary">{t("scoringRules.summary")}</p>
 
+        <section className="scoring-rules-formula">
+          <h2 className="scoring-rules-heading">{t("scoringRules.formulaTitle")}</h2>
+          <p className="scoring-rules-formula-expr">{t("scoringRules.formula")}</p>
+          <p className="scoring-rules-formula-sub">{t("scoringRules.formulaAdjustment")}</p>
+          <p className="scoring-rules-formula-note">{t("scoringRules.formulaNote")}</p>
+          <p className="scoring-rules-formula-note">{t("scoringRules.formulaSigmaNote")}</p>
+          <div className="scoring-rules-examples">
+            <p className="scoring-rules-example-line">{t("scoringRules.formulaEx1")}</p>
+            <p className="scoring-rules-example-line">{t("scoringRules.formulaEx2")}</p>
+          </div>
+        </section>
+
         <RulesSection
           title={t("scoringRules.s1Title")}
           items={[t("scoringRules.s1Item1"), t("scoringRules.s1Item2"), t("scoringRules.s1Item3")]}
@@ -46,20 +58,6 @@ export default function ScoringRulesPage() {
         />
 
         <RulesSection title={t("scoringRules.s4Title")} items={[t("scoringRules.s4Item1")]} />
-
-        <section className="scoring-rules-section">
-          <h2 className="scoring-rules-heading">{t("scoringRules.s5Title")}</h2>
-          <div className="scoring-rules-examples">
-            <div className="scoring-rules-example">
-              <h3>{t("scoringRules.s5Ex1Title")}</h3>
-              <p>{t("scoringRules.s5Ex1Body")}</p>
-            </div>
-            <div className="scoring-rules-example">
-              <h3>{t("scoringRules.s5Ex2Title")}</h3>
-              <p>{t("scoringRules.s5Ex2Body")}</p>
-            </div>
-          </div>
-        </section>
       </div>
     </main>
   );

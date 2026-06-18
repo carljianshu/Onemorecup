@@ -90,6 +90,41 @@ a {
   line-height: 1.6;
 }
 
+.scoring-rules-formula {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.scoring-rules-formula-expr {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.scoring-rules-formula-sub {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.scoring-rules-formula-note {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.scoring-rules-example-line {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.scoring-rules-example-line + .scoring-rules-example-line {
+  margin-top: 0.5rem;
+}
+
 .scoring-rules-section + .scoring-rules-section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
