@@ -7,9 +7,45 @@ import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { buildMarketResultSections, formatScore } from "@/lib/market-results";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
+import type { MarketResultPick } from "@/lib/market-results";
+import type { TranslationValues } from "@/i18n";
 import type { PlayPage } from "@/types";
 
 type ViewFilter = "all" | PlayPage;
+
+function formatSignedScore(value: number) {
+  const formatted = formatScore(Math.abs(value));
+  if (value > 0) return `+${formatted}`;
+  if (value < 0) return `-${formatted}`;
+  return formatted;
+}
+
+function scoreClassName(value: number) {
+  if (value > 0) return "market-result-score market-result-score-positive";
+  if (value < 0) return "market-result-score market-result-score-negative";
+  return "market-result-score";
+}
+
+function PlayerPayout({
+  pick,
+  settled,
+  t
+}: {
+  pick: MarketResultPick;
+  settled: boolean;
+  t: (key: string, vars?: TranslationValues) => string;
+}) {
+  const showActual = settled && pick.actualPayout !== null;
+  const amount = showActual ? pick.actualPayout! : pick.ifCorrectPayout;
+  const labelKey = showActual ? "marketResults.actualScore" : "marketResults.ifCorrect";
+
+  return (
+    <span className={scoreClassName(amount)}>
+      {t(labelKey, { amount: formatSignedScore(amount) })}
+      {pick.isDouble && <span className="pick-double-badge">{t("common.double")}</span>}
+    </span>
+  );
+}
 
 export default function MarketResultsPage() {
   const { ready, config, players, markets, picks } = useGame();
@@ -131,51 +167,109 @@ export default function MarketResultsPage() {
                   })}
                 </span>
               </div>
+
+              {section.settled && (
+                <div className="market-result-settled-banner">
+                  {section.isVoid ? (
+                    <p className="market-result-void">{t("marketResults.voidSettled")}</p>
+                  ) : (
+                    <p className="market-result-settled-meta">
+                      {t("marketResults.settledMeta", {
+                        std: formatScore(section.stdDev ?? 0),
+                        stake: formatScore(section.stakePerSlot ?? 0),
+                        doubleStake: formatScore((section.stakePerSlot ?? 0) * 2)
+                      })}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="market-result-options">
-                {section.options.map(({ option, picks: optionPicks, ifCorrectBonus, isWinner }) => (
-                  <div
-                    key={option}
-                    className={`market-result-option${isWinner ? " market-result-option-winner" : ""}`}
-                  >
-                    <div className="market-result-option-head">
-                      <h3 className="market-result-option-label">
-                        {option}
-                        {isWinner && (
-                          <span className="market-result-winner-badge">{t("marketResults.winner")}</span>
+                {section.options.map((optionResult) => {
+                  const {
+                    option,
+                    picks: optionPicks,
+                    isWinner,
+                    isVoid,
+                    stdDev,
+                    stakePerSlot,
+                    gainPerWinningSlot
+                  } = optionResult;
+
+                  return (
+                    <div
+                      key={option}
+                      className={`market-result-option${isWinner ? " market-result-option-winner" : ""}`}
+                    >
+                      <div className="market-result-option-head">
+                        <h3 className="market-result-option-label">
+                          {option}
+                          {isWinner && (
+                            <span className="market-result-winner-badge">{t("marketResults.winner")}</span>
+                          )}
+                        </h3>
+                        {!section.settled && (
+                          <span className="market-result-hypothetical-label">
+                            {t("marketResults.hypothetical")}
+                          </span>
                         )}
-                      </h3>
-                      <span className="market-result-pool">
-                        {t("marketResults.ifCorrect", { amount: formatScore(ifCorrectBonus) })}
-                        {optionPicks.some((pick) => pick.isDouble) && (
-                          <span className="market-result-pool-meta">{t("marketResults.doubleSlots")}</span>
-                        )}
-                      </span>
+                      </div>
+
+                      {!section.settled && (
+                        <p className="market-result-stake-line">
+                          {isVoid
+                            ? t("marketResults.voidHypothetical")
+                            : t("marketResults.stakeLine", {
+                                std: formatScore(stdDev),
+                                stake: formatScore(stakePerSlot),
+                                gain: formatScore(gainPerWinningSlot)
+                              })}
+                        </p>
+                      )}
+
+                      {optionPicks.length === 0 ? (
+                        <p className="market-result-empty">{t("common.empty")}</p>
+                      ) : (
+                        <ul className="market-result-players">
+                          {optionPicks.map((pick) => (
+                            <li
+                              key={pick.playerId}
+                              className={
+                                pick.isDouble ? "market-result-player pick-double" : "market-result-player"
+                              }
+                            >
+                              <span className="market-result-player-name">{pick.playerName}</span>
+                              <PlayerPayout pick={pick} settled={section.settled && isWinner} t={t} />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                    {optionPicks.length === 0 ? (
-                      <p className="market-result-empty">{t("common.empty")}</p>
-                    ) : (
-                      <ul className="market-result-players">
-                        {optionPicks.map((pick) => (
-                          <li
-                            key={pick.playerId}
-                            className={pick.isDouble ? "market-result-player pick-double" : "market-result-player"}
-                          >
-                            <span className="market-result-player-name">{pick.playerName}</span>
-                            {pick.isDouble && (
-                              <span className="market-result-player-payout">
-                                {t("marketResults.ifCorrect", {
-                                  amount: formatScore(pick.ifCorrectPayout)
-                                })}
-                                <span className="pick-double-badge">{t("common.double")}</span>
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+
+              {section.settled && section.actualScores.length > 0 && (
+                <div className="market-result-settled-table-wrap">
+                  <h3 className="market-result-settled-title">{t("marketResults.settledTitle")}</h3>
+                  <ul className="market-result-settled-list">
+                    {section.actualScores.map((row) => (
+                      <li key={row.playerId} className="market-result-settled-row">
+                        <span className="market-result-player-name">
+                          {row.playerName}
+                          <span className="market-result-settled-team">{row.team}</span>
+                          {row.isDouble && (
+                            <span className="pick-double-badge">{t("common.double")}</span>
+                          )}
+                        </span>
+                        <span className={scoreClassName(row.score)}>
+                          {formatSignedScore(row.score)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </section>
           ))}
         </div>

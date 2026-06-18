@@ -29,7 +29,8 @@ export const zh = {
     onlyPage1: "（当前仅展示第一页）",
     onlyPage2: "（当前仅展示第二页）",
     langZh: "中文",
-    langEn: "English"
+    langEn: "English",
+    language: "语言"
   },
   home: {
     title: "淘汰赛竞猜",
@@ -39,7 +40,7 @@ export const zh = {
     rule2: "每个项目选 1 支球队，也可以不选；每选 1 项默认下注 10 分。",
     rule3: "每页最多可选 1 题 Double，该题下注 20 分。",
     rule4:
-      "每题结算时：猜错记 0、猜对记 1；Double 记 2 个 0 或 2 个 1。全体 0/1 减去均值、除以标准差，再 ×10 作为该题得分（标准差为 0 时该题所有人得 0）。",
+      "每题结算时：猜错记 0、猜对记 10；Double 记 2 个 0 或 2 个 10。每人本金为 10÷标准差（Double 为 20÷标准差），赢家平分输家本金（标准差为 0 时该题所有人得 0）。",
     rule5: "第一页至少猜 {page1Min} 题，第二页至少猜 {page2Min} 题，一共至少猜 {totalMin} 题。",
     rule6: "若所有参与者都猜对或都猜错，该项目所有人得 0 分。",
     rule7: "总分最高者获胜，同分并列。"
@@ -119,11 +120,18 @@ export const zh = {
     closedTitle: "单场竞猜结果尚未开放",
     closedDesc: "管理员将在合适的时间开放第一页或第二页的竞猜结果。",
     lead:
-      "每道题列出各选项的竞猜玩家。对每个选项，假设它猜对：选它的记 1（Double 记 2 个 1）、选另一项记 0（Double 记 2 个 0），全体 0/1 减均值、除以标准差、再 ×10，显示为「如果猜对，奖金 xx 分」。已录入赛果的选项以绿色边框标出。",
+      "每道题列出各选项的竞猜玩家。对每个选项，假设它猜对：选它的记 10（Double 记 2 个 10）、选另一项记 0（Double 记 2 个 0），本金为 10÷标准差，赢家平分输家本金，显示为「如果猜对，奖金 xx 分」。已录入赛果的选项以绿色边框标出。",
     emptyPlayers: "暂无玩家提交，先去竞猜页提交答案吧。",
     emptySections: "当前没有可展示的题目。",
     meta: "{picks} 人作答 · {slots} 个计分位",
-    ifCorrect: "如果猜对，奖金 {amount} 分",
+    settledMeta: "σ = {std} · 本金 {stake}/计分位 · Double 本金 {doubleStake}",
+    voidSettled: "全员猜对或猜错，本题所有人得 0 分",
+    hypothetical: "假设该选项猜对",
+    stakeLine: "σ = {std} · 本金 {stake}/计分位 · 每猜对计分位 +{gain}",
+    voidHypothetical: "若该选项猜对，全员同对或同错，所有人得 0 分",
+    ifCorrect: "如果猜对，净得分 {amount} 分",
+    actualScore: "实际净得分 {amount} 分",
+    settledTitle: "本题结算",
     doubleSlots: "（Double 为 2 个计分位）",
     winner: "猜对"
   },

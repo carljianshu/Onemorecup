@@ -2,15 +2,15 @@
 
 import { GameProvider } from "@/context/GameContext";
 import { LocaleProvider } from "@/context/LocaleContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DocumentTitle } from "@/components/DocumentTitle";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LocaleProvider>
       <GameProvider>
         <DocumentTitle />
-        <LanguageSwitcher />
+        <SiteHeader />
         {children}
       </GameProvider>
     </LocaleProvider>
