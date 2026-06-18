@@ -28,6 +28,7 @@ export const en: Messages = {
     rank: "Rank",
     score: "Score",
     empty: "None",
+    unknownPlayer: "Unknown player",
     filterAll: "All questions",
     filterPage1: "Round of 32 only",
     filterPage2: "Round of 16 only",

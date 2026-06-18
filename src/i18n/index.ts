@@ -69,9 +69,33 @@ export function answersFeatureLabelKey(
   return "admin.featureAnswersP3";
 }
 
+const MARKET_NAMES_EN: Record<string, string> = {
+  "第一场1/4决赛谁会晋级？": "Who advances from QF match 1?",
+  "第二场1/4决赛谁会晋级？": "Who advances from QF match 2?",
+  "第三场1/4决赛谁会晋级？": "Who advances from QF match 3?",
+  "第四场1/4决赛谁会晋级？": "Who advances from QF match 4?",
+  "第一场半决赛谁会晋级？": "Who advances from SF match 1?",
+  "第二场半决赛谁会晋级？": "Who advances from SF match 2?",
+  "谁能夺冠？": "Who wins the title?"
+};
+
 export function translateMarketName(locale: Locale, name: string) {
+  if (locale === "zh") return name;
   if (name === "谁会晋级？") return translate(locale, "markets.whoAdvances");
-  return name;
+  return MARKET_NAMES_EN[name] ?? name;
+}
+
+export function translateMarketCandidate(locale: Locale, candidate: string) {
+  if (locale === "zh") return candidate;
+  const tbd = candidate.match(/^待填\s*(\d+)$/);
+  if (tbd) return `TBD ${tbd[1]}`;
+  if (candidate.endsWith("区")) return `${candidate.slice(0, -1)} bracket`;
+  return candidate;
+}
+
+export function formatMarketHeading(locale: Locale, marketId: string, name: string) {
+  const separator = locale === "zh" ? "：" : ": ";
+  return `${marketId.toUpperCase()}${separator}${translateMarketName(locale, name)}`;
 }
 
 export function homeRuleValues() {

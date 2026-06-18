@@ -26,6 +26,7 @@ export const zh = {
     rank: "排名",
     score: "总分",
     empty: "暂无",
+    unknownPlayer: "未知玩家",
     filterAll: "全部题目",
     filterPage1: "仅1/16决赛",
     filterPage2: "仅1/8决赛",

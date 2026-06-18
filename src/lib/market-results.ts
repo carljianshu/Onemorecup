@@ -1,5 +1,6 @@
 import { DOUBLE_STAKE } from "@/data/markets";
 import { allPickColumns, type PickColumn } from "@/lib/market-helpers";
+import { translate, type Locale } from "@/i18n";
 import { formatScore, roundScore } from "@/lib/score-format";
 import { computeParimutuelBreakdown } from "@/lib/scoring";
 import type { Market, Pick, Player, PlayPage } from "@/types";
@@ -61,9 +62,11 @@ export function buildMarketResultSections(
   markets: Market[],
   picks: Pick[],
   players: Player[],
-  visiblePages: PlayPage[]
+  visiblePages: PlayPage[],
+  locale: Locale = "zh"
 ): MarketResultSection[] {
   const playerById = new Map(players.map((p) => [p.id, p]));
+  const unknownPlayer = translate(locale, "common.unknownPlayer");
   const columns = allPickColumns(markets).filter((col) => visiblePages.includes(col.page));
 
   return columns.map((col) => {
@@ -81,7 +84,7 @@ export function buildMarketResultSections(
     const actualScores: MarketResultPlayerScore[] = questionPicks
       .map((pick) => ({
         playerId: pick.playerId,
-        playerName: playerById.get(pick.playerId)?.name ?? "未知玩家",
+        playerName: playerById.get(pick.playerId)?.name ?? unknownPlayer,
         team: pick.team,
         isDouble: pick.stake === DOUBLE_STAKE,
         score: roundScore(actualBreakdown?.scores[pick.playerId] ?? 0)
@@ -103,7 +106,7 @@ export function buildMarketResultSections(
           .filter((pick) => pick.team === option)
           .map((pick) => ({
             playerId: pick.playerId,
-            playerName: playerById.get(pick.playerId)?.name ?? "未知玩家",
+            playerName: playerById.get(pick.playerId)?.name ?? unknownPlayer,
             isDouble: pick.stake === DOUBLE_STAKE,
             ifCorrectPayout: roundScore(hypotheticalScores[pick.playerId] ?? 0),
             actualPayout:

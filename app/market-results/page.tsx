@@ -6,6 +6,7 @@ import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { OptionPayoutHints } from "@/components/OptionPayoutHints";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
+import { formatMarketHeading, translateMarketCandidate } from "@/i18n";
 import { buildMarketResultSections } from "@/lib/market-results";
 import { formatScorePlain } from "@/lib/score-format";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
@@ -15,7 +16,7 @@ type ViewFilter = "all" | PlayPage;
 
 export default function MarketResultsPage() {
   const { ready, config, players, markets, picks } = useGame();
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
   const [filter, setFilter] = useState<ViewFilter>("all");
 
   const page1Public = ready && isAnswersPagePublic(config, 1);
@@ -39,10 +40,10 @@ export default function MarketResultsPage() {
   }, [ready, filter, config, visiblePages]);
 
   const sections = useMemo(() => {
-    const all = buildMarketResultSections(markets, picks, players, visiblePages);
+    const all = buildMarketResultSections(markets, picks, players, visiblePages, locale);
     if (filter === "all") return all;
     return all.filter((section) => section.page === filter);
-  }, [markets, picks, players, visiblePages, filter]);
+  }, [markets, picks, players, visiblePages, filter, locale]);
 
   const filterOptions = useMemo(() => {
     const options: { value: ViewFilter; label: string }[] = [];
@@ -119,10 +120,16 @@ export default function MarketResultsPage() {
         </div>
       ) : (
         <div className="market-results-list">
-          {sections.map((section) => (
+          {sections.map((section) => {
+            const market = markets.find((item) => item.id === section.id);
+            const sectionTitle = market
+              ? formatMarketHeading(locale, market.id, market.name)
+              : section.title;
+
+            return (
             <section key={section.id} className="card market-result-card">
               <div className="market-result-header">
-                <h2 className="market-result-title">{section.title}</h2>
+                <h2 className="market-result-title">{sectionTitle}</h2>
                 <span className="market-result-meta">
                   {t("marketResults.meta", {
                     picks: section.totalPicks,
@@ -159,7 +166,9 @@ export default function MarketResultsPage() {
                     >
                       <div className="market-result-option-head">
                         <h3 className="market-result-option-label">
-                          <span className="market-result-option-name">{option}</span>
+                          <span className="market-result-option-name">
+                            {translateMarketCandidate(locale, option)}
+                          </span>
                           <OptionPayoutHints
                             option={option}
                             candidates={section.options.map((item) => item.option)}
@@ -213,7 +222,8 @@ export default function MarketResultsPage() {
                 })}
               </div>
             </section>
-          ))}
+            );
+          })}
         </div>
       )}
     </main>
