@@ -44,6 +44,7 @@ export interface MarketResultSection {
   winner: string | null;
   settled: boolean;
   stdDev: number | null;
+  adjustment: number | null;
   stakePerSlot: number | null;
   isVoid: boolean;
   actualScores: MarketResultPlayerScore[];
@@ -143,6 +144,7 @@ export function buildMarketResultSections(
       winner,
       settled: winner !== null,
       stdDev: actualBreakdown?.std ?? null,
+      adjustment: actualBreakdown?.adjustment ?? null,
       stakePerSlot: actualBreakdown?.stakePerSlot ?? null,
       isVoid: actualBreakdown?.isVoid ?? false,
       actualScores

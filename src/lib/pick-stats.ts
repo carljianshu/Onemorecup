@@ -34,7 +34,7 @@ export function pickStatsFromPickInputs(
   return countSelections(answers, markets);
 }
 
-/** 保存当页前的题量下限校验；通过返回 null。第二页未达建议题量仍可保存。 */
+/** 保存当页前的题量下限校验；通过返回 null。第二页未达要求题量仍可保存。 */
 export function validatePageSave(
   page: PlayPage,
   mergedPickInputs: PlayerPickInput[],

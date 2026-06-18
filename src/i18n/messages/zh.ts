@@ -38,10 +38,10 @@ export const zh = {
     title: "淘汰赛竞猜",
     subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
     rulesTitle: "简单规则",
-    rule1: "提交竞猜共分两页：第一页 {page1} 题，第二页 {page2} 题，共 {total} 个项目。第一页至少猜 {page1Min} 题才能保存；第二页建议完成 {page2Min} 道大题、总计 {totalMin} 题，不足仍可保存，第二页锁定后每少答 1 题扣 10 分。",
+    rule1: "提交竞猜共分两页：第一页 {page1} 题，第二页 {page2} 题，共 {total} 个项目。第一页至少猜 {page1Min} 题才能保存；第二页要求完成 {page2Min} 道大题、总计 {totalMin} 题，不足仍可保存，第二页锁定后每少答 1 题扣 10 分。",
     rule2: "每个项目选 1 支球队，也可以不选。每页最多可选 1 题 Double，该题下注翻倍。",
     rule3:
-      "每题采用对赌积分制：猜错的玩家会失去本题投入的积分，猜对的玩家平分这些积分。每题投入积分不是固定值，会根据两个选项支持人数自动调整，支持人数越悬殊，本题投入越低；支持人数越接近，本题投入越高。",
+      "每题采用对赌积分制：先按 10 分本金结算一轮，用得分标准差 ÷ 10 得调整值，再按调整后的本金重算；猜错扣分，猜对平分输家本金。Double 视为两个计分位，得失翻倍。",
     rule4: "若所有参与者都猜对或都猜错，该项目所有人得 0 分。",
     rule5: "总分最高者获胜，同分并列。"
   },
@@ -89,12 +89,12 @@ export const zh = {
     successP2:
       "第二页已保存！第一页 {p1} 题，第二页 {p2} 题，总计 {total} 题。锁定前可随时修改。",
     warnP2Shortfall:
-      "距建议题量还差 {missing} 题（第二页 {p2}/{page2Min}，总计 {total}/{totalMin}）。第二页锁定后每少 1 题扣 {penalty} 分，当前将扣 {penaltyTotal} 分。"
+      "距要求题量还差 {missing} 题（第二页 {p2}/{page2Min}，总计 {total}/{totalMin}）。第二页锁定后每少 1 题扣 {penalty} 分，当前将扣 {penaltyTotal} 分。"
   },
   validation: {
     page1Min: "第一页至少需答满 {min} 题才能保存（当前 {count} 题）。",
-    page2Min: "第二页建议完成 {min} 道大题（当前 {count} 道）。",
-    totalMin: "总计建议 {min} 题（当前 {count} 题）。",
+    page2Min: "第二页要求完成 {min} 道大题（当前 {count} 道）。",
+    totalMin: "总计要求 {min} 题（当前 {count} 题）。",
     mainIncomplete: "{market} 需答完全部 {subs} 个小题，或点击大题旁的「不选」。"
   },
   leaderboard: {
@@ -122,11 +122,11 @@ export const zh = {
     closedTitle: "单场竞猜结果尚未开放",
     closedDesc: "管理员将在合适的时间开放第一页或第二页的竞猜结果。",
     lead:
-      "每道题列出各选项的竞猜玩家。对每个选项，假设它猜对：选它的记 10（Double 记 2 个 10）、选另一项记 0（Double 记 2 个 0），本金为 100÷标准差，赢家平分输家本金，选项旁显示猜对/猜错积分。已录入赛果的选项以绿色边框标出。",
+      "每道题按两阶段对赌结算：先按 10 分本金算一轮，用各计分位得分序列的标准差 ÷ 10 得调整值，再按 10 ÷ 调整值 为本金重算；选项旁显示猜对/猜错积分。已录入赛果的选项以绿色边框标出。",
     emptyPlayers: "暂无玩家提交，先去竞猜页提交答案吧。",
     emptySections: "当前没有可展示的题目。",
     meta: "{picks} 人作答 · {slots} 个计分位",
-    settledMeta: "σ = {std} · 本金 {stake}/计分位 · Double 本金 {doubleStake}",
+    settledMeta: "得分 σ = {std} · 调整值 {adjustment} · 本金 {stake}/计分位 · Double {doubleStake}",
     voidSettled: "全员猜对或猜错，本题所有人得 0 分",
     hypothetical: "假设该选项猜对",
     stakeLine: "σ = {std} · 本金 {stake}/计分位 · 每猜对计分位 {gain}",

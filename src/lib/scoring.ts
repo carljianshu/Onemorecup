@@ -1,5 +1,5 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, PARIMUTUEL_STAKE_PER_SLOT, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, STAKE_PER_PICK } from "@/data/markets";
 import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
 import {
   countPlayerGuessedItems,
@@ -10,13 +10,21 @@ import type { LeaderboardEntry, Market, Pick, Player, SubQuestion } from "@/type
 
 export { roundScore } from "@/lib/score-format";
 
-const SLOT_CORRECT = 10;
-const SLOT_WRONG = 0;
+interface ScoringSlot {
+  playerId: string;
+  correct: boolean;
+}
 
-function binarySlotsForPick(pick: Pick, winner: string): number[] {
-  const value = pick.team === winner ? SLOT_CORRECT : SLOT_WRONG;
-  const count = pick.stake === DOUBLE_STAKE ? 2 : 1;
-  return Array.from({ length: count }, () => value);
+function slotsForGroup(winner: string, groupPicks: Pick[]): ScoringSlot[] {
+  const slots: ScoringSlot[] = [];
+  for (const pick of groupPicks) {
+    const correct = pick.team === winner;
+    const count = pick.stake === DOUBLE_STAKE ? 2 : 1;
+    for (let i = 0; i < count; i++) {
+      slots.push({ playerId: pick.playerId, correct });
+    }
+  }
+  return slots;
 }
 
 /** 所有参与者都猜对，或都猜错（含无人猜对正确选项）。 */
@@ -35,25 +43,70 @@ function zeroScoresForParticipants(groupPicks: Pick[]): Record<string, number> {
   return scores;
 }
 
-function slotStd(winner: string, groupPicks: Pick[]): number {
-  const slots: number[] = [];
-  for (const pick of groupPicks) {
-    for (const value of binarySlotsForPick(pick, winner)) {
-      slots.push(value);
+function populationStd(values: number[]): number {
+  if (values.length === 0) return 0;
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const variance =
+    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+interface FixedStakeSettlement {
+  scores: Record<string, number>;
+  slotScores: number[];
+  gainPerWinningSlot: number;
+  stakePerSlot: number;
+}
+
+/** 固定本金 parimutuel：猜错扣本金，猜对计分位平分输家本金。 */
+function settleAtFixedStake(
+  winner: string,
+  groupPicks: Pick[],
+  stakePerSlot: number
+): FixedStakeSettlement | null {
+  const slots = slotsForGroup(winner, groupPicks);
+  if (slots.length === 0) return null;
+
+  let totalLoss = 0;
+  let winningSlotCount = 0;
+  for (const slot of slots) {
+    if (slot.correct) {
+      winningSlotCount += 1;
+    } else {
+      totalLoss += stakePerSlot;
     }
   }
-  if (slots.length === 0) return 0;
-  const mean = slots.reduce((sum, value) => sum + value, 0) / slots.length;
-  const variance =
-    slots.reduce((sum, value) => sum + (value - mean) ** 2, 0) / slots.length;
-  return Math.sqrt(variance);
+
+  if (winningSlotCount === 0 || totalLoss === 0) return null;
+
+  const gainPerWinningSlot = totalLoss / winningSlotCount;
+  const slotScores = slots.map((slot) =>
+    slot.correct ? gainPerWinningSlot : -stakePerSlot
+  );
+
+  const scores: Record<string, number> = {};
+  for (const pick of groupPicks) {
+    scores[pick.playerId] = 0;
+  }
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i]!;
+    scores[slot.playerId] = roundScore((scores[slot.playerId] ?? 0) + slotScores[i]!);
+  }
+
+  return {
+    scores,
+    slotScores,
+    gainPerWinningSlot: roundScore(gainPerWinningSlot),
+    stakePerSlot: roundScore(stakePerSlot)
+  };
 }
 
 interface ParimutuelSettlement {
   scores: Record<string, number>;
   gainPerWinningSlot: number;
   stakePerSlot: number;
-  std: number;
+  scoreStd: number;
+  adjustment: number;
   isVoid: boolean;
 }
 
@@ -64,79 +117,71 @@ export interface ParimutuelBreakdown {
   gainPerWinningSlot: number;
   scores: Record<string, number>;
   isVoid: boolean;
+  adjustment: number;
 }
 
-/** 猜对/猜错为 10/0；本金 100÷σ（Double 两计分位共 200÷σ）；赢家平分输家本金。 */
+/**
+ * 两阶段对赌：先按 10 分本金结算得得分序列 → σ ÷ 10 = 调整值 → 新本金 = 10 ÷ 调整值 → 再结算。
+ * Double 视为两个计分位，得失在计分位层面累加。
+ */
 function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlement | null {
   if (groupPicks.length === 0) return null;
-
-  const std = slotStd(winner, groupPicks);
 
   if (isAllCorrectOrAllWrong(winner, groupPicks)) {
     return {
       scores: zeroScoresForParticipants(groupPicks),
       gainPerWinningSlot: 0,
       stakePerSlot: 0,
-      std,
+      scoreStd: 0,
+      adjustment: 0,
       isVoid: true
     };
   }
 
-  if (std === 0) {
+  const pass1 = settleAtFixedStake(winner, groupPicks, STAKE_PER_PICK);
+  if (!pass1) {
     return {
       scores: zeroScoresForParticipants(groupPicks),
       gainPerWinningSlot: 0,
       stakePerSlot: 0,
-      std: 0,
+      scoreStd: 0,
+      adjustment: 0,
       isVoid: true
     };
   }
 
-  const stakePerSlot = PARIMUTUEL_STAKE_PER_SLOT / std;
-  let totalLoss = 0;
-  let winningSlotCount = 0;
-
-  for (const pick of groupPicks) {
-    for (const value of binarySlotsForPick(pick, winner)) {
-      if (value === SLOT_CORRECT) {
-        winningSlotCount += 1;
-      } else {
-        totalLoss += stakePerSlot;
-      }
-    }
-  }
-
-  if (winningSlotCount === 0 || totalLoss === 0) {
+  const scoreStd = populationStd(pass1.slotScores);
+  if (scoreStd === 0) {
     return {
       scores: zeroScoresForParticipants(groupPicks),
       gainPerWinningSlot: 0,
-      stakePerSlot: roundScore(stakePerSlot),
-      std,
+      stakePerSlot: 0,
+      scoreStd: 0,
+      adjustment: 0,
       isVoid: true
     };
   }
 
-  const gainPerWinningSlot = totalLoss / winningSlotCount;
-  const scores: Record<string, number> = {};
-  for (const pick of groupPicks) {
-    scores[pick.playerId] = 0;
-  }
-
-  for (const pick of groupPicks) {
-    for (const value of binarySlotsForPick(pick, winner)) {
-      if (value === SLOT_CORRECT) {
-        scores[pick.playerId] = roundScore((scores[pick.playerId] ?? 0) + gainPerWinningSlot);
-      } else {
-        scores[pick.playerId] = roundScore((scores[pick.playerId] ?? 0) - stakePerSlot);
-      }
-    }
+  const adjustment = scoreStd / STAKE_PER_PICK;
+  const adjustedStake = STAKE_PER_PICK / adjustment;
+  const pass2 = settleAtFixedStake(winner, groupPicks, adjustedStake);
+  if (!pass2) {
+    return {
+      scores: zeroScoresForParticipants(groupPicks),
+      gainPerWinningSlot: 0,
+      stakePerSlot: roundScore(adjustedStake),
+      scoreStd: roundScore(scoreStd),
+      adjustment: roundScore(adjustment),
+      isVoid: true
+    };
   }
 
   return {
-    scores,
-    gainPerWinningSlot: roundScore(gainPerWinningSlot),
-    stakePerSlot: roundScore(stakePerSlot),
-    std: roundScore(std),
+    scores: pass2.scores,
+    gainPerWinningSlot: pass2.gainPerWinningSlot,
+    stakePerSlot: pass2.stakePerSlot,
+    scoreStd: roundScore(scoreStd),
+    adjustment: roundScore(adjustment),
     isVoid: false
   };
 }
@@ -148,7 +193,8 @@ export function computeParimutuelBreakdown(
   const result = settleParimutuel(winner, groupPicks);
   if (!result) return null;
   return {
-    std: result.std,
+    std: result.scoreStd,
+    adjustment: result.adjustment,
     stakePerSlot: result.stakePerSlot,
     doubleStake: roundScore(result.stakePerSlot * 2),
     gainPerWinningSlot: result.gainPerWinningSlot,
@@ -188,7 +234,7 @@ function lossStakeIfWrong(option: string, candidates: string[], groupPicks: Pick
   return computeParimutuelBreakdown(rival, groupPicks)?.stakePerSlot ?? 0;
 }
 
-/** 每个竞猜选项旁展示：猜对每计分位得分、猜错每计分位扣分。 */
+/** 每个竞猜选项旁展示：猜对每计分位得分、猜错每计分位扣分（第二遍结算结果）。 */
 export function computeOptionPayoutHints(
   option: string,
   candidates: string[],

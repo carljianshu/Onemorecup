@@ -40,10 +40,10 @@ export const en: Messages = {
     title: "Knockout Bracket Pool",
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
-    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). Page 1 needs at least {page1Min} picks to save. Page 2 recommends {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
+    rule1: "Picks are split into two pages: {page1} on page 1, {page2} on page 2 ({total} items total). Page 1 needs at least {page1Min} picks to save. Page 2 requires {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
     rule2: "Pick one team per item, or skip. At most one Double per page; that pick doubles your stake.",
     rule3:
-      "Each question uses a parimutuel system: wrong picks lose their stake on that question; right picks split the losers' stakes. The stake is not fixed—it adjusts with how picks split among options: more lopsided support means a lower stake; closer splits mean a higher stake.",
+      "Each question uses parimutuel scoring: first settle at 10 pts/slot, divide the score std dev by 10 for an adjustment, then re-settle at the adjusted stake; wrong loses stake, right splits losers. Double counts as two slots with doubled P/L.",
     rule4: "If everyone is right or everyone is wrong on an item, everyone scores 0.",
     rule5: "Highest total wins; ties share rank."
   },
@@ -91,12 +91,12 @@ export const en: Messages = {
     successP2:
       "Page 2 saved! Page 1: {p1}, page 2: {p2}, total: {total}. You can edit until locked.",
     warnP2Shortfall:
-      "{missing} items short of the recommended minimum (page 2: {p2}/{page2Min}, total: {total}/{totalMin}). After page 2 locks, each missing item costs {penalty} pts ({penaltyTotal} pts now)."
+      "{missing} items short of the required minimum (page 2: {p2}/{page2Min}, total: {total}/{totalMin}). After page 2 locks, each missing item costs {penalty} pts ({penaltyTotal} pts now)."
   },
   validation: {
     page1Min: "Save page 1 only after at least {min} picks (currently {count}).",
-    page2Min: "Page 2 recommends {min} main questions (currently {count}).",
-    totalMin: "Total recommends {min} picks (currently {count}).",
+    page2Min: "Page 2 requires {min} main questions (currently {count}).",
+    totalMin: "Total requires {min} picks (currently {count}).",
     mainIncomplete: "{market}: complete all {subs} subs or tap Skip on the main question."
   },
   leaderboard: {
@@ -124,11 +124,11 @@ export const en: Messages = {
     closedTitle: "Market results not public yet",
     closedDesc: "An admin will open page 1 and/or page 2 market results when ready.",
     lead:
-      "Players grouped by option per question. If an option were correct: its picks = 10 (Double = two 10s), others = 0 (Double = two 0s); stake = 100÷std dev, winners split losers' stakes; each option shows if-right/if-wrong points. Green border = actual winner entered.",
+      "Each question uses two-pass parimutuel: settle at 10 pts/slot, take the std dev of slot scores ÷ 10 as the adjustment, then re-settle at 10 ÷ adjustment per slot; options show if-right/if-wrong points. Green border = actual winner.",
     emptyPlayers: "No players yet. Go to Play to submit picks.",
     emptySections: "No questions to show.",
     meta: "{picks} players · {slots} scoring slots",
-    settledMeta: "σ = {std} · stake {stake}/slot · Double stake {doubleStake}",
+    settledMeta: "Score σ = {std} · adjustment {adjustment} · stake {stake}/slot · Double {doubleStake}",
     voidSettled: "Everyone right or wrong — all scores are 0",
     hypothetical: "If this option were correct",
     stakeLine: "σ = {std} · stake {stake}/slot · {gain} per correct slot",

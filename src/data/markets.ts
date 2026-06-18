@@ -445,9 +445,6 @@ export const DEFAULT_MARKETS: Market[] = [
 
 export const STAKE_PER_PICK = 10 as const;
 export const DOUBLE_STAKE = 20 as const;
-/** parimutuel 结算：每计分位本金 = 该值 ÷ 标准差；Double 两计分位共 PARIMUTUEL_DOUBLE_STAKE ÷ σ。 */
-export const PARIMUTUEL_STAKE_PER_SLOT = 100 as const;
-export const PARIMUTUEL_DOUBLE_STAKE = 200 as const;
 
 export const PAGE_LABELS: Record<PlayPage, string> = {
   1: `第一页（${PAGE1_COUNT} 题）`,

@@ -142,6 +142,7 @@ export default function MarketResultsPage() {
                     <p className="market-result-settled-meta">
                       {t("marketResults.settledMeta", {
                         std: formatScorePlain(section.stdDev ?? 0),
+                        adjustment: formatScorePlain(section.adjustment ?? 0),
                         stake: formatScorePlain(section.stakePerSlot ?? 0),
                         doubleStake: formatScorePlain((section.stakePerSlot ?? 0) * 2)
                       })}
