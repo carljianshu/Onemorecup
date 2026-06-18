@@ -71,17 +71,20 @@ export const zh = {
   },
   play: {
     title: "玩家竞猜",
+    tabPage1: "1/16决赛（{count} 题）",
+    tabPage2: "1/8决赛（{count} 题，每题 {subs} 小题）",
+    tabPage3: "第三页（{count} 题）",
     pageAnswered: "已答 {count}/{total}",
     page2Hint:
-      "第二页每道大题含 4 个小题：须全部小题都作答，或点击大题旁的「不选」跳过该题。只答了部分小题时无法保存。",
+      "1/8决赛每道大题含 4 个小题：须全部小题都作答，或点击大题旁的「不选」跳过该题。只答了部分小题时无法保存。",
     page2HintStrong: "全部小题都作答",
     loadedEdit: "已加载你上次的竞猜，可随时修改并点击「保存当页」。",
     pageLocked: "{page} 已锁定，无法再修改本页题目。",
     pageLockedSubmit: "{page} 已锁定，无法修改本页竞猜。",
     yourName: "你的名字",
     namePlaceholder: "输入昵称",
-    page1Answered: "第一页已答：",
-    page2Answered: "第二页已答：",
+    page1Answered: "1/16决赛已答：",
+    page2Answered: "1/8决赛已答：",
     page3Answered: "第三页已答：",
     totalAnswered: "总计已答：",
     pageDouble: "本页 Double：",
@@ -103,20 +106,20 @@ export const zh = {
     errName: "请输入你的名字。",
     errSave: "保存失败，请重试。",
     errDuplicateName: "该名字已被其他玩家使用。",
-    errTooManyDoublesP1: "第一页最多只能选 1 题 Double。",
+    errTooManyDoublesP1: "1/16决赛最多只能选 1 题 Double。",
     errTooManyDoublesP3: "第三页最多只能选 1 题 Double。",
-    errTooManyDoublesP2: "第二页最多只能选 1 道大题 Double。",
-    successP1: "第一页已保存！已答 {count}/{min} 题。锁定前可随时修改。",
+    errTooManyDoublesP2: "1/8决赛最多只能选 1 道大题 Double。",
+    successP1: "1/16决赛已保存！已答 {count}/{min} 题。锁定前可随时修改。",
     successP3: "第三页已保存！已答 {count}/{min} 题。锁定前可随时修改。",
     successP2:
-      "第二页已保存！第一页 {p1} 题，第二页 {p2} 题，总计 {total} 题。锁定前可随时修改。",
+      "1/8决赛已保存！1/16决赛 {p1} 题，1/8决赛 {p2} 题，总计 {total} 题。锁定前可随时修改。",
     warnP2Shortfall:
-      "距要求题量还差 {missing} 题（第二页 {p2}/{page2Min}，总计 {total}/{totalMin}）。第二页锁定后每少 1 题扣 {penalty} 分，当前将扣 {penaltyTotal} 分。"
+      "距要求题量还差 {missing} 题（1/8决赛 {p2}/{page2Min}，总计 {total}/{totalMin}）。1/8决赛锁定后每少 1 题扣 {penalty} 分，当前将扣 {penaltyTotal} 分。"
   },
   validation: {
-    page1Min: "第一页至少需答满 {min} 题才能保存（当前 {count} 题）。",
+    page1Min: "1/16决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
     page3Min: "第三页至少需答满 {min} 题才能保存（当前 {count} 题）。",
-    page2Min: "第二页要求完成 {min} 道大题（当前 {count} 道）。",
+    page2Min: "1/8决赛要求完成 {min} 道大题（当前 {count} 道）。",
     totalMin: "总计要求 {min} 题（当前 {count} 题）。",
     mainIncomplete: "{market} 需答完全部 {subs} 个小题，或点击大题旁的「不选」。"
   },

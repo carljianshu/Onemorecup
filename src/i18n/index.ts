@@ -54,6 +54,20 @@ export function pageLabel(locale: Locale, page: PlayPage): string {
   return translate(locale, "markets.page3", { count: PAGE3_COUNT });
 }
 
+/** 玩家竞猜页专用：第一页/第二页显示为 1/16、1/8 决赛名称 */
+export function playPageLabel(locale: Locale, page: PlayPage): string {
+  if (page === 1) {
+    return translate(locale, "play.tabPage1", { count: PAGE1_COUNT });
+  }
+  if (page === 2) {
+    return translate(locale, "play.tabPage2", {
+      count: PAGE2_COUNT,
+      subs: SUBS_PER_PAGE2_QUESTION
+    });
+  }
+  return translate(locale, "play.tabPage3", { count: PAGE3_COUNT });
+}
+
 export function answersFeatureLabelKey(
   feature: "answersPage1" | "answersPage2" | "answersPage3"
 ) {

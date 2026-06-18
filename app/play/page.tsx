@@ -92,7 +92,7 @@ function buildPickInputsForPage(
 
 export default function PlayPage() {
   const { ready, markets, picks, config, currentPlayerId, submitPicks, players } = useGame();
-  const { t, locale, pageLabel } = useLocale();
+  const { t, locale, playPageLabel } = useLocale();
   const [step, setStep] = useState<PlayPage>(1);
   const [name, setName] = useState("");
   const [selections, setSelections] = useState<Record<string, string | null>>({});
@@ -243,7 +243,7 @@ export default function PlayPage() {
     if (pageLocked) {
       setMessage({
         type: "warning",
-        text: t("play.pageLockedSubmit", { page: pageLabel(step) })
+        text: t("play.pageLockedSubmit", { page: playPageLabel(step) })
       });
       return;
     }
@@ -385,7 +385,7 @@ export default function PlayPage() {
               className={`page-step ${step === page ? "active" : ""} ${isPageLocked(config, page) ? "locked" : ""}`}
               onClick={() => setStep(page)}
             >
-              {pageLabel(page)} · {t("play.pageAnswered", { count, total })}
+              {playPageLabel(page)} · {t("play.pageAnswered", { count, total })}
               {isPageLocked(config, page) && " 🔒"}
             </button>
           );
@@ -415,7 +415,7 @@ export default function PlayPage() {
       )}
 
       {pageLocked && (
-        <div className="message warning">{t("play.pageLocked", { page: pageLabel(step) })}</div>
+        <div className="message warning">{t("play.pageLocked", { page: playPageLabel(step) })}</div>
       )}
 
       {step === 1 && (

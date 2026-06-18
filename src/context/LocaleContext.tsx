@@ -12,6 +12,7 @@ import {
 import {
   formatOpensAtLocale,
   pageLabel,
+  playPageLabel,
   translate,
   type Locale,
   type TranslationValues
@@ -25,6 +26,7 @@ interface LocaleContextValue {
   setLocale: (locale: Locale) => void;
   t: (key: string, values?: TranslationValues) => string;
   pageLabel: (page: PlayPage) => string;
+  playPageLabel: (page: PlayPage) => string;
   formatOpensAt: (iso: string | null) => string | null;
 }
 
@@ -65,6 +67,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       setLocale,
       t,
       pageLabel: (page: PlayPage) => pageLabel(locale, page),
+      playPageLabel: (page: PlayPage) => playPageLabel(locale, page),
       formatOpensAt: (iso: string | null) => formatOpensAtLocale(iso, locale)
     }),
     [locale, setLocale, t]

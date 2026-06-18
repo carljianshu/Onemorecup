@@ -73,17 +73,20 @@ export const en: Messages = {
   },
   play: {
     title: "Your picks",
+    tabPage1: "Round of 32 ({count} picks)",
+    tabPage2: "Round of 16 ({count} mains, {subs} subs each)",
+    tabPage3: "Page 3 ({count} picks)",
     pageAnswered: "{count}/{total} answered",
     page2Hint:
-      "Each main question on page 2 has 4 sub-questions: answer all subs, or tap Skip on the main question. Partial subs cannot be saved.",
+      "Each main question in the Round of 16 has 4 sub-questions: answer all subs, or tap Skip on the main question. Partial subs cannot be saved.",
     page2HintStrong: "answer all sub-questions",
     loadedEdit: "Your previous picks are loaded. Edit anytime, then Save this page.",
     pageLocked: "{page} is locked; you cannot edit these picks.",
     pageLockedSubmit: "{page} is locked; you cannot save changes.",
     yourName: "Your name",
     namePlaceholder: "Nickname",
-    page1Answered: "Page 1:",
-    page2Answered: "Page 2:",
+    page1Answered: "Round of 32:",
+    page2Answered: "Round of 16:",
     page3Answered: "Page 3:",
     totalAnswered: "Total:",
     pageDouble: "Double this page:",
@@ -105,20 +108,20 @@ export const en: Messages = {
     errName: "Please enter your name.",
     errSave: "Save failed. Please try again.",
     errDuplicateName: "That name is already taken.",
-    errTooManyDoublesP1: "At most one Double on page 1.",
+    errTooManyDoublesP1: "At most one Double in the Round of 32.",
     errTooManyDoublesP3: "At most one Double on page 3.",
-    errTooManyDoublesP2: "At most one Double main question on page 2.",
-    successP1: "Page 1 saved! {count}/{min} answered. You can edit until locked.",
+    errTooManyDoublesP2: "At most one Double main question in the Round of 16.",
+    successP1: "Round of 32 saved! {count}/{min} answered. You can edit until locked.",
     successP3: "Page 3 saved! {count}/{min} answered. You can edit until locked.",
     successP2:
-      "Page 2 saved! Page 1: {p1}, page 2: {p2}, total: {total}. You can edit until locked.",
+      "Round of 16 saved! Round of 32: {p1}, Round of 16: {p2}, total: {total}. You can edit until locked.",
     warnP2Shortfall:
-      "{missing} items short of the required minimum (page 2: {p2}/{page2Min}, total: {total}/{totalMin}). After page 2 locks, each missing item costs {penalty} pts ({penaltyTotal} pts now)."
+      "{missing} items short of the required minimum (Round of 16: {p2}/{page2Min}, total: {total}/{totalMin}). After the Round of 16 locks, each missing item costs {penalty} pts ({penaltyTotal} pts now)."
   },
   validation: {
-    page1Min: "Save page 1 only after at least {min} picks (currently {count}).",
+    page1Min: "Save the Round of 32 only after at least {min} picks (currently {count}).",
     page3Min: "Save page 3 only after at least {min} picks (currently {count}).",
-    page2Min: "Page 2 requires {min} main questions (currently {count}).",
+    page2Min: "Round of 16 requires {min} main questions (currently {count}).",
     totalMin: "Total requires {min} picks (currently {count}).",
     mainIncomplete: "{market}: complete all {subs} subs or tap Skip on the main question."
   },
