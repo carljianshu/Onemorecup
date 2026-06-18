@@ -56,11 +56,11 @@ export const en: Messages = {
       "On each question every player stakes a principal. Wrong picks lose that principal; right picks split the principals lost by wrong picks.",
     s1Example:
       "Example: stake $16, 2 players right and 3 wrong—each loser loses $16; each winner gets 16 × 3 ÷ 2 = $24.",
-    s2Title: "2. How the stake is calculated",
+    s2Title: "2. Stake adjustment",
     s2Body:
-      "Let M = right picks and N = wrong picks. Build a sequence with max(M,N) entries of −10 and min(M,N) entries of 10 × max(M,N) ÷ min(M,N). Adjustment = std dev of that sequence ÷ 10. Stake = $10 ÷ adjustment.",
+      "To balance popular and unpopular outcomes, each question's stake is adjusted automatically based on how many players picked each side.\n\nLet M = players right and N = players wrong. The system builds a reference P/L sequence: the larger side gets −10, the smaller side gets +10 × (larger count ÷ smaller count). Take the std dev of that sequence and divide by 10 to get the adjustment factor.\n\nEach player's actual stake is:\n\nStake = 10 ÷ adjustment factor\n\nAt settlement, wrong picks lose the stake; right picks split the total lost by wrong picks.",
     s2Example:
-      "Example: M = 2, N = 3 → sequence has three −10s and two +15s; std dev ≈ 12.25, adjustment ≈ 1.22, stake ≈ $8.17. Settling at that stake: each loser −$8.17; each winner 8.17 × 3 ÷ 2 ≈ $12.25."
+      "Example: 2 right and 3 wrong → reference sequence −10, −10, −10, +15, +15. Std dev ≈ 12.25, adjustment factor ≈ 1.22, so stake ≈ $8.17. Each loser loses $8.17; each winner gets $12.25."
   },
   markets: {
     page1: "Page 1 ({count} picks)",

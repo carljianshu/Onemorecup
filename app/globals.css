@@ -99,6 +99,7 @@ a {
   margin: 0 0 0.75rem;
   color: var(--muted);
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .scoring-rules-example {
