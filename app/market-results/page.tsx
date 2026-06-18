@@ -178,19 +178,34 @@ export default function MarketResultsPage() {
                         <p className="market-result-empty">{t("common.empty")}</p>
                       ) : (
                         <ul className="market-result-players">
-                          {optionPicks.map((pick) => (
-                            <li
-                              key={pick.playerId}
-                              className={
-                                pick.isDouble ? "market-result-player pick-double" : "market-result-player"
-                              }
-                            >
-                              <span className="market-result-player-name">{pick.playerName}</span>
-                              {pick.isDouble && (
-                                <span className="pick-double-badge">{t("common.double")}</span>
-                              )}
-                            </li>
-                          ))}
+                          {optionPicks.map((pick) => {
+                            const questionPicks = picks.filter(
+                              (item) => item.marketId === section.id
+                            );
+                            const candidates = section.options.map((item) => item.option);
+
+                            return (
+                              <li
+                                key={pick.playerId}
+                                className={
+                                  pick.isDouble
+                                    ? "market-result-player pick-double"
+                                    : "market-result-player"
+                                }
+                              >
+                                <span className="market-result-player-name">{pick.playerName}</span>
+                                {pick.isDouble ? (
+                                  <OptionPayoutHints
+                                    option={option}
+                                    candidates={candidates}
+                                    questionPicks={questionPicks}
+                                    slotMultiplier={2}
+                                    className="market-result-player-payout"
+                                  />
+                                ) : null}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </div>
