@@ -1,5 +1,6 @@
 import {
   hydrateGameState,
+  migrateStoredAnswers,
   savePlayerPicks,
   setPageLocked,
   snapshotFromState,
@@ -7,6 +8,7 @@ import {
   updatePublicFeature,
   type GameSnapshot
 } from "@/lib/local-store";
+import { migratePickInputsForMarkets } from "@/data/markets";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
@@ -39,7 +41,18 @@ function toResponse(stored: { version: number; payload: GameSnapshot }): Leaderb
 }
 
 export async function getLeaderboard(): Promise<LeaderboardResponse> {
-  const stored = await readStoredGame();
+  let stored = await readStoredGame();
+  const migrated = migrateStoredAnswers(stored.payload);
+  if (migrated.changed) {
+    stored = await mutateStoredGame(
+      (current) => ({
+        ...current.payload,
+        markets: migrated.markets,
+        picks: migrated.picks
+      }),
+      stored.version
+    );
+  }
   return toResponse(stored);
 }
 
@@ -74,12 +87,15 @@ export async function registerPlayer(
     const state = hydrateGameState(current.payload, { persist: false });
     assertPageUnlocked(state.config, body.page);
 
-    const pickInputs = applyPromotionToSave(
-      body.pickInputs,
-      state.markets,
-      state.leaderboard,
-      body.playerId ?? null,
-      body.page
+    const pickInputs = migratePickInputsForMarkets(
+      applyPromotionToSave(
+        body.pickInputs,
+        state.markets,
+        state.leaderboard,
+        body.playerId ?? null,
+        body.page
+      ),
+      state.markets
     );
     validatePlayerSave(body.page, pickInputs, body.pagePickInputs, state.markets);
     assertInviteCodeForRegistration(

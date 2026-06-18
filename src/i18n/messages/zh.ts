@@ -133,6 +133,7 @@ export const zh = {
     title: "排行榜",
     empty: "暂无提交记录，成为第一个参与者吧！",
     totalPicks: "总计答题",
+    phase12Picks: "前两阶段答题",
     settled: "已结算项目数",
     details: "详情",
     collapse: "收起",

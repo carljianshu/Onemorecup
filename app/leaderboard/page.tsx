@@ -54,8 +54,8 @@ export default function LeaderboardPage() {
                 <th>{t("common.player")}</th>
                 <th>{t("common.page1Short")}</th>
                 <th>{t("common.page2Short")}</th>
+                <th>{t("leaderboard.phase12Picks")}</th>
                 <th>{t("common.page3Short")}</th>
-                <th>{t("leaderboard.totalPicks")}</th>
                 <th>{t("leaderboard.earning")}</th>
                 <th>{t("leaderboard.settled")}</th>
                 <th>{t("leaderboard.details")}</th>
@@ -74,10 +74,10 @@ export default function LeaderboardPage() {
                       {entry.pickStats.page2Count} / {MIN_PAGE2_PICKS}
                     </td>
                     <td>
-                      {entry.pickStats.page3Count} / {MIN_PAGE3_PICKS}
+                      {entry.pickStats.page1Count + entry.pickStats.page2Count} / {MIN_TOTAL_PICKS}
                     </td>
                     <td>
-                      {entry.pickStats.totalCount} / {MIN_TOTAL_PICKS}
+                      {entry.pickStats.page3Count} / {MIN_PAGE3_PICKS}
                     </td>
                     <td className={scoreClass(entry.totalScore)}>{formatScore(entry.totalScore)}</td>
                     <td>

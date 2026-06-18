@@ -136,6 +136,7 @@ export const en: Messages = {
     title: "Leaderboard",
     empty: "No entries yet. Be the first!",
     totalPicks: "Total picks",
+    phase12Picks: "Round 1 & 2 picks",
     settled: "Settled / picked",
     details: "Details",
     collapse: "Collapse",

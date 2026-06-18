@@ -1,4 +1,4 @@
-import type { Market, PlayPage } from "@/types";
+import type { Market, PlayPage, Pick, PlayerPickInput } from "@/types";
 
 export const PAGE1_COUNT = 16;
 export const PAGE2_COUNT = 8;
@@ -16,6 +16,64 @@ export const MULTI_OPTION_FINAL_MARKET_IDS = new Set<string>(["p3-5", "p3-6", "p
 /** 竞猜页在此题之前展示多选项调整系数说明。 */
 export const DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID = "p3-5";
 
+/**
+ * 选项重命名时登记旧名 → 新名，已保存的竞猜与录入胜者会自动迁移。
+ * 按题号索引对应：待填 1 = candidates[0]，以此类推。
+ */
+const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
+  "p3-5": {
+    "待填 1": "E1/I1区",
+    "待填 2": "F1区",
+    "待填 3": "H1区",
+    "待填 4": "D1/G1区"
+  },
+  "p3-6": {
+    "待填 1": "C1区",
+    "待填 2": "A1/L1区",
+    "待填 3": "J1区",
+    "待填 4": "B1/K1区"
+  },
+  "p3-7": {
+    "待填 1": "E1/I1区",
+    "待填 2": "F1区",
+    "待填 3": "H1区",
+    "待填 4": "D1/G1区",
+    "待填 5": "C1区",
+    "待填 6": "A1/L1区",
+    "待填 7": "J1区",
+    "待填 8": "B1/K1区"
+  }
+};
+
+export function migratePickTeam(marketId: string, team: string, candidates: string[]): string {
+  const mapped = LEGACY_CANDIDATE_ALIASES[marketId]?.[team] ?? team;
+  if (candidates.includes(mapped)) return mapped;
+  if (candidates.includes(team)) return team;
+  return mapped;
+}
+
+export function migratePicksForMarkets(picks: Pick[], markets: Market[]): Pick[] {
+  const marketById = new Map(markets.map((market) => [market.id, market]));
+  return picks.map((pick) => {
+    const market = marketById.get(pick.marketId);
+    if (!market) return pick;
+    const team = migratePickTeam(pick.marketId, pick.team, market.candidates ?? []);
+    return team === pick.team ? pick : { ...pick, team };
+  });
+}
+
+export function migratePickInputsForMarkets(
+  pickInputs: PlayerPickInput[],
+  markets: Market[]
+): PlayerPickInput[] {
+  return pickInputs.map((input) => {
+    const market = markets.find((item) => item.id === input.marketId);
+    if (!market) return input;
+    const team = migratePickTeam(input.marketId, input.team, market.candidates ?? []);
+    return team === input.team ? input : { ...input, team };
+  });
+}
+
 export function marketUsesDistributionAdjustment(marketId: string): boolean {
   return MULTI_OPTION_FINAL_MARKET_IDS.has(marketId);
 }
@@ -26,6 +84,7 @@ export const PLAY_PAGES = [1, 2, 3] as const satisfies readonly PlayPage[];
  * 题目配置：直接改下面的 candidates / name / label 即可。
  * 改完后若页面未更新，清 localStorage 的 onemorecup:markets 并刷新。
  * 题目文案与选项以代码为准；仅已录入的 winner 会从缓存/服务端保留。
+ * 若重命名选项，请在 LEGACY_CANDIDATE_ALIASES 登记旧名映射，已保存答案会自动迁移。
  */
 export const DEFAULT_MARKETS: Market[] = [
   // ==================== 第一页：16 题（每题 2 个选项 + 不选） ====================
@@ -324,9 +383,14 @@ export function ensureMarketShape(markets: Market[]): Market[] {
     if (!stored) return { ...base };
 
     const legacy = stored as Market & { winnerTeamId?: string | null };
+    const rawWinner = stored.winner ?? legacy.winnerTeamId ?? null;
+    const winner =
+      rawWinner == null
+        ? null
+        : migratePickTeam(base.id, rawWinner, base.candidates ?? []);
     return {
       ...base,
-      winner: stored.winner ?? legacy.winnerTeamId ?? null
+      winner
     };
   });
 }

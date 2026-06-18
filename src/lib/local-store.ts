@@ -1,4 +1,4 @@
-import { DOUBLE_STAKE, STAKE_PER_PICK, syncMarkets } from "@/data/markets";
+import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/lib/page-lock";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
@@ -114,6 +114,22 @@ function normalizePicks(picks: Pick[]): Pick[] {
     .filter((p): p is Pick => p !== null);
 }
 
+export function migrateStoredAnswers(snapshot: GameSnapshot): {
+  markets: Market[];
+  picks: Pick[];
+  changed: boolean;
+} {
+  const markets = syncMarkets(snapshot.markets);
+  const normalizedPicks = normalizePicks(snapshot.picks);
+  const picks = migratePicksForMarkets(normalizedPicks, markets);
+  const picksChanged = picks.some((pick, index) => pick.team !== normalizedPicks[index]?.team);
+  const marketsChanged = markets.some((market) => {
+    const previous = snapshot.markets?.find((item) => item.id === market.id);
+    return (previous?.winner ?? null) !== (market.winner ?? null);
+  });
+  return { markets, picks, changed: picksChanged || marketsChanged };
+}
+
 export function loadGameState() {
   const rawPlayers = read<Player[]>(KEYS.players, []);
   let markets = read<Market[] | null>(KEYS.markets, null);
@@ -138,8 +154,10 @@ export function hydrateGameState(
   markets = syncMarkets(markets);
   if (persist) write(KEYS.markets, markets);
 
-  let picks = normalizePicks(snapshot.picks);
-  if (persist && picks.length !== snapshot.picks.length) {
+  const normalizedPicks = normalizePicks(snapshot.picks);
+  let picks = migratePicksForMarkets(normalizedPicks, markets);
+  const picksChanged = picks.some((pick, index) => pick.team !== normalizedPicks[index]?.team);
+  if (persist && picksChanged) {
     savePicks(picks);
   }
 
@@ -276,7 +294,8 @@ export function savePlayerPicks(
         )
       : pickInputs;
 
-  validatePickInputs(finalPickInputs, state.markets);
+  const migratedPickInputs = migratePickInputsForMarkets(finalPickInputs, state.markets);
+  validatePickInputs(migratedPickInputs, state.markets);
 
   if (existing) {
     const nameTaken = state.players.some(
@@ -285,7 +304,7 @@ export function savePlayerPicks(
     if (nameTaken) throw new Error("DUPLICATE_NAME");
 
     const otherPicks = state.picks.filter((pick) => pick.playerId !== existing!.id);
-    const newPicks = buildPicksForPlayer(existing.id, finalPickInputs);
+    const newPicks = buildPicksForPlayer(existing.id, migratedPickInputs);
     const pickStats = computePickStats(newPicks, state.markets);
     const player: Player = {
       ...existing,
@@ -308,7 +327,7 @@ export function savePlayerPicks(
   }
 
   const newPlayerId = crypto.randomUUID();
-  const newPicks = buildPicksForPlayer(newPlayerId, finalPickInputs);
+  const newPicks = buildPicksForPlayer(newPlayerId, migratedPickInputs);
   const pickStats = computePickStats(newPicks, state.markets);
   const player: Player = {
     id: newPlayerId,
