@@ -15,6 +15,7 @@ export const PLAY_PAGES = [1, 2, 3] as const satisfies readonly PlayPage[];
 /**
  * 题目配置：直接改下面的 candidates / name / label 即可。
  * 改完后若页面未更新，清 localStorage 的 onemorecup:markets 并刷新。
+ * 题目文案与选项以代码为准；仅已录入的 winner 会从缓存/服务端保留。
  */
 export const DEFAULT_MARKETS: Market[] = [
   // ==================== 第一页：16 题（每题 2 个选项 + 不选） ====================
@@ -276,9 +277,9 @@ export const STAKE_PER_PICK = 10 as const;
 export const DOUBLE_STAKE = 20 as const;
 
 export const PAGE_LABELS: Record<PlayPage, string> = {
-  1: `第一页（${PAGE1_COUNT} 题）`,
-  2: `第二页（${PAGE2_COUNT} 题）`,
-  3: `第三页（${PAGE3_COUNT} 题）`
+  1: `1/16决赛（${PAGE1_COUNT} 题）`,
+  2: `1/8决赛（${PAGE2_COUNT} 题）`,
+  3: `1/4决赛及以后（${PAGE3_COUNT} 题）`
 };
 
 export function minPicksForPage(page: PlayPage) {
@@ -298,23 +299,16 @@ function defaultMarketById(id: string) {
 }
 
 export function ensureMarketShape(markets: Market[]): Market[] {
-  const defaultById = new Map(DEFAULT_MARKETS.map((m) => [m.id, m]));
-  return markets.map((m) => {
-    const base = defaultById.get(m.id);
-    const page = m.page ?? base?.page ?? 1;
-    const legacy = m as Market & {
-      candidateTeamIds?: string[];
-      winnerTeamId?: string | null;
-    };
+  const storedById = new Map(markets.map((m) => [m.id, m]));
+  return DEFAULT_MARKETS.map((base) => {
+    const stored = storedById.get(base.id);
+    if (!stored) return { ...base };
 
-    const merged: Market = {
+    const legacy = stored as Market & { winnerTeamId?: string | null };
+    return {
       ...base,
-      ...m,
-      page,
-      candidates: m.candidates ?? legacy.candidateTeamIds ?? base?.candidates,
-      winner: m.winner ?? legacy.winnerTeamId ?? null
+      winner: stored.winner ?? legacy.winnerTeamId ?? null
     };
-    return merged;
   });
 }
 
@@ -327,7 +321,7 @@ export function syncMarkets(stored: Market[] | null): Market[] {
     return legacy.candidateTeamIds != null && m.candidates == null;
   });
   if (usesTeamIds) {
-    return DEFAULT_MARKETS;
+    return ensureMarketShape(stored);
   }
   return ensureMarketShape(stored);
 }

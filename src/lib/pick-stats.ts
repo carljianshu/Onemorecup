@@ -76,7 +76,7 @@ export const EMPTY_PICK_STATS: PickStats = {
 };
 
 export function formatPickStats(stats: PickStats) {
-  return `第一页 ${stats.page1Count}/${MIN_PAGE1_PICKS}，第二页 ${stats.page2Count}/${MIN_PAGE2_PICKS}，第三页 ${stats.page3Count}/${MIN_PAGE3_PICKS}，总计 ${stats.totalCount}/${MIN_TOTAL_PICKS}`;
+  return `1/16决赛 ${stats.page1Count}/${MIN_PAGE1_PICKS}，1/8决赛 ${stats.page2Count}/${MIN_PAGE2_PICKS}，1/4决赛及以后 ${stats.page3Count}/${MIN_PAGE3_PICKS}，总计 ${stats.totalCount}/${MIN_TOTAL_PICKS}`;
 }
 
 /** max(max(16 − 总计, 4 − 第二页大题数), 0)；用于第二页锁定后的扣分题数。 */

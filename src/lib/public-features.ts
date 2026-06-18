@@ -3,9 +3,9 @@ import type { GameConfig, PlayPage } from "@/types";
 export type AnswersPageFeature = "answersPage1" | "answersPage2" | "answersPage3";
 
 const FEATURE_LABELS: Record<AnswersPageFeature, string> = {
-  answersPage1: "答题总览 · 第一页",
-  answersPage2: "答题总览 · 第二页",
-  answersPage3: "答题总览 · 第三页"
+  answersPage1: "答题总览 · 1/16决赛",
+  answersPage2: "答题总览 · 1/8决赛",
+  answersPage3: "答题总览 · 1/4决赛及以后"
 };
 
 export function answersFeatureLabel(feature: AnswersPageFeature) {
