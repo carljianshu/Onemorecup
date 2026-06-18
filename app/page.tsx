@@ -19,8 +19,6 @@ export default function HomePage() {
       <section className="card" style={{ maxWidth: 640, margin: "0 auto" }}>
         <h2 style={{ marginTop: 0 }}>{t("home.rulesTitle")}</h2>
         <ul className="rules-list">
-          <li>{t("home.rule1", rules)}</li>
-          <li>{t("home.rule2")}</li>
           <li>
             {t("home.rule3")}{" "}
             <Link className="btn btn-secondary btn-sm rules-inline-link" href="/scoring-rules">
@@ -28,6 +26,8 @@ export default function HomePage() {
             </Link>
             {t("scoringRules.suffix")}
           </li>
+          <li>{t("home.rule2")}</li>
+          <li>{t("home.rule1", rules)}</li>
           <li>{t("home.rule4")}</li>
           <li>{t("home.rule5")}</li>
         </ul>
