@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useGame } from "@/context/GameContext";
-import { buildMarketResultSections, formatPoolAmount } from "@/lib/market-results";
+import { buildMarketResultSections, formatScoreAmount } from "@/lib/market-results";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
 import type { PlayPage } from "@/types";
 
@@ -88,8 +88,8 @@ export default function MarketResultsPage() {
 
       <h1 style={{ marginTop: 0 }}>单场竞猜结果</h1>
       <p className="page-lead">
-        每道题各选项的竞猜玩家一览。已录入赛果的题目，按 0/1 标准化计分（猜对 1、猜错 0，Double 计 2 个）后 ×10
-        显示该题得分；标准差为 0 时该题所有人得 0。猜对选项以绿色边框标出。
+        每道题列出各选项的竞猜玩家。对每个选项，假设它猜对：选它的记 1（Double 记 2 个 1）、选另一项记 0（Double 记 2
+        个 0），全体 0/1 减均值、除以标准差、再 ×10，显示为「如果猜对，奖金 xx 分」。已录入赛果的选项以绿色边框标出。
         {!page1Public && page2Public && "（当前仅展示第二页）"}
         {page1Public && !page2Public && "（当前仅展示第一页）"}
       </p>
@@ -128,7 +128,7 @@ export default function MarketResultsPage() {
                 </span>
               </div>
               <div className="market-result-options">
-                {section.options.map(({ option, picks: optionPicks, isWinner }) => (
+                {section.options.map(({ option, picks: optionPicks, ifCorrectBonus, isWinner }) => (
                   <div
                     key={option}
                     className={`market-result-option${isWinner ? " market-result-option-winner" : ""}`}
@@ -138,6 +138,12 @@ export default function MarketResultsPage() {
                         {option}
                         {isWinner && <span className="market-result-winner-badge">猜对</span>}
                       </h3>
+                      <span className="market-result-pool">
+                        如果猜对，奖金 {formatScoreAmount(ifCorrectBonus)} 分
+                        {optionPicks.some((pick) => pick.isDouble) && (
+                          <span className="market-result-pool-meta">（Double 为 2 个计分位）</span>
+                        )}
+                      </span>
                     </div>
                     {optionPicks.length === 0 ? (
                       <p className="market-result-empty">暂无</p>
@@ -149,10 +155,12 @@ export default function MarketResultsPage() {
                             className={pick.isDouble ? "market-result-player pick-double" : "market-result-player"}
                           >
                             <span className="market-result-player-name">{pick.playerName}</span>
-                            <span className="market-result-player-payout">
-                              {formatPoolAmount(pick.payout)}
-                              {pick.isDouble && <span className="pick-double-badge">Double</span>}
-                            </span>
+                            {pick.isDouble && (
+                              <span className="market-result-player-payout">
+                                如果猜对，奖金 {formatScoreAmount(pick.ifCorrectPayout)} 分
+                                <span className="pick-double-badge">Double</span>
+                              </span>
+                            )}
                           </li>
                         ))}
                       </ul>

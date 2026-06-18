@@ -1,19 +1,21 @@
 import { DOUBLE_STAKE } from "@/data/markets";
 import { activeSubQuestions, allPickColumns, type PickColumn } from "@/lib/market-helpers";
-import { settlePickGroup } from "@/lib/scoring";
+import { settlePickGroup, singleCorrectSlotBonus } from "@/lib/scoring";
 import type { Market, Pick, Player, PlayPage } from "@/types";
 
 export interface MarketResultPick {
   playerId: string;
   playerName: string;
   isDouble: boolean;
-  /** 该题标准化得分（Double 为 2 个 0/1 之和） */
-  payout: number;
+  /** 假设该选项猜对时，该玩家本题得分 */
+  ifCorrectPayout: number;
 }
 
 export interface MarketOptionResult {
   option: string;
   picks: MarketResultPick[];
+  /** 假设该选项猜对时，普通下注（1 个计分位）的奖金 */
+  ifCorrectBonus: number;
   isWinner: boolean;
 }
 
@@ -23,14 +25,14 @@ export interface MarketResultSection {
   title: string;
   options: MarketOptionResult[];
   totalPicks: number;
-  /** 计分位数（普通 1，Double 2） */
   slotCount: number;
   winner: string | null;
 }
 
-export function formatPoolAmount(value: number) {
-  const text = value.toFixed(2);
+export function formatScoreAmount(value: number) {
+  const text = Math.abs(value).toFixed(2);
   if (value > 0) return `+${text}`;
+  if (value < 0) return `-${text}`;
   return text;
 }
 
@@ -74,21 +76,24 @@ export function buildMarketResultSections(
       (sum, pick) => sum + (pick.stake === DOUBLE_STAKE ? 2 : 1),
       0
     );
-    const settledScores = winner ? settlePickGroup(winner, questionPicks) : {};
 
-    const options: MarketOptionResult[] = candidates.map((option) => ({
-      option,
-      picks: questionPicks
-        .filter((pick) => pick.team === option)
-        .map((pick) => ({
-          playerId: pick.playerId,
-          playerName: playerById.get(pick.playerId)?.name ?? "未知玩家",
-          isDouble: pick.stake === DOUBLE_STAKE,
-          payout: settledScores[pick.playerId] ?? 0
-        }))
-        .sort((a, b) => a.playerName.localeCompare(b.playerName, "zh-CN")),
-      isWinner: winner !== null && option === winner
-    }));
+    const options: MarketOptionResult[] = candidates.map((option) => {
+      const ifCorrectScores = settlePickGroup(option, questionPicks);
+      return {
+        option,
+        ifCorrectBonus: singleCorrectSlotBonus(option, questionPicks),
+        picks: questionPicks
+          .filter((pick) => pick.team === option)
+          .map((pick) => ({
+            playerId: pick.playerId,
+            playerName: playerById.get(pick.playerId)?.name ?? "未知玩家",
+            isDouble: pick.stake === DOUBLE_STAKE,
+            ifCorrectPayout: ifCorrectScores[pick.playerId] ?? 0
+          }))
+          .sort((a, b) => a.playerName.localeCompare(b.playerName, "zh-CN")),
+        isWinner: winner !== null && option === winner
+      };
+    });
 
     return {
       id: col.id,

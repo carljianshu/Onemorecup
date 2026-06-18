@@ -17,22 +17,36 @@ function binarySlotsForPick(pick: Pick, winner: string): number[] {
   return Array.from({ length: count }, () => value);
 }
 
+function binarySlotStats(winner: string, groupPicks: Pick[]) {
+  const slots: number[] = [];
+  for (const pick of groupPicks) {
+    for (const value of binarySlotsForPick(pick, winner)) {
+      slots.push(value);
+    }
+  }
+  if (slots.length === 0) {
+    return { mean: 0, std: 0 };
+  }
+  const mean = slots.reduce((sum, value) => sum + value, 0) / slots.length;
+  const variance =
+    slots.reduce((sum, value) => sum + (value - mean) ** 2, 0) / slots.length;
+  return { mean, std: Math.sqrt(variance) };
+}
+
+/** 假设该选项猜对时，单个「1」计分位（普通下注）的标准化得分 ×10。 */
+export function singleCorrectSlotBonus(winner: string, groupPicks: Pick[]): number {
+  if (groupPicks.length === 0) return 0;
+  const { mean, std } = binarySlotStats(winner, groupPicks);
+  if (std === 0) return 0;
+  return roundScore(((1 - mean) / std) * 10);
+}
+
 /** 单场：0/1 序列标准化后 ×10；Double 为 2 个 0 或 2 个 1。标准差为 0 时该场所有人得 0。 */
 export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<string, number> {
   const scores: Record<string, number> = {};
   if (groupPicks.length === 0) return scores;
 
-  const slots: { playerId: string; value: number }[] = [];
-  for (const pick of groupPicks) {
-    for (const value of binarySlotsForPick(pick, winner)) {
-      slots.push({ playerId: pick.playerId, value });
-    }
-  }
-
-  const mean = slots.reduce((sum, slot) => sum + slot.value, 0) / slots.length;
-  const variance =
-    slots.reduce((sum, slot) => sum + (slot.value - mean) ** 2, 0) / slots.length;
-  const std = Math.sqrt(variance);
+  const { mean, std } = binarySlotStats(winner, groupPicks);
 
   for (const pick of groupPicks) {
     scores[pick.playerId] = 0;
@@ -40,9 +54,11 @@ export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<stri
 
   if (std === 0) return scores;
 
-  for (const slot of slots) {
-    const z = ((slot.value - mean) / std) * 10;
-    scores[slot.playerId] = roundScore((scores[slot.playerId] ?? 0) + z);
+  for (const pick of groupPicks) {
+    for (const value of binarySlotsForPick(pick, winner)) {
+      const z = ((value - mean) / std) * 10;
+      scores[pick.playerId] = roundScore((scores[pick.playerId] ?? 0) + z);
+    }
   }
 
   return scores;
