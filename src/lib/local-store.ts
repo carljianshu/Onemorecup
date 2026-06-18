@@ -1,5 +1,6 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/lib/page-lock";
+import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
 import { buildLeaderboard } from "@/lib/scoring";
@@ -254,12 +255,15 @@ export function savePlayerPicks(
   state: { players: Player[]; markets: Market[]; picks: Pick[] },
   playerId?: string | null,
   page?: PlayPage,
-  leaderboardForPromotion?: LeaderboardEntry[]
+  leaderboardForPromotion?: LeaderboardEntry[],
+  inviteCode?: string
 ): { player: Player; picks: Pick[]; leaderboard: LeaderboardEntry[]; isUpdate: boolean } {
   const trimmedName = name.trim();
   let existing =
     (playerId ? state.players.find((p) => p.id === playerId) : undefined) ??
     state.players.find((p) => p.name.toLowerCase() === trimmedName.toLowerCase());
+
+  assertInviteCodeForRegistration(trimmedName, playerId, state.players, inviteCode);
 
   const promotionLeaderboard =
     leaderboardForPromotion ??

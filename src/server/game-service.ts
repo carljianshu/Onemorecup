@@ -7,6 +7,7 @@ import {
   updatePublicFeature,
   type GameSnapshot
 } from "@/lib/local-store";
+import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
 import { validatePageSave } from "@/lib/pick-stats";
@@ -60,6 +61,7 @@ export async function registerPlayer(
   body: {
     name: string;
     playerId?: string | null;
+    inviteCode?: string;
     pickInputs: PlayerPickInput[];
     page: PlayPage;
     pagePickInputs: PlayerPickInput[];
@@ -80,6 +82,12 @@ export async function registerPlayer(
       body.page
     );
     validatePlayerSave(body.page, pickInputs, body.pagePickInputs, state.markets);
+    assertInviteCodeForRegistration(
+      body.name,
+      body.playerId ?? null,
+      state.players,
+      body.inviteCode
+    );
 
     saveResult = savePlayerPicks(
       body.name,
@@ -87,7 +95,8 @@ export async function registerPlayer(
       { players: state.players, markets: state.markets, picks: state.picks },
       body.playerId || null,
       body.page,
-      state.leaderboard
+      state.leaderboard,
+      body.inviteCode
     );
 
     return snapshotFromState({

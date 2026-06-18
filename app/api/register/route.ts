@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       name?: string;
       playerId?: string | null;
+      inviteCode?: string;
       pickInputs?: PlayerPickInput[];
       page?: PlayPage;
       pagePickInputs?: PlayerPickInput[];
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
       {
         name: body.name,
         playerId: body.playerId,
+        inviteCode: body.inviteCode,
         pickInputs: body.pickInputs,
         page: body.page,
         pagePickInputs: body.pagePickInputs

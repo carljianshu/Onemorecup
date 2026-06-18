@@ -39,7 +39,8 @@ interface GameContextValue {
     pickInputs: PlayerPickInput[],
     playerId: string | null | undefined,
     page: PlayPage,
-    pagePickInputs: PlayerPickInput[]
+    pagePickInputs: PlayerPickInput[],
+    inviteCode?: string
   ) => Promise<{ isUpdate: boolean; playerId: string; pickStats: PickStats }>;
   setMarketWinner: (marketId: string, winner: string | null) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
@@ -172,12 +173,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       pickInputs: PlayerPickInput[],
       playerId: string | null | undefined,
       page: PlayPage,
-      pagePickInputs: PlayerPickInput[]
+      pagePickInputs: PlayerPickInput[],
+      inviteCode?: string
     ) => {
       if (apiSync) {
         const result = await registerPlayer({
           name,
           playerId,
+          inviteCode,
           pickInputs,
           page,
           pagePickInputs
@@ -199,7 +202,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         { players, markets, picks },
         playerId,
         page,
-        leaderboard
+        leaderboard,
+        inviteCode
       );
       setPlayers((prev) => {
         const exists = prev.some((p) => p.id === result.player.id);

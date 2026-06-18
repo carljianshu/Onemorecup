@@ -24,6 +24,7 @@ import { translateMarketName } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { countSelections, describePickShortfall, validatePageSave } from "@/lib/pick-stats";
+import { isValidInviteCode } from "@/lib/invite-code";
 import { isPlayerPromoted, promotionCutoffCount } from "@/lib/promotion";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
 
@@ -72,6 +73,7 @@ export default function PlayPage() {
   const { t, locale, playPageLabel } = useLocale();
   const [step, setStep] = useState<PlayPage>(1);
   const [name, setName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [selections, setSelections] = useState<Record<string, string | null>>({});
   const [doubles, setDoubles] = useState<Record<string, boolean>>({});
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
@@ -178,9 +180,21 @@ export default function PlayPage() {
     );
   }
 
+  function needsInviteCode() {
+    if (activePlayerId) return false;
+    const trimmed = name.trim();
+    if (!trimmed) return true;
+    return !players.some((p) => p.name.toLowerCase() === trimmed.toLowerCase());
+  }
+
   async function handleSubmit() {
     if (!name.trim()) {
       setMessage({ type: "error", text: t("play.errName") });
+      return;
+    }
+
+    if (needsInviteCode() && !isValidInviteCode(inviteCode)) {
+      setMessage({ type: "error", text: t("play.errInviteCode") });
       return;
     }
 
@@ -234,7 +248,8 @@ export default function PlayPage() {
         pickInputs,
         editingPlayerId,
         step,
-        pageInputs
+        pageInputs,
+        needsInviteCode() ? inviteCode : undefined
       );
       setEditingPlayerId(playerId);
       selectionsDirtyRef.current = false;
@@ -271,7 +286,9 @@ export default function PlayPage() {
         const text =
           error.code === "DUPLICATE_NAME"
             ? t("play.errDuplicateName")
-            : error.code === "PAGE3_NOT_PROMOTED"
+            : error.code === "INVITE_CODE_INVALID"
+              ? t("play.errInviteCode")
+              : error.code === "PAGE3_NOT_PROMOTED"
               ? t("play.page3NotPromoted", {
                   cutoff: promotionCutoff,
                   total: leaderboard.length
@@ -290,7 +307,9 @@ export default function PlayPage() {
       const text =
         code === "DUPLICATE_NAME"
           ? t("play.errDuplicateName")
-          : code === "PAGE3_NOT_PROMOTED"
+          : code === "INVITE_CODE_INVALID"
+            ? t("play.errInviteCode")
+            : code === "PAGE3_NOT_PROMOTED"
             ? t("play.page3NotPromoted", {
                 cutoff: promotionCutoff,
                 total: leaderboard.length
@@ -374,17 +393,33 @@ export default function PlayPage() {
       )}
 
       {step === 1 && (
-        <div className="field">
-          <label htmlFor="name">{t("play.yourName")}</label>
-          <input
-            id="name"
-            type="text"
-            placeholder={t("play.namePlaceholder")}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={pageLocked}
-          />
-        </div>
+        <>
+          <div className="field">
+            <label htmlFor="name">{t("play.yourName")}</label>
+            <input
+              id="name"
+              type="text"
+              placeholder={t("play.namePlaceholder")}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={pageLocked}
+            />
+          </div>
+          {needsInviteCode() && (
+            <div className="field">
+              <label htmlFor="invite-code">{t("play.inviteCode")}</label>
+              <input
+                id="invite-code"
+                type="text"
+                placeholder={t("play.inviteCodePlaceholder")}
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                disabled={pageLocked}
+                autoComplete="off"
+              />
+            </div>
+          )}
+        </>
       )}
 
       <div className="status-bar pick-stats-bar">

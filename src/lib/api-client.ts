@@ -53,6 +53,7 @@ export async function fetchLeaderboard(): Promise<LeaderboardResponse> {
 export async function registerPlayer(body: {
   name: string;
   playerId?: string | null;
+  inviteCode?: string;
   pickInputs: PlayerPickInput[];
   page: PlayPage;
   pagePickInputs: PlayerPickInput[];

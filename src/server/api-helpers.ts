@@ -31,6 +31,7 @@ export function handleRouteError(error: unknown) {
         message: "你未进入晋级区，无法作答1/4决赛及以后的题目。",
         status: 403
       },
+      INVITE_CODE_INVALID: { message: "邀请码不正确。", status: 403 },
       PLAYER_NOT_FOUND: { message: "玩家不存在。", status: 404 }
     };
     const mapped = map[error.message];
