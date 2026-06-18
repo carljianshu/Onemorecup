@@ -81,6 +81,7 @@ export const zh = {
     loadedEdit: "已加载你上次的竞猜，可随时修改并点击「保存当页」。",
     pageLocked: "{page} 已锁定，无法再修改本页题目。",
     pageLockedSubmit: "{page} 已锁定，无法修改本页竞猜。",
+    pageDeadline: "截止时间：{time}",
     yourName: "你的名字",
     namePlaceholder: "输入昵称",
     page1Answered: "1/16决赛已答：",

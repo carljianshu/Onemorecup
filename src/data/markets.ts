@@ -292,7 +292,7 @@ export function marketsForPage(markets: Market[], page: PlayPage) {
   return markets.filter((m) => m.page === page);
 }
 
-export { isPageLocked, pageLocksAt, formatPageLockUtc } from "@/lib/page-lock";
+export { isPageLocked, pageLocksAt, formatPageLockUtc, formatPageDeadlineDisplay } from "@/lib/page-lock";
 
 function defaultMarketById(id: string) {
   return DEFAULT_MARKETS.find((m) => m.id === id);

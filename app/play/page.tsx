@@ -16,6 +16,8 @@ import {
   isPageLocked,
   marketsForPage,
   minPicksForPage,
+  pageLocksAt,
+  formatPageDeadlineDisplay,
   PLAY_PAGES
 } from "@/data/markets";
 import { translateMarketName } from "@/i18n";
@@ -81,6 +83,7 @@ export default function PlayPage() {
   const isEditing = Boolean(editingPlayerId);
   const pageMarkets = useMemo(() => marketsForPage(markets, step), [markets, step]);
   const pageLocked = isPageLocked(config, step);
+  const pageDeadline = formatPageDeadlineDisplay(pageLocksAt(config, step), locale);
 
   useEffect(() => {
     if (!ready || markets.length === 0) return;
@@ -320,6 +323,12 @@ export default function PlayPage() {
         })}
       </div>
 
+      {pageDeadline && (
+        <div className="page-deadline-banner" role="status">
+          {t("play.pageDeadline", { time: pageDeadline })}
+        </div>
+      )}
+
       {isEditing && !pageLocked && (
         <div className="message success">{t("play.loadedEdit")}</div>
       )}
@@ -358,7 +367,6 @@ export default function PlayPage() {
         <span>
           {t("play.pageDouble")}
           <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : t("play.doubleNone")}</strong>
-          <span className="muted-inline">{t("play.doubleHint", { perMain: "" })}</span>
         </span>
       </div>
 

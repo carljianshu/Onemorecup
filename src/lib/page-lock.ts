@@ -102,3 +102,30 @@ export function formatPageLockUtc(iso: string | null): string | null {
   if (Number.isNaN(date.getTime())) return null;
   return date.toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
+
+/** 玩家竞猜页展示的截止时间（UTC）。 */
+export function formatPageDeadlineDisplay(
+  iso: string | null,
+  locale: "zh" | "en"
+): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const hours = date.getUTCHours().toString().padStart(2, "0");
+  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+  const time = `${hours}:${minutes}`;
+
+  if (locale === "zh") {
+    const month = date.getUTCMonth() + 1;
+    const day = date.getUTCDate();
+    return `${month}月${day}日${time}(UTC)`;
+  }
+
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+  return `${datePart}, ${time} (UTC)`;
+}

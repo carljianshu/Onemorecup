@@ -83,6 +83,7 @@ export const en: Messages = {
     loadedEdit: "Your previous picks are loaded. Edit anytime, then Save this page.",
     pageLocked: "{page} is locked; you cannot edit these picks.",
     pageLockedSubmit: "{page} is locked; you cannot save changes.",
+    pageDeadline: "Deadline: {time}",
     yourName: "Your name",
     namePlaceholder: "Nickname",
     page1Answered: "Round of 32:",
