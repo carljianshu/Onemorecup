@@ -151,15 +151,7 @@ export default function MarketResultsPage() {
 
               <div className="market-result-options">
                 {section.options.map((optionResult) => {
-                  const {
-                    option,
-                    picks: optionPicks,
-                    isWinner,
-                    isVoid,
-                    stdDev,
-                    stakePerSlot,
-                    gainPerWinningSlot
-                  } = optionResult;
+                  const { option, picks: optionPicks, isWinner } = optionResult;
 
                   return (
                     <div
@@ -179,24 +171,7 @@ export default function MarketResultsPage() {
                             <span className="market-result-winner-badge">{t("marketResults.winner")}</span>
                           )}
                         </h3>
-                        {!section.settled && (
-                          <span className="market-result-hypothetical-label">
-                            {t("marketResults.hypothetical")}
-                          </span>
-                        )}
                       </div>
-
-                      {!section.settled && (
-                        <p className="market-result-stake-line">
-                          {isVoid
-                            ? t("marketResults.voidHypothetical")
-                            : t("marketResults.stakeLine", {
-                                std: formatScore(stdDev),
-                                stake: formatScore(stakePerSlot),
-                                gain: formatScore(gainPerWinningSlot)
-                              })}
-                        </p>
-                      )}
 
                       {optionPicks.length === 0 ? (
                         <p className="market-result-empty">{t("common.empty")}</p>
