@@ -44,9 +44,9 @@ export const en: Messages = {
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
     rule1: "Picks are split into three pages: {page1} on page 1, {page2} on page 2, {page3} on page 3 ({total} items total). Page 1 needs at least {page1Min} picks to save; page 3 needs at least {page3Min}; page 2 requires {page2Min} main questions and {totalMin} total—you can still save if short; after page 2 locks, each missing item costs 10 points.",
-    rule2: "Pick at least {page1Min} Round of 16 matches and {page3Min} Round of 8 matches ({totalMin} total across both phases). You may Double one pick per phase.",
+    rule2: "Pick at least {page1Min} Round of 32 matches and {page3Min} Round of 16 matches ({totalMin} total across both phases). You may Double one pick per phase.",
     rule3:
-      "This game simulates parimutuel betting: you stake on Round of 16 and Round of 8 outcomes. Wrong picks lose their stake; winners split the stakes lost by wrong picks. See",
+      "This game simulates parimutuel betting: you stake on Round of 32 and Round of 16 outcomes. Wrong picks lose their stake; winners split the stakes lost by wrong picks. See",
     rule4: "If all players are right or all players are wrong on a match, that match is void and no player gains or loses anything.",
     rule5: "The top two-thirds by total earnings advance to quarter-finals and later parimutuel rounds; the bottom third are eliminated. After the World Cup final, the player with the highest total earnings wins."
   },
