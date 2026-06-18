@@ -12,7 +12,7 @@ import {
 } from "@/lib/local-store";
 import { validatePage2MainQuestionState } from "@/lib/market-helpers";
 import { validatePageSave } from "@/lib/pick-stats";
-import { mutateStoredGame, readStoredGame } from "@/server/storage";
+import { mutateStoredGame, readStoredGame, getStorageBackend } from "@/server/storage";
 import type { AnswersPageFeature } from "@/lib/public-features";
 import type { GameConfig, LeaderboardEntry, PlayerPickInput, PlayPage } from "@/types";
 
@@ -23,6 +23,7 @@ export interface LeaderboardResponse {
   picks: ReturnType<typeof hydrateGameState>["picks"];
   config: GameConfig;
   version: number;
+  storage: ReturnType<typeof getStorageBackend>;
 }
 
 function toResponse(stored: { version: number; payload: GameSnapshot }): LeaderboardResponse {
@@ -33,7 +34,8 @@ function toResponse(stored: { version: number; payload: GameSnapshot }): Leaderb
     markets: state.markets,
     picks: state.picks,
     config: state.config,
-    version: stored.version
+    version: stored.version,
+    storage: getStorageBackend()
   };
 }
 

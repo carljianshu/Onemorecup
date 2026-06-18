@@ -55,8 +55,26 @@ function isEmptyState(stored: StoredGame) {
   );
 }
 
+function isLocalFileStorage() {
+  if (process.env.GAME_STATE_DIR) return true;
+  // Plain `next dev` without Netlify CLI
+  return process.env.NODE_ENV === "development" && !process.env.NETLIFY_DEV;
+}
+
 function useNetlifyBlobs() {
-  return process.env.NETLIFY === "true" && !process.env.GAME_STATE_DIR;
+  if (isLocalFileStorage()) return false;
+  // Netlify injects these at function runtime (NETLIFY alone is often build-only).
+  return Boolean(
+    process.env.NETLIFY_BLOBS_CONTEXT ||
+      process.env.NETLIFY_SITE_ID ||
+      process.env.NETLIFY === "true"
+  );
+}
+
+export type StorageBackend = "blob" | "file";
+
+export function getStorageBackend(): StorageBackend {
+  return useNetlifyBlobs() ? "blob" : "file";
 }
 
 let dataDirPromise: Promise<string> | null = null;
@@ -91,7 +109,23 @@ async function stateFilePath() {
 }
 
 function getBlobStore() {
-  return getStore({ name: BLOB_STORE_NAME, consistency: "strong" });
+  const base = { name: BLOB_STORE_NAME, consistency: "strong" as const };
+
+  if (process.env.NETLIFY_BLOBS_CONTEXT || globalThis.netlifyBlobsContext) {
+    return getStore(base);
+  }
+
+  const siteID = process.env.NETLIFY_SITE_ID;
+  const token =
+    process.env.NETLIFY_AUTH_TOKEN ??
+    process.env.NETLIFY_BLOBS_TOKEN ??
+    process.env.NETLIFY_TOKEN;
+
+  if (siteID && token) {
+    return getStore({ ...base, siteID, token });
+  }
+
+  return getStore(base);
 }
 
 async function readFromFile(): Promise<StoredGame> {

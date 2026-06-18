@@ -3,7 +3,8 @@
 单文件存储：
 
 - **本机 / VPS**：`data/game-state.json`（或 `GAME_STATE_DIR` 指定目录）
-- **Netlify**：**Netlify Blobs** 持久化（store 名 `onemorecup-game`）；首次部署会从旧的 `/tmp` 文件自动迁移一次
+- **Netlify**：**Netlify Blobs** 持久化（store 名 `onemorecup-game`），跨部署保留数据
+- 可用 `GET /api/leaderboard` 返回的 `storage` 字段确认：`"blob"` 为持久化，`"file"` 表示仍在用临时文件（部署后会丢）
 
 ## 玩家接口
 

@@ -8,6 +8,7 @@ export interface LeaderboardResponse {
   picks: Pick[];
   config: GameConfig;
   version: number;
+  storage?: "blob" | "file";
 }
 
 export class ApiError extends Error {
