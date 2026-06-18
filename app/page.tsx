@@ -26,8 +26,7 @@ export default function HomePage() {
             </Link>
             {t("scoringRules.suffix")}
           </li>
-          <li>{t("home.rule2")}</li>
-          <li>{t("home.rule1", rules)}</li>
+          <li>{t("home.rule2", rules)}</li>
           <li>{t("home.rule4")}</li>
           <li>{t("home.rule5")}</li>
         </ul>
