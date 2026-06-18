@@ -324,7 +324,12 @@ function slotCountForTeam(team: string, groupPicks: Pick[]): number {
 }
 
 /** 选该选项但猜错时，按最可能胜出的其他选项结算的本金扣除。 */
-function lossStakeIfWrong(option: string, candidates: string[], groupPicks: Pick[]): number {
+function lossStakeIfWrong(
+  option: string,
+  candidates: string[],
+  groupPicks: Pick[],
+  marketId?: string
+): number {
   const others = candidates.filter((candidate) => candidate !== option);
   if (others.length === 0) return 0;
 
@@ -339,27 +344,28 @@ function lossStakeIfWrong(option: string, candidates: string[], groupPicks: Pick
     }
   }
 
-  return computeParimutuelBreakdown(rival, groupPicks)?.stakePerSlot ?? 0;
+  return computeParimutuelBreakdown(rival, groupPicks, marketId)?.stakePerSlot ?? 0;
 }
 
 /** 每个竞猜选项旁展示：猜对每计分位得分、猜错每计分位扣分（第二遍结算结果）。 */
 export function computeOptionPayoutHints(
   option: string,
   candidates: string[],
-  groupPicks: Pick[]
+  groupPicks: Pick[],
+  marketId?: string
 ): OptionPayoutHints {
   if (groupPicks.length === 0) {
     return { gainPerSlot: 0, lossPerSlot: 0, isVoid: true };
   }
 
-  const correct = computeParimutuelBreakdown(option, groupPicks);
+  const correct = computeParimutuelBreakdown(option, groupPicks, marketId);
   if (!correct || correct.isVoid) {
     return { gainPerSlot: 0, lossPerSlot: 0, isVoid: true };
   }
 
   return {
     gainPerSlot: correct.gainPerWinningSlot,
-    lossPerSlot: roundScore(lossStakeIfWrong(option, candidates, groupPicks)),
+    lossPerSlot: roundScore(lossStakeIfWrong(option, candidates, groupPicks, marketId)),
     isVoid: false
   };
 }

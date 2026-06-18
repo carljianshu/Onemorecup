@@ -10,20 +10,22 @@ export function OptionPayoutHints({
   option,
   candidates,
   questionPicks,
+  marketId,
   className,
   slotMultiplier = 1
 }: {
   option: string;
   candidates: string[];
   questionPicks: Pick[];
+  marketId?: string;
   className?: string;
   /** Double 为 2 个计分位，展示该玩家本题总得失。 */
   slotMultiplier?: number;
 }) {
   const { t } = useLocale();
   const hints = useMemo(
-    () => computeOptionPayoutHints(option, candidates, questionPicks),
-    [option, candidates, questionPicks]
+    () => computeOptionPayoutHints(option, candidates, questionPicks, marketId),
+    [option, candidates, questionPicks, marketId]
   );
 
   if (hints.isVoid) return null;
