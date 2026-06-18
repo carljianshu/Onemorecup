@@ -1,5 +1,5 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, marketUsesDistributionAdjustment, STAKE_PER_PICK } from "@/data/markets";
 import { computeMissingItemCount, computePickStats } from "@/lib/pick-stats";
 import { countPlayerGuessedItems } from "@/lib/market-helpers";
 import type { LeaderboardEntry, Market, Pick, Player } from "@/types";
@@ -90,6 +90,45 @@ function populationStd(values: number[]): number {
   return Math.sqrt(variance);
 }
 
+/**
+ * P3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
+ * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10。
+ */
+function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
+  scoreStd: number;
+  adjustment: number;
+} | null {
+  const counts = new Map<string, number>();
+  for (const pick of groupPicks) {
+    counts.set(pick.team, (counts.get(pick.team) ?? 0) + 1);
+  }
+  if (counts.size < 2) return null;
+
+  const entries = [...counts.entries()];
+  const minCount = Math.min(...entries.map(([, count]) => count));
+  const minOption = entries
+    .filter(([, count]) => count === minCount)
+    .map(([team]) => team)
+    .sort((a, b) => a.localeCompare(b, "zh-CN"))[0]!;
+
+  const N = minCount;
+  let M = 0;
+  for (const [team, count] of entries) {
+    if (team !== minOption) M += count;
+  }
+  if (M === 0 || N === 0) return null;
+
+  const positive = (STAKE_PER_PICK * M) / N;
+  const sequence = [
+    ...Array.from({ length: M }, () => -STAKE_PER_PICK),
+    ...Array.from({ length: N }, () => positive)
+  ];
+  const scoreStd = populationStd(sequence);
+  if (scoreStd === 0) return null;
+
+  return { scoreStd, adjustment: scoreStd / STAKE_PER_PICK };
+}
+
 interface FixedStakeSettlement {
   scores: Record<string, number>;
   slotScores: number[];
@@ -163,7 +202,11 @@ export interface ParimutuelBreakdown {
  * 两阶段对赌：先按 10 分本金结算得探测序列（猜对位多于猜错位时对调数量）→ σ ÷ 10 = 调整值 → 新本金 = 10 ÷ 调整值 → 再结算。
  * Double 视为两个计分位，得失在计分位层面累加。
  */
-function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlement | null {
+function settleParimutuel(
+  winner: string,
+  groupPicks: Pick[],
+  marketId?: string
+): ParimutuelSettlement | null {
   if (groupPicks.length === 0) return null;
 
   if (isAllCorrectOrAllWrong(winner, groupPicks)) {
@@ -189,25 +232,44 @@ function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlem
     };
   }
 
-  const slots = slotsForGroup(winner, groupPicks);
-  const adjustmentSlotScores = slotScoresForAdjustment(
-    slots,
-    pass1.slotScores,
-    STAKE_PER_PICK
-  );
-  const scoreStd = populationStd(adjustmentSlotScores);
-  if (scoreStd === 0) {
-    return {
-      scores: zeroScoresForParticipants(groupPicks),
-      gainPerWinningSlot: 0,
-      stakePerSlot: 0,
-      scoreStd: 0,
-      adjustment: 0,
-      isVoid: true
-    };
+  let scoreStd: number;
+  let adjustment: number;
+
+  if (marketId && marketUsesDistributionAdjustment(marketId)) {
+    const distribution = computeDistributionAdjustmentStats(groupPicks);
+    if (!distribution) {
+      return {
+        scores: zeroScoresForParticipants(groupPicks),
+        gainPerWinningSlot: 0,
+        stakePerSlot: 0,
+        scoreStd: 0,
+        adjustment: 0,
+        isVoid: true
+      };
+    }
+    scoreStd = distribution.scoreStd;
+    adjustment = distribution.adjustment;
+  } else {
+    const slots = slotsForGroup(winner, groupPicks);
+    const adjustmentSlotScores = slotScoresForAdjustment(
+      slots,
+      pass1.slotScores,
+      STAKE_PER_PICK
+    );
+    scoreStd = populationStd(adjustmentSlotScores);
+    if (scoreStd === 0) {
+      return {
+        scores: zeroScoresForParticipants(groupPicks),
+        gainPerWinningSlot: 0,
+        stakePerSlot: 0,
+        scoreStd: 0,
+        adjustment: 0,
+        isVoid: true
+      };
+    }
+    adjustment = scoreStd / STAKE_PER_PICK;
   }
 
-  const adjustment = scoreStd / STAKE_PER_PICK;
   const adjustedStake = STAKE_PER_PICK / adjustment;
   const pass2 = settleAtFixedStake(winner, groupPicks, adjustedStake);
   if (!pass2) {
@@ -233,9 +295,10 @@ function settleParimutuel(winner: string, groupPicks: Pick[]): ParimutuelSettlem
 
 export function computeParimutuelBreakdown(
   winner: string,
-  groupPicks: Pick[]
+  groupPicks: Pick[],
+  marketId?: string
 ): ParimutuelBreakdown | null {
-  const result = settleParimutuel(winner, groupPicks);
+  const result = settleParimutuel(winner, groupPicks, marketId);
   if (!result) return null;
   return {
     std: result.scoreStd,
@@ -306,13 +369,17 @@ export function singleCorrectSlotBonus(winner: string, groupPicks: Pick[]): numb
   return settleParimutuel(winner, groupPicks)?.gainPerWinningSlot ?? 0;
 }
 
-export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<string, number> {
-  return settleParimutuel(winner, groupPicks)?.scores ?? {};
+export function settlePickGroup(
+  winner: string,
+  groupPicks: Pick[],
+  marketId?: string
+): Record<string, number> {
+  return settleParimutuel(winner, groupPicks, marketId)?.scores ?? {};
 }
 
 export function settleMarket(market: Market, marketPicks: Pick[]) {
   if (!market.winner) return {};
-  return settlePickGroup(market.winner, marketPicks);
+  return settlePickGroup(market.winner, marketPicks, market.id);
 }
 
 export function computePlayerScores(
@@ -329,7 +396,7 @@ export function computePlayerScores(
   for (const market of markets) {
     if (!market.winner) continue;
     const marketPicks = picks.filter((p) => p.marketId === market.id);
-    const settled = settlePickGroup(market.winner, marketPicks);
+    const settled = settlePickGroup(market.winner, marketPicks, market.id);
 
     for (const player of players) {
       const score = settled[player.id];

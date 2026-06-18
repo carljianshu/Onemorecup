@@ -10,11 +10,15 @@ export const MIN_PAGE3_PICKS = 4;
 export const MIN_TOTAL_PICKS = 16;
 export const TOTAL_MARKETS = PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT;
 
-/** 不展示「猜对/猜错」旁预览积分的题目（多选项题）。 */
-export const MARKETS_WITHOUT_PAYOUT_HINTS = new Set<string>(["p3-5", "p3-6", "p3-7"]);
+/** 半决赛/决赛多选项题：专用调整系数，且不展示猜对/猜错预览。 */
+export const MULTI_OPTION_FINAL_MARKET_IDS = new Set<string>(["p3-5", "p3-6", "p3-7"]);
 
 export function marketShowsPayoutHints(marketId: string): boolean {
-  return !MARKETS_WITHOUT_PAYOUT_HINTS.has(marketId);
+  return !MULTI_OPTION_FINAL_MARKET_IDS.has(marketId);
+}
+
+export function marketUsesDistributionAdjustment(marketId: string): boolean {
+  return MULTI_OPTION_FINAL_MARKET_IDS.has(marketId);
 }
 
 export const PLAY_PAGES = [1, 2, 3] as const satisfies readonly PlayPage[];

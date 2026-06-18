@@ -76,7 +76,7 @@ export function buildMarketResultSections(
     );
 
     const actualBreakdown =
-      winner !== null ? computeParimutuelBreakdown(winner, questionPicks) : null;
+      winner !== null ? computeParimutuelBreakdown(winner, questionPicks, col.id) : null;
 
     const actualScores: MarketResultPlayerScore[] = questionPicks
       .map((pick) => ({
@@ -89,7 +89,7 @@ export function buildMarketResultSections(
       .sort((a, b) => a.playerName.localeCompare(b.playerName, "zh-CN"));
 
     const options: MarketOptionResult[] = candidates.map((option) => {
-      const breakdown = computeParimutuelBreakdown(option, questionPicks);
+      const breakdown = computeParimutuelBreakdown(option, questionPicks, col.id);
       const hypotheticalScores = breakdown?.scores ?? {};
 
       return {
