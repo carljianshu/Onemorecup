@@ -152,7 +152,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-1",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A1", "P2-B1"],
+    candidates: ["E1/ABCDF3", "I1/CDFGH3"],
     winner: null,
     page: 2
   },
@@ -160,7 +160,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-2",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A2", "P2-B2"],
+    candidates: ["A2/B2", "F1/C2"],
     winner: null,
     page: 2
   },
@@ -168,7 +168,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-3",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A3", "P2-B3"],
+    candidates: ["K2/L2", "H1/J2"],
     winner: null,
     page: 2
   },
@@ -176,7 +176,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-4",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A4", "P2-B4"],
+    candidates: ["D1/BEFIJ3", "G1/AEHIJ3"],
     winner: null,
     page: 2
   },
@@ -184,7 +184,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-5",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A5", "P2-B5"],
+    candidates: ["C1/F2", "E2/I2"],
     winner: null,
     page: 2
   },
@@ -192,7 +192,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-6",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A6", "P2-B6"],
+    candidates: ["A1/CEFHI3", "L1/EHIJK3"],
     winner: null,
     page: 2
   },
@@ -200,7 +200,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-7",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A7", "P2-B7"],
+    candidates: ["J1/H2", "D2/G2"],
     winner: null,
     page: 2
   },
@@ -208,7 +208,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-8",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["P2-A8", "P2-B8"],
+    candidates: ["B1/EFGIJ3", "K1/DEIJL3"],
     winner: null,
     page: 2
   },
