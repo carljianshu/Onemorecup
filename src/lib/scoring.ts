@@ -16,6 +16,22 @@ function binarySlotsForPick(pick: Pick, winner: string): number[] {
   return Array.from({ length: count }, () => value);
 }
 
+/** 所有参与者都猜对，或都猜错（含无人猜对正确选项）。 */
+function isAllCorrectOrAllWrong(winner: string, groupPicks: Pick[]): boolean {
+  if (groupPicks.length === 0) return false;
+  const allCorrect = groupPicks.every((pick) => pick.team === winner);
+  const allWrong = groupPicks.every((pick) => pick.team !== winner);
+  return allCorrect || allWrong;
+}
+
+function zeroScoresForParticipants(groupPicks: Pick[]): Record<string, number> {
+  const scores: Record<string, number> = {};
+  for (const pick of groupPicks) {
+    scores[pick.playerId] = 0;
+  }
+  return scores;
+}
+
 function binarySlotStats(winner: string, groupPicks: Pick[]) {
   const slots: number[] = [];
   for (const pick of groupPicks) {
@@ -35,16 +51,21 @@ function binarySlotStats(winner: string, groupPicks: Pick[]) {
 /** 假设该选项猜对时，单个「1」计分位（普通下注）的标准化得分 ×10。 */
 export function singleCorrectSlotBonus(winner: string, groupPicks: Pick[]): number {
   if (groupPicks.length === 0) return 0;
+  if (isAllCorrectOrAllWrong(winner, groupPicks)) return 0;
   const { mean, std } = binarySlotStats(winner, groupPicks);
   if (std === 0) return 0;
   return roundScore(((1 - mean) / std) * 10);
 }
 
-/** 单场：0/1 序列标准化后 ×10；Double 为 2 个 0 或 2 个 1。标准差为 0 时该场所有人得 0。 */
+/** 单场：0/1 序列标准化后 ×10；全员同对或同错时该场所有人得 0。 */
 export function settlePickGroup(winner: string, groupPicks: Pick[]): Record<string, number> {
-  const scores: Record<string, number> = {};
-  if (groupPicks.length === 0) return scores;
+  if (groupPicks.length === 0) return {};
 
+  if (isAllCorrectOrAllWrong(winner, groupPicks)) {
+    return zeroScoresForParticipants(groupPicks);
+  }
+
+  const scores: Record<string, number> = {};
   const { mean, std } = binarySlotStats(winner, groupPicks);
 
   for (const pick of groupPicks) {
