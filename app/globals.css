@@ -83,19 +83,6 @@ a {
   max-width: 640px;
 }
 
-.scoring-rules-summary {
-  margin: 0 0 1.5rem;
-  color: var(--text);
-  font-size: 1.05rem;
-  line-height: 1.6;
-}
-
-.scoring-rules-formula {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
 .scoring-rules-formula-expr {
   margin: 0 0 0.35rem;
   font-size: 1.15rem;
@@ -115,43 +102,20 @@ a {
   line-height: 1.55;
 }
 
-.scoring-rules-example-line {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-.scoring-rules-example-line + .scoring-rules-example-line {
-  margin-top: 0.5rem;
-}
-
-.scoring-rules-section + .scoring-rules-section {
+.scoring-rules-examples-block {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
 
-.scoring-rules-heading {
+.scoring-rules-examples-heading {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
   color: var(--text);
 }
 
-.scoring-rules-examples {
-  display: grid;
-  gap: 1rem;
-}
-
-.scoring-rules-example h3 {
-  margin: 0 0 0.35rem;
-  font-size: 0.95rem;
-  color: var(--text);
-}
-
-.scoring-rules-example p {
+.scoring-rules-examples-list {
   margin: 0;
-  color: var(--muted);
-  line-height: 1.55;
 }
 
 .actions {

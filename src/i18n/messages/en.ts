@@ -49,36 +49,25 @@ export const en: Messages = {
   },
   scoringRules: {
     linkLabel: "stake scoring",
-    title: "Stake scoring",
+    title: "Stake rules",
     suffix: ".",
-    summary:
-      "Winners split losers' stakes—but first we derive an adjustment from how picks split, then settle again at the adjusted stake.",
-    formulaTitle: "Stake rules",
     formula: "Pass-2 stake = 10 ÷ adjustment",
     formulaAdjustment: "Adjustment = σ ÷ 10",
     formulaNote:
       "A smaller adjustment means a higher pass-2 stake and larger score swings per question.",
     formulaSigmaNote:
-      "σ is the std dev of the pass-1 probe score sequence; adjustment reflects how volatile scores are.",
+      "σ is the std dev of the pass-1 probe score sequence; adjustment reflects score volatility.",
+    examplesTitle: "Examples",
     formulaEx1:
       "10 players, 5 right / 5 wrong: adjustment = 1, stake = 10. Winners +10 each; losers −10 each.",
     formulaEx2:
-      "1 right / 9 wrong: adjustment = 3, stake ≈ 3.33. Winner +30; each loser −3.33.",
-    s1Title: "Basics",
-    s1Item1: "Each question pools all players who bet on it.",
-    s1Item2: "Wrong picks lose stake; right picks split what wrong picks lost.",
-    s1Item3: "Normal bet: 10 pts. Double counts as 2 slots (~2× P/L).",
-    s2Title: "Per question (two passes)",
-    s2Item1: "Pass 1 (probe): settle at 10 pts/slot only to measure volatility.",
-    s2Item2:
-      "Adjustment: if more slots are right than wrong, swap those counts before building the score sequence; otherwise use pass-1 scores. Adjustment = std dev of that sequence ÷ 10.",
-    s2Item3:
-      "Pass 2 (final): new stake = 10 ÷ adjustment; settle again on actual right/wrong—this is the question score.",
-    s3Title: "Special cases",
-    s3Item1: "Everyone right or everyone wrong → 0 for all on that question.",
-    s3Item2: "After page 2 locks: −10 pts per missing item (separate from parimutuel).",
-    s4Title: "Total score",
-    s4Item1: "Sum of question scores − missing-pick penalty = leaderboard total."
+      "10 players, 1 right / 9 wrong: adjustment = 3, stake ≈ 3.33. Winner +30; each loser −3.33.",
+    formulaEx3:
+      "10 players, 2 right / 8 wrong: adjustment = 2, stake = 5. Winners +20 each; losers −5 each.",
+    formulaEx4:
+      "10 players, 9 right / 1 wrong: adjustment = 3, stake ≈ 3.33. Winners ≈ +0.37 each; loser −3.33.",
+    formulaEx5:
+      "3 players, 2 right / 1 wrong: adjustment ≈ 1.41, stake ≈ 7.07. Winners ≈ +3.54 each; loser −7.07."
   },
   markets: {
     page1: "Page 1 ({count} picks)",
