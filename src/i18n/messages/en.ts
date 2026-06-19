@@ -241,6 +241,15 @@ export const en: Messages = {
     opened: "Published {label}.",
     closed: "Unpublished {label}.",
     openFeature: "Publish {label}",
-    closeFeature: "Unpublish {label}"
+    closeFeature: "Unpublish {label}",
+    backupTitle: "Local picks backup",
+    backupDesc:
+      "While signed in as admin, each cloud sync (including player saves) is copied into this browser. Keep this tab open, or export a JSON file anytime. Clearing browser data removes the backup.",
+    backupEmpty: "No backup yet. Stay signed in with this tab open; backups start after players submit.",
+    backupLastSaved: "Last backup: {time}",
+    backupVersion: "Data version: {version}",
+    backupCounts: "{players} players, {picks} pick records",
+    backupExport: "Export JSON backup",
+    backupExportEmpty: "No backup to export."
   }
 };

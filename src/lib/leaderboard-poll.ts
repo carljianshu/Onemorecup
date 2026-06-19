@@ -10,6 +10,7 @@ const LIVE_SYNC_PATHS = new Set([
 ]);
 
 /** 当前路由是否需要定时拉取云端数据（首页、规则页等不轮询）。 */
-export function pathNeedsLiveSync(pathname: string): boolean {
+export function pathNeedsLiveSync(pathname: string, options?: { adminBackup?: boolean }): boolean {
+  if (options?.adminBackup) return true;
   return LIVE_SYNC_PATHS.has(pathname);
 }

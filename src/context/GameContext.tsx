@@ -20,7 +20,8 @@ import {
   syncLeaderboardIfChanged,
   type LeaderboardResponse
 } from "@/lib/api-client";
-import { getAdminToken } from "@/lib/admin-auth";
+import { getAdminToken, isAdminAuthed } from "@/lib/admin-auth";
+import { maybeSaveAdminBackup } from "@/lib/admin-backup";
 import { LEADERBOARD_POLL_MS, pathNeedsLiveSync } from "@/lib/leaderboard-poll";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
 import { isPageLocked } from "@/data/markets";
@@ -87,6 +88,19 @@ function applyLeaderboardData(
   setters.setPicks(hydrated.picks);
   setters.setConfig(hydrated.config);
   setters.setLeaderboard(data.leaderboard ?? hydrated.leaderboard);
+
+  if (typeof data.version === "number") {
+    const saved = maybeSaveAdminBackup({
+      version: data.version,
+      players: hydrated.players,
+      markets: hydrated.markets,
+      picks: hydrated.picks,
+      config: hydrated.config
+    });
+    if (saved && typeof window !== "undefined") {
+      window.dispatchEvent(new Event("onemorecup-admin-backup"));
+    }
+  }
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -112,6 +126,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
   const [lockTick, setLockTick] = useState(0);
+  const [adminSession, setAdminSession] = useState(false);
 
   const settersRef = useRef({ setPlayers, setMarkets, setPicks, setConfig, setLeaderboard });
   settersRef.current = { setPlayers, setMarkets, setPicks, setConfig, setLeaderboard };
@@ -152,6 +167,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [applyResponse]);
 
   useEffect(() => {
+    const refreshAdminSession = () => setAdminSession(isAdminAuthed());
+    refreshAdminSession();
+    window.addEventListener("onemorecup-admin-session", refreshAdminSession);
+    return () => window.removeEventListener("onemorecup-admin-session", refreshAdminSession);
+  }, []);
+
+  useEffect(() => {
     const onVisibilityChange = () => {
       setTabVisible(document.visibilityState !== "hidden");
     };
@@ -161,7 +183,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!ready || !apiSync || !tabVisible || !pathNeedsLiveSync(pathname)) return;
+    if (!ready || !apiSync || !tabVisible || !pathNeedsLiveSync(pathname, { adminBackup: adminSession })) return;
 
     let cancelled = false;
 
@@ -179,7 +201,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       window.clearInterval(pollId);
     };
-  }, [ready, apiSync, tabVisible, pathname, applyResponse]);
+  }, [ready, apiSync, tabVisible, pathname, adminSession, applyResponse]);
 
   useEffect(() => {
     if (!ready) return;

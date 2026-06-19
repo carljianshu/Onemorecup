@@ -237,7 +237,16 @@ export const zh = {
     opened: "已向玩家开放{label}。",
     closed: "已关闭{label}，玩家不可见。",
     openFeature: "向玩家开放{label}",
-    closeFeature: "关闭{label}"
+    closeFeature: "关闭{label}",
+    backupTitle: "本机竞猜备份",
+    backupDesc:
+      "登录管理后，每次从云端同步到新数据（含玩家保存竞猜）会自动写入本浏览器。请保持本标签页打开；也可随时导出 JSON 文件到电脑。清浏览器数据会删除备份。",
+    backupEmpty: "尚无备份。登录管理并保持页面打开，待玩家提交后会自动记录。",
+    backupLastSaved: "最近备份：{time}",
+    backupVersion: "数据版本：{version}",
+    backupCounts: "玩家 {players} 人，竞猜记录 {picks} 条",
+    backupExport: "导出 JSON 备份",
+    backupExportEmpty: "暂无备份可导出。"
   }
 } as const;
 

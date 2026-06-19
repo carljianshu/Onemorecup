@@ -14,12 +14,19 @@ export function getAdminToken() {
   return sessionStorage.getItem(ADMIN_TOKEN_KEY);
 }
 
+function notifyAdminSessionChange() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("onemorecup-admin-session"));
+}
+
 export function setAdminSession(token: string, expiresAt: string) {
   sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
   sessionStorage.setItem(ADMIN_EXPIRES_KEY, expiresAt);
+  notifyAdminSessionChange();
 }
 
 export function clearAdminAuthed() {
   sessionStorage.removeItem(ADMIN_TOKEN_KEY);
   sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+  notifyAdminSessionChange();
 }

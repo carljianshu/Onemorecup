@@ -155,9 +155,8 @@ export function hydrateGameState(
   if (persist) write(KEYS.markets, markets);
 
   const normalizedPicks = normalizePicks(snapshot.picks);
-  let picks = migratePicksForMarkets(normalizedPicks, markets);
-  const picksChanged = picks.some((pick, index) => pick.team !== normalizedPicks[index]?.team);
-  if (persist && picksChanged) {
+  const picks = migratePicksForMarkets(normalizedPicks, markets);
+  if (persist) {
     savePicks(picks);
   }
 
