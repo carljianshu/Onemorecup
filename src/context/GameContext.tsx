@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -17,12 +16,10 @@ import {
   patchAdminConfigApi,
   patchMarketWinnerApi,
   registerPlayer,
-  syncLeaderboardIfChanged,
   type LeaderboardResponse
 } from "@/lib/api-client";
-import { getAdminToken, isAdminAuthed } from "@/lib/admin-auth";
+import { getAdminToken } from "@/lib/admin-auth";
 import { maybeSaveAdminBackup } from "@/lib/admin-backup";
-import { LEADERBOARD_POLL_MS, pathNeedsLiveSync } from "@/lib/leaderboard-poll";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
 import { isPageLocked } from "@/data/markets";
 import {
@@ -54,6 +51,7 @@ interface GameContextValue {
     patch: { public?: boolean; opensAt?: string | null }
   ) => Promise<void>;
   refreshScores: () => void;
+  refreshFromCloud: () => Promise<void>;
   players: Player[];
   markets: Market[];
   picks: Pick[];
@@ -104,10 +102,8 @@ function applyLeaderboardData(
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [apiSync, setApiSync] = useState(false);
-  const [tabVisible, setTabVisible] = useState(true);
   const [players, setPlayers] = useState<Player[]>([]);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [picks, setPicks] = useState<Pick[]>([]);
@@ -126,7 +122,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
   const [lockTick, setLockTick] = useState(0);
-  const [adminSession, setAdminSession] = useState(false);
 
   const settersRef = useRef({ setPlayers, setMarkets, setPicks, setConfig, setLeaderboard });
   settersRef.current = { setPlayers, setMarkets, setPicks, setConfig, setLeaderboard };
@@ -165,43 +160,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [applyResponse]);
-
-  useEffect(() => {
-    const refreshAdminSession = () => setAdminSession(isAdminAuthed());
-    refreshAdminSession();
-    window.addEventListener("onemorecup-admin-session", refreshAdminSession);
-    return () => window.removeEventListener("onemorecup-admin-session", refreshAdminSession);
-  }, []);
-
-  useEffect(() => {
-    const onVisibilityChange = () => {
-      setTabVisible(document.visibilityState !== "hidden");
-    };
-    onVisibilityChange();
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, []);
-
-  useEffect(() => {
-    if (!ready || !apiSync || !tabVisible || !pathNeedsLiveSync(pathname, { adminBackup: adminSession })) return;
-
-    let cancelled = false;
-
-    const pull = () => {
-      syncLeaderboardIfChanged()
-        .then((next) => {
-          if (!cancelled && next) applyResponse(next);
-        })
-        .catch(() => undefined);
-    };
-
-    pull();
-    const pollId = window.setInterval(pull, LEADERBOARD_POLL_MS);
-    return () => {
-      cancelled = true;
-      window.clearInterval(pollId);
-    };
-  }, [ready, apiSync, tabVisible, pathname, adminSession, applyResponse]);
 
   useEffect(() => {
     if (!ready) return;
@@ -346,6 +304,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setLeaderboard(lb);
   }, [players, markets, picks, config]);
 
+  const refreshFromCloud = useCallback(async () => {
+    if (!apiSync) return;
+    applyResponse(await fetchLeaderboard());
+  }, [apiSync, applyResponse]);
+
   const value = useMemo(
     () => ({
       ready,
@@ -361,7 +324,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       deletePlayer,
       togglePageLocked,
       setPublicFeature,
-      refreshScores
+      refreshScores,
+      refreshFromCloud
     }),
     [
       ready,
@@ -377,7 +341,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       deletePlayer,
       togglePageLocked,
       setPublicFeature,
-      refreshScores
+      refreshScores,
+      refreshFromCloud
     ]
   );
 

@@ -38,7 +38,10 @@ export const en: Messages = {
     onlyPage3: "(Showing quarter-finals and later only)",
     langZh: "中文",
     langEn: "English",
-    language: "Language"
+    language: "Language",
+    refresh: "Refresh",
+    refreshing: "Refreshing…",
+    refreshFailed: "Refresh failed. Try again later."
   },
   home: {
     title: "Knockout Bracket Pool",
@@ -244,8 +247,8 @@ export const en: Messages = {
     closeFeature: "Unpublish {label}",
     backupTitle: "Local picks backup",
     backupDesc:
-      "While signed in as admin, each cloud sync (including player saves) is copied into this browser. Keep this tab open, or export a JSON file anytime. Clearing browser data removes the backup.",
-    backupEmpty: "No backup yet. Stay signed in with this tab open; backups start after players submit.",
+      "While signed in as admin, each cloud sync (Refresh or browser reload) is copied into this browser. Export a JSON file anytime. Clearing browser data removes the backup.",
+    backupEmpty: "No backup yet. Sign in and refresh to snapshot the current cloud data.",
     backupLastSaved: "Last backup: {time}",
     backupVersion: "Data version: {version}",
     backupCounts: "{players} players, {picks} pick records",

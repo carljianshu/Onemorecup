@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AdminGate } from "@/components/AdminGate";
 import { AdminBackupPanel } from "@/components/AdminBackupPanel";
+import { CloudRefreshButton } from "@/components/CloudRefreshButton";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS, PLAY_PAGES, isPageLocked, marketsForPage } from "@/data/markets";
@@ -207,6 +208,7 @@ function AdminPageContent() {
         >
           {t("admin.logout")}
         </button>
+        <CloudRefreshButton />
       </nav>
 
       <h1 style={{ marginTop: 0 }}>{t("admin.title")}</h1>

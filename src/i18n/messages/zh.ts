@@ -36,7 +36,10 @@ export const zh = {
     onlyPage3: "（当前仅展示1/4决赛及以后）",
     langZh: "中文",
     langEn: "English",
-    language: "语言"
+    language: "语言",
+    refresh: "刷新数据",
+    refreshing: "刷新中…",
+    refreshFailed: "刷新失败，请稍后重试。"
   },
   home: {
     title: "淘汰赛竞猜",
@@ -240,8 +243,8 @@ export const zh = {
     closeFeature: "关闭{label}",
     backupTitle: "本机竞猜备份",
     backupDesc:
-      "登录管理后，每次从云端同步到新数据（含玩家保存竞猜）会自动写入本浏览器。请保持本标签页打开；也可随时导出 JSON 文件到电脑。清浏览器数据会删除备份。",
-    backupEmpty: "尚无备份。登录管理并保持页面打开，待玩家提交后会自动记录。",
+      "登录管理后，每次从云端同步到新数据（含点击「刷新数据」或浏览器刷新）会自动写入本浏览器。也可随时导出 JSON 文件到电脑。清浏览器数据会删除备份。",
+    backupEmpty: "尚无备份。登录管理并刷新页面后，会记录当前云端数据。",
     backupLastSaved: "最近备份：{time}",
     backupVersion: "数据版本：{version}",
     backupCounts: "玩家 {players} 人，竞猜记录 {picks} 条",

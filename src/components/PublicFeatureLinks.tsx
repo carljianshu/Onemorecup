@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CloudRefreshButton } from "@/components/CloudRefreshButton";
 import { useGame } from "@/context/GameContext";
 import { useLocale } from "@/context/LocaleContext";
 import { isAnswersAnyPublic } from "@/lib/public-features";
@@ -43,6 +44,7 @@ export function PublicFeatureNavLinks() {
       {isAnswersAnyPublic(config) && (
         <Link href="/market-results">{t("common.marketResults")}</Link>
       )}
+      <CloudRefreshButton />
     </>
   );
 }
