@@ -16,6 +16,9 @@ export const MULTI_OPTION_FINAL_MARKET_IDS = new Set<string>(["p3-5", "p3-6", "p
 /** 竞猜页在此题之前展示多选项调整系数说明。 */
 export const DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID = "p3-5";
 
+/** 竞猜页在此题之前展示 1/4 决赛及以后本金说明。 */
+export const PAGE3_STAKE_NOTE_MARKET_ID = "p3-1";
+
 /**
  * 选项重命名时登记旧名 → 新名，已保存的竞猜与录入胜者会自动迁移。
  * 按题号索引对应：待填 1 = candidates[0]，以此类推。
@@ -29,7 +32,7 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
   },
   "p3-6": {
     "待填 1": "C1区",
-    "待填 2": "A1/L1区",
+    "待填 2": "墨西哥/L1区",
     "待填 3": "J1区",
     "待填 4": "B1/K1区"
   },
@@ -39,14 +42,22 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "待填 3": "H1区",
     "待填 4": "D1/G1区",
     "待填 5": "C1区",
-    "待填 6": "A1/L1区",
+    "待填 6": "墨西哥/L1区",
     "待填 7": "J1区",
     "待填 8": "B1/K1区"
   }
 };
 
+/** 将旧选项名 A1、A1/… 迁移为墨西哥/… */
+export function renameA1InTeamName(team: string): string {
+  if (team === "A1") return "墨西哥";
+  if (team.startsWith("A1/")) return `墨西哥/${team.slice(3)}`;
+  return team;
+}
+
 export function migratePickTeam(marketId: string, team: string, candidates: string[]): string {
-  const mapped = LEGACY_CANDIDATE_ALIASES[marketId]?.[team] ?? team;
+  let mapped = LEGACY_CANDIDATE_ALIASES[marketId]?.[team] ?? team;
+  mapped = renameA1InTeamName(mapped);
   if (candidates.includes(mapped)) return mapped;
   if (candidates.includes(team)) return team;
   return mapped;
@@ -172,7 +183,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p1-11",
     round: "P1",
     name: "谁会晋级？",
-    candidates: ["A1", "C/E/F/H/I3"],
+    candidates: ["墨西哥", "C/E/F/H/I3"],
     winner: null,
     page: 1
   },
@@ -262,7 +273,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-6",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["A1/CEFHI3", "L1/EHIJK3"],
+    candidates: ["墨西哥/CEFHI3", "L1/EHIJK3"],
     winner: null,
     page: 2
   },
@@ -304,7 +315,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-3",
     round: "P3",
     name: "第三场1/4决赛谁会晋级？",
-    candidates: ["C1区", "A1/L1区"],
+    candidates: ["C1区", "墨西哥/L1区"],
     winner: null,
     page: 3
   },
@@ -328,7 +339,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-6",
     round: "P3",
     name: "第二场半决赛谁会晋级？",
-    candidates: ["C1区", "A1/L1区", "J1区", "B1/K1区"],
+    candidates: ["C1区", "墨西哥/L1区", "J1区", "B1/K1区"],
     winner: null,
     page: 3
   },
@@ -342,7 +353,7 @@ export const DEFAULT_MARKETS: Market[] = [
       "H1区",
       "D1/G1区",
       "C1区",
-      "A1/L1区",
+      "墨西哥/L1区",
       "J1区",
       "B1/K1区"
     ],
@@ -352,7 +363,17 @@ export const DEFAULT_MARKETS: Market[] = [
 ];
 
 export const STAKE_PER_PICK = 10 as const;
+export const PAGE3_STAKE_PER_PICK = 20 as const;
 export const DOUBLE_STAKE = 20 as const;
+
+export function isPage3Market(marketId: string): boolean {
+  return marketId.startsWith("p3-");
+}
+
+/** 结算用基准本金：1/4 决赛及以后为 20，前两阶段为 10。 */
+export function marketStakePerPick(marketId: string): number {
+  return isPage3Market(marketId) ? PAGE3_STAKE_PER_PICK : STAKE_PER_PICK;
+}
 
 export const PAGE_LABELS: Record<PlayPage, string> = {
   1: `1/16决赛（${PAGE1_COUNT} 题）`,

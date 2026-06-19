@@ -9,13 +9,14 @@ import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS } from "@/data/markets";
 import { allPickColumns, findPlayerPick } from "@/lib/market-helpers";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
+import { translateMarketCandidate } from "@/i18n";
 import type { PlayPage } from "@/types";
 
 type ViewFilter = "all" | PlayPage;
 
 export default function AnswersPage() {
   const { ready, config, players, markets, picks, leaderboard } = useGame();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [filter, setFilter] = useState<ViewFilter>("all");
 
   const page1Public = ready && isAnswersPagePublic(config, 1);
@@ -200,17 +201,18 @@ export default function AnswersPage() {
                         );
                       }
                       const isDouble = pick.stake === DOUBLE_STAKE;
+                      const teamLabel = translateMarketCandidate(locale, pick.team);
                       return (
                         <td
                           key={col.id}
                           className={isDouble ? "pick-double" : undefined}
                           title={
                             isDouble
-                              ? t("answers.doubleTitle", { team: pick.team })
-                              : pick.team
+                              ? t("answers.doubleTitle", { team: teamLabel })
+                              : teamLabel
                           }
                         >
-                          {pick.team}
+                          {teamLabel}
                           {isDouble && <span className="pick-double-badge">×2</span>}
                         </td>
                       );

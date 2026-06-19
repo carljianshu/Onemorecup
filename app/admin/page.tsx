@@ -14,7 +14,7 @@ import {
   isPageManuallyLocked,
   pageLocksAt
 } from "@/lib/page-lock";
-import { answersFeatureLabelKey, translateMarketName } from "@/i18n";
+import { answersFeatureLabelKey, translateMarketCandidate, translateMarketName } from "@/i18n";
 import {
   canAdminEnableFeature,
   fromDatetimeLocalValue,
@@ -30,11 +30,13 @@ function cellForMarket(
   market: Market,
   playerId: string,
   picks: Pick[],
+  locale: "zh" | "en",
   t: (key: string, values?: Record<string, string | number>) => string
 ) {
   const pick = picks.find((p) => p.playerId === playerId && p.marketId === market.id);
   if (!pick) return t("common.none");
-  return pick.stake === DOUBLE_STAKE ? `${pick.team} ×2` : pick.team;
+  const label = translateMarketCandidate(locale, pick.team);
+  return pick.stake === DOUBLE_STAKE ? `${label} ×2` : label;
 }
 
 function PublicFeatureControl({
@@ -281,7 +283,7 @@ function AdminPageContent() {
                 <option value="">{t("admin.unsettled")}</option>
                 {(market.candidates ?? []).map((team) => (
                   <option key={team} value={team}>
-                    {team}
+                    {translateMarketCandidate(locale, team)}
                   </option>
                 ))}
               </select>
@@ -305,7 +307,7 @@ function AdminPageContent() {
                 <option value="">{t("admin.unsettled")}</option>
                 {(market.candidates ?? []).map((team) => (
                   <option key={team} value={team}>
-                    {team}
+                    {translateMarketCandidate(locale, team)}
                   </option>
                 ))}
               </select>
@@ -329,7 +331,7 @@ function AdminPageContent() {
                 <option value="">{t("admin.unsettled")}</option>
                 {(market.candidates ?? []).map((team) => (
                   <option key={team} value={team}>
-                    {team}
+                    {translateMarketCandidate(locale, team)}
                   </option>
                 ))}
               </select>
@@ -375,7 +377,7 @@ function AdminPageContent() {
                     {player.pickStats.totalCount} / {MIN_TOTAL_PICKS}
                   </td>
                   {markets.map((market) => (
-                    <td key={market.id}>{cellForMarket(market, player.id, picks, t)}</td>
+                    <td key={market.id}>{cellForMarket(market, player.id, picks, locale, t)}</td>
                   ))}
                   <td>{scoreFor(player.id)}</td>
                   <td>

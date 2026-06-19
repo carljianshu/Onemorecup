@@ -9,6 +9,7 @@ import { useGame } from "@/context/GameContext";
 import {
   DOUBLE_STAKE,
   DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID,
+  PAGE3_STAKE_NOTE_MARKET_ID,
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
@@ -20,7 +21,7 @@ import {
   formatPageDeadlineDisplay,
   PLAY_PAGES
 } from "@/data/markets";
-import { translateMarketName } from "@/i18n";
+import { translateMarketName, translateMarketCandidate } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
@@ -426,6 +427,11 @@ export default function PlayPage() {
 
       {pageMarkets.map((market) => (
         <Fragment key={market.id}>
+          {market.id === PAGE3_STAKE_NOTE_MARKET_ID && (
+            <div className="play-distribution-note card" role="note">
+              <p>{t("play.page3StakeNote")}</p>
+            </div>
+          )}
           {market.id === DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID && (
             <div className="play-distribution-note card" role="note">
               <p>{t("play.page3DistributionNote")}</p>
@@ -445,7 +451,7 @@ export default function PlayPage() {
                 onClick={() => selectAnswer(market.id, team)}
                 disabled={pageInputBlocked}
               >
-                {team}
+                {translateMarketCandidate(locale, team)}
               </button>
             ))}
             <button

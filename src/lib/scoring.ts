@@ -1,5 +1,5 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, marketUsesDistributionAdjustment, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, marketStakePerPick, marketUsesDistributionAdjustment, STAKE_PER_PICK } from "@/data/markets";
 import { computePickStats } from "@/lib/pick-stats";
 import { countPlayerGuessedItems } from "@/lib/market-helpers";
 import type { LeaderboardEntry, Market, Pick, Player } from "@/types";
@@ -146,7 +146,7 @@ export function buildStandardAdjustmentTableRows(
 
 /**
  * P3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
- * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10。
+ * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10；实际本金见 marketStakePerPick。
  */
 function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
   scoreStd: number;
@@ -253,8 +253,8 @@ export interface ParimutuelBreakdown {
 }
 
 /**
- * 两阶段对赌：先按 10 分本金结算得探测序列（猜对位多于猜错位时对调数量）→ σ ÷ 10 = 调整值 → 新本金 = 10 ÷ 调整值 → 再结算。
- * Double 视为两个计分位，得失在计分位层面累加。
+ * 两阶段对赌：先按 10 分本金结算得探测序列（猜对位多于猜错位时对调数量）→ σ ÷ 10 = 调整值 → 新本金 = 基准本金 ÷ 调整值 → 再结算。
+ * 1/4 决赛及以后基准本金为 20，前两阶段为 10。Double 视为两个计分位，得失在计分位层面累加。
  */
 function settleParimutuel(
   winner: string,
@@ -262,6 +262,8 @@ function settleParimutuel(
   marketId?: string
 ): ParimutuelSettlement | null {
   if (groupPicks.length === 0) return null;
+
+  const settlementStake = marketId ? marketStakePerPick(marketId) : STAKE_PER_PICK;
 
   if (isAllCorrectOrAllWrong(winner, groupPicks)) {
     return {
@@ -324,7 +326,7 @@ function settleParimutuel(
     adjustment = scoreStd / STAKE_PER_PICK;
   }
 
-  const adjustedStake = STAKE_PER_PICK / adjustment;
+  const adjustedStake = settlementStake / adjustment;
   const pass2 = settleAtFixedStake(winner, groupPicks, adjustedStake);
   if (!pass2) {
     return {

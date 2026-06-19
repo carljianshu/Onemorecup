@@ -87,10 +87,11 @@ export function translateMarketName(locale: Locale, name: string) {
 
 export function translateMarketCandidate(locale: Locale, candidate: string) {
   if (locale === "zh") return candidate;
-  const tbd = candidate.match(/^待填\s*(\d+)$/);
+  let translated = candidate.replaceAll("墨西哥", "Mexico");
+  const tbd = translated.match(/^待填\s*(\d+)$/);
   if (tbd) return `TBD ${tbd[1]}`;
-  if (candidate.endsWith("区")) return `${candidate.slice(0, -1)} bracket`;
-  return candidate;
+  if (translated.endsWith("区")) return `${translated.slice(0, -1)} bracket`;
+  return translated;
 }
 
 export function formatMarketHeading(locale: Locale, marketId: string, name: string) {
