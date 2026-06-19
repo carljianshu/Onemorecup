@@ -1,4 +1,4 @@
-/** 排行榜 API 轮询间隔（毫秒）。 */
+/** 排行榜 API 轮询间隔（毫秒）。轮询先打 /api/leaderboard/version，有变化才拉全量。 */
 export const LEADERBOARD_POLL_MS = 30_000;
 
 const LIVE_SYNC_PATHS = new Set([

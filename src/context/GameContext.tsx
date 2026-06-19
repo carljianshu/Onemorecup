@@ -17,6 +17,7 @@ import {
   patchAdminConfigApi,
   patchMarketWinnerApi,
   registerPlayer,
+  syncLeaderboardIfChanged,
   type LeaderboardResponse
 } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
@@ -165,9 +166,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const pull = () => {
-      fetchLeaderboard()
+      syncLeaderboardIfChanged()
         .then((next) => {
-          if (!cancelled) applyResponse(next);
+          if (!cancelled && next) applyResponse(next);
         })
         .catch(() => undefined);
     };

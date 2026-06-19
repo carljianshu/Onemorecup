@@ -45,9 +45,28 @@ function applyVersion(data: LeaderboardResponse) {
   return data;
 }
 
+export function getStateVersion() {
+  return stateVersion;
+}
+
+export async function fetchLeaderboardVersion(): Promise<number> {
+  const response = await fetch("/api/leaderboard/version", { cache: "no-store" });
+  const data = await parseResponse<{ version: number }>(response);
+  return data.version;
+}
+
 export async function fetchLeaderboard(): Promise<LeaderboardResponse> {
   const response = await fetch("/api/leaderboard", { cache: "no-store" });
   return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
+/** 轮询用：版本未变则跳过全量拉取。 */
+export async function syncLeaderboardIfChanged(): Promise<LeaderboardResponse | null> {
+  const remoteVersion = await fetchLeaderboardVersion();
+  if (remoteVersion === stateVersion && stateVersion > 0) {
+    return null;
+  }
+  return fetchLeaderboard();
 }
 
 export async function registerPlayer(body: {

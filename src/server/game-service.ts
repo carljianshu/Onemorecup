@@ -13,7 +13,7 @@ import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
 import { validatePageSave } from "@/lib/pick-stats";
-import { mutateStoredGame, readStoredGame, getStorageBackend } from "@/server/storage";
+import { mutateStoredGame, readStoredGame, readStoredVersion, getStorageBackend } from "@/server/storage";
 import type { AnswersPageFeature } from "@/lib/public-features";
 import type { GameConfig, LeaderboardEntry, PlayerPickInput, PlayPage } from "@/types";
 
@@ -54,6 +54,14 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
     );
   }
   return toResponse(stored);
+}
+
+/** 仅返回版本号，供轮询判断是否需要拉全量数据。 */
+export async function getLeaderboardVersion(): Promise<{ version: number; storage: ReturnType<typeof getStorageBackend> }> {
+  return {
+    version: await readStoredVersion(),
+    storage: getStorageBackend()
+  };
 }
 
 function assertPageUnlocked(config: GameConfig, page: PlayPage) {

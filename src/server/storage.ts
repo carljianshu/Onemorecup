@@ -17,8 +17,10 @@ export interface StoredGame {
 }
 
 const STATE_FILENAME = "game-state.json";
+const VERSION_FILENAME = "game-state-version.txt";
 const BLOB_STORE_NAME = "onemorecup-game";
 const BLOB_STATE_KEY = "game-state";
+const BLOB_VERSION_KEY = "game-state-version";
 const BLOB_WRITE_RETRIES = 3;
 
 function emptyPayload(): GameSnapshot {
@@ -168,6 +170,16 @@ async function writeToBlob(
   return store.setJSON(BLOB_STATE_KEY, stored, options);
 }
 
+async function writeVersionMarker(version: number) {
+  if (!useNetlifyBlobs()) {
+    const file = path.join(await resolveDataDir(), VERSION_FILENAME);
+    await writeFile(file, String(version), "utf-8");
+    return;
+  }
+  const store = getBlobStore();
+  await store.set(BLOB_VERSION_KEY, String(version));
+}
+
 async function migrateFileStateToBlobIfNeeded(stored: StoredGame) {
   if (!isEmptyState(stored)) return stored;
 
@@ -175,8 +187,37 @@ async function migrateFileStateToBlobIfNeeded(stored: StoredGame) {
   if (isEmptyState(fileStored)) return stored;
 
   const result = await writeToBlob(fileStored, { onlyIfNew: true });
-  if (result.modified) return fileStored;
+  if (result.modified) {
+    await writeVersionMarker(fileStored.version);
+    return fileStored;
+  }
   return (await readFromBlob()).stored;
+}
+
+/** 轻量读取版本号（Blob 下只读小 key，避免拉整份 game-state）。 */
+export async function readStoredVersion(): Promise<number> {
+  if (!useNetlifyBlobs()) {
+    try {
+      const file = path.join(await resolveDataDir(), VERSION_FILENAME);
+      const raw = await readFile(file, "utf-8");
+      const version = Number(raw.trim());
+      if (Number.isFinite(version)) return version;
+    } catch {
+      // fall through
+    }
+    return (await readFromFile()).version;
+  }
+
+  const store = getBlobStore();
+  const raw = await store.get(BLOB_VERSION_KEY, { type: "text" });
+  if (raw !== null) {
+    const version = Number(raw);
+    if (Number.isFinite(version)) return version;
+  }
+
+  const { stored } = await readFromBlob();
+  await writeVersionMarker(stored.version);
+  return stored.version;
 }
 
 export async function readStoredGame(): Promise<StoredGame> {
@@ -203,6 +244,7 @@ export async function mutateStoredGame(
       payload: mutator(current)
     };
     await writeToFile(next);
+    await writeVersionMarker(next.version);
     return next;
   }
 
@@ -225,7 +267,10 @@ export async function mutateStoredGame(
     const result = etag
       ? await writeToBlob(next, { onlyIfMatch: etag })
       : await writeToBlob(next, { onlyIfNew: true });
-    if (result.modified) return next;
+    if (result.modified) {
+      await writeVersionMarker(next.version);
+      return next;
+    }
   }
 
   throw new VersionConflictError();
