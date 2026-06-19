@@ -94,8 +94,7 @@ export const en: Messages = {
     page2HintStrong: "answer all sub-questions",
     page3DistributionNote:
       "P3-5–P3-7 use multi-option adjustment: among picks on each question, let N = players on the least-chosen option and M = everyone else. Reference P/L = M entries at −10 and N at +10×M/N; adjustment = σ÷10 (std dev σ); stake per slot = 20÷adjustment.",
-    page3StakeNote:
-      "Quarter-finals and later use the same adjustment (std dev of the reference P/L sequence ÷ 10), but actual stake per slot is 20÷adjustment (earlier phases use 10÷adjustment).",
+    page3StakeNote: "Quarter-finals and later: stake per slot is 20÷adjustment.",
     loadedEdit: "Your previous picks are loaded. Edit anytime, then Save this page.",
     pageLocked: "{page} is locked; you cannot edit these picks.",
     pageLockedSubmit: "{page} is locked; you cannot save changes.",
