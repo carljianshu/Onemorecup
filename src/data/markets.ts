@@ -28,7 +28,7 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "待填 1": "E1/I1区",
     "待填 2": "F1区",
     "待填 3": "H1区",
-    "待填 4": "D1/G1区"
+    "待填 4": "美国/G1区"
   },
   "p3-6": {
     "待填 1": "C1区",
@@ -40,7 +40,7 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "待填 1": "E1/I1区",
     "待填 2": "F1区",
     "待填 3": "H1区",
-    "待填 4": "D1/G1区",
+    "待填 4": "美国/G1区",
     "待填 5": "C1区",
     "待填 6": "墨西哥/L1区",
     "待填 7": "J1区",
@@ -55,9 +55,17 @@ export function renameA1InTeamName(team: string): string {
   return team;
 }
 
+/** 将旧选项名 D1、D1/… 迁移为美国/… */
+export function renameD1InTeamName(team: string): string {
+  if (team === "D1") return "美国";
+  if (team.startsWith("D1/")) return `美国/${team.slice(3)}`;
+  return team;
+}
+
 export function migratePickTeam(marketId: string, team: string, candidates: string[]): string {
   let mapped = LEGACY_CANDIDATE_ALIASES[marketId]?.[team] ?? team;
   mapped = renameA1InTeamName(mapped);
+  mapped = renameD1InTeamName(mapped);
   if (candidates.includes(mapped)) return mapped;
   if (candidates.includes(team)) return team;
   return mapped;
@@ -151,7 +159,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p1-7",
     round: "P1",
     name: "谁会晋级？",
-    candidates: ["D1", "B/E/F/I/J3"],
+    candidates: ["美国", "B/E/F/I/J3"],
     winner: null,
     page: 1
   },
@@ -257,7 +265,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p2-4",
     round: "P2",
     name: "谁会晋级？",
-    candidates: ["D1/BEFIJ3", "G1/AEHIJ3"],
+    candidates: ["美国/BEFIJ3", "G1/AEHIJ3"],
     winner: null,
     page: 2
   },
@@ -307,7 +315,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-2",
     round: "P3",
     name: "第二场1/4决赛谁会晋级？",
-    candidates: ["H1区", "D1/G1区"],
+    candidates: ["H1区", "美国/G1区"],
     winner: null,
     page: 3
   },
@@ -331,7 +339,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "p3-5",
     round: "P3",
     name: "第一场半决赛谁会晋级？",
-    candidates: ["E1/I1区", "F1区", "H1区", "D1/G1区"],
+    candidates: ["E1/I1区", "F1区", "H1区", "美国/G1区"],
     winner: null,
     page: 3
   },
@@ -351,7 +359,7 @@ export const DEFAULT_MARKETS: Market[] = [
       "E1/I1区",
       "F1区",
       "H1区",
-      "D1/G1区",
+      "美国/G1区",
       "C1区",
       "墨西哥/L1区",
       "J1区",

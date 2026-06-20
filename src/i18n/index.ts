@@ -87,7 +87,7 @@ export function translateMarketName(locale: Locale, name: string) {
 
 export function translateMarketCandidate(locale: Locale, candidate: string) {
   if (locale === "zh") return candidate;
-  let translated = candidate.replaceAll("墨西哥", "Mexico");
+  let translated = candidate.replaceAll("墨西哥", "Mexico").replaceAll("美国", "USA");
   const tbd = translated.match(/^待填\s*(\d+)$/);
   if (tbd) return `TBD ${tbd[1]}`;
   if (translated.endsWith("区")) return `${translated.slice(0, -1)} bracket`;
