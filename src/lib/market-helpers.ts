@@ -1,4 +1,9 @@
-import { DOUBLE_STAKE, PLAY_PAGES } from "@/data/markets";
+import {
+  DOUBLE_STAKE,
+  PAGE1_CACTUS_MARKET_IDS,
+  PAGE1_MAPLE_MARKET_IDS,
+  PLAY_PAGES
+} from "@/data/markets";
 import type { Market, Pick, PlayPage, PlayerPickInput } from "@/types";
 
 export function doubleIdsForPage(markets: Market[], page: PlayPage): string[] {
@@ -58,6 +63,23 @@ export function flatPageCompletedCount(
 
 export function page1CompletedCount(markets: Market[], answers: Record<string, string | null>) {
   return flatPageCompletedCount(markets, 1, answers);
+}
+
+export function page1SectionCompletedCount(
+  marketIds: readonly string[],
+  markets: Market[],
+  answers: Record<string, string | null>
+) {
+  const idSet = new Set(marketIds);
+  return markets.filter((m) => m.page === 1 && idSet.has(m.id) && answers[m.id] != null).length;
+}
+
+export function page1CactusCompletedCount(markets: Market[], answers: Record<string, string | null>) {
+  return page1SectionCompletedCount(PAGE1_CACTUS_MARKET_IDS, markets, answers);
+}
+
+export function page1MapleCompletedCount(markets: Market[], answers: Record<string, string | null>) {
+  return page1SectionCompletedCount(PAGE1_MAPLE_MARKET_IDS, markets, answers);
 }
 
 export function page2CompletedCount(markets: Market[], answers: Record<string, string | null>) {

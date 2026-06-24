@@ -144,19 +144,62 @@ function AdminPageContent() {
     setMarketWinner,
     togglePageLocked,
     deletePlayer,
+    setPhase12EarningsDeductions,
+    setPage3EarningsDeductions,
     refreshScores
   } = useGame();
   const { t, locale, pageLabel } = useLocale();
   const [message, setMessage] = useState<{ type: "error" | "success" | "warning"; text: string } | null>(null);
 
   function scoreFor(playerId: string) {
-    const score = leaderboard.find((e) => e.playerId === playerId)?.totalScore ?? 0;
+    const score = leaderboard.find((e) => e.playerId === playerId)?.netEarnings ?? 0;
     return formatScore(score);
   }
 
   function handleCalculate() {
     refreshScores();
     setMessage({ type: "success", text: t("admin.scoresRecalculated") });
+  }
+
+  const phase12DeductionsOn = config.phase12EarningsDeductionsApplied;
+  const page3DeductionsOn = config.page3EarningsDeductionsApplied;
+
+  async function handleTogglePhase12Deductions() {
+    const enabling = !phase12DeductionsOn;
+    const confirmKey = enabling
+      ? "admin.confirmGeneratePenalties"
+      : "admin.confirmCancelPenaltiesPhase12";
+    if (!confirm(t(confirmKey))) {
+      return;
+    }
+    try {
+      await setPhase12EarningsDeductions(enabling);
+      setMessage({
+        type: "success",
+        text: t(enabling ? "admin.penaltiesGenerated" : "admin.penaltiesPhase12Cancelled")
+      });
+    } catch {
+      setMessage({ type: "error", text: t("admin.penaltiesGenerateFailed") });
+    }
+  }
+
+  async function handleTogglePage3Deductions() {
+    const enabling = !page3DeductionsOn;
+    const confirmKey = enabling
+      ? "admin.confirmGeneratePenaltiesPage3"
+      : "admin.confirmCancelPenaltiesPage3";
+    if (!confirm(t(confirmKey))) {
+      return;
+    }
+    try {
+      await setPage3EarningsDeductions(enabling);
+      setMessage({
+        type: "success",
+        text: t(enabling ? "admin.penaltiesPage3Generated" : "admin.penaltiesPage3Cancelled")
+      });
+    } catch {
+      setMessage({ type: "error", text: t("admin.penaltiesGenerateFailed") });
+    }
   }
 
   async function handleDeletePlayer(playerId: string, playerName: string) {
@@ -222,6 +265,20 @@ function AdminPageContent() {
       <div className="admin-toolbar">
         <button type="button" className="btn btn-primary" onClick={handleCalculate}>
           {t("admin.calcScores")}
+        </button>
+        <button
+          type="button"
+          className={`btn ${phase12DeductionsOn ? "btn-danger" : "btn-secondary"}`}
+          onClick={() => void handleTogglePhase12Deductions()}
+        >
+          {phase12DeductionsOn ? t("admin.cancelPenaltiesPhase12") : t("admin.generatePenalties")}
+        </button>
+        <button
+          type="button"
+          className={`btn ${page3DeductionsOn ? "btn-danger" : "btn-secondary"}`}
+          onClick={() => void handleTogglePage3Deductions()}
+        >
+          {page3DeductionsOn ? t("admin.cancelPenaltiesPage3") : t("admin.generatePenaltiesPage3")}
         </button>
         {PLAY_PAGES.map((page) => {
           const locked = isPageLocked(config, page);

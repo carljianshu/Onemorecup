@@ -38,7 +38,9 @@ function emptyPayload(): GameSnapshot {
       answersPage3Public: false,
       answersPage1OpensAt: null,
       answersPage2OpensAt: null,
-      answersPage3OpensAt: null
+      answersPage3OpensAt: null,
+      phase12EarningsDeductionsApplied: false,
+      page3EarningsDeductionsApplied: false
     }
   };
 }

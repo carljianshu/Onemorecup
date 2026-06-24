@@ -12,6 +12,10 @@ export interface Player {
   name: string;
   createdAt: string;
   pickStats: PickStats;
+  /** 管理员生成：1/16、1/8 未答满扣收益（美元） */
+  pickPenalty?: number;
+  /** 管理员生成：1/4 决赛及以后未答满扣收益（美元，仅晋级区） */
+  pickPenaltyPage3?: number;
 }
 
 export interface Market {
@@ -53,13 +57,22 @@ export interface GameConfig {
   answersPage1OpensAt: string | null;
   answersPage2OpensAt: string | null;
   answersPage3OpensAt: string | null;
+  /** 管理员已开启 1/16·1/8 扣收益 */
+  phase12EarningsDeductionsApplied: boolean;
+  /** 管理员已开启 1/4+ 扣收益 */
+  page3EarningsDeductionsApplied: boolean;
 }
 
 export interface LeaderboardEntry {
   rank: number;
   playerId: string;
   name: string;
+  /** 竞猜结算毛收益 */
   totalScore: number;
+  /** 扣除未答满扣收益后的净收益 */
+  netEarnings: number;
+  pickPenalty: number;
+  pickPenaltyPage3: number;
   settledCount: number;
   /** 该玩家已提交竞猜的项目数 */
   guessedCount: number;

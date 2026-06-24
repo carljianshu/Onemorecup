@@ -39,21 +39,19 @@ function readStoredLocale(): Locale {
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() =>
-    typeof window === "undefined" ? "zh" : readStoredLocale()
-  );
+  // 首屏固定 zh，与 SSR 一致；挂载后再读 localStorage，避免 hydration mismatch。
+  const [locale, setLocaleState] = useState<Locale>("zh");
 
   useEffect(() => {
-    setLocaleState(readStoredLocale());
+    const stored = readStoredLocale();
+    setLocaleState(stored);
+    document.documentElement.lang = stored === "zh" ? "zh-CN" : "en";
   }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
-    window.localStorage.setItem(STORAGE_KEY, locale);
-  }, [locale]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
+    document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
+    window.localStorage.setItem(STORAGE_KEY, next);
   }, []);
 
   const t = useCallback(

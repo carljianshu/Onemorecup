@@ -1,4 +1,6 @@
 import {
+  MIN_PAGE1_CACTUS_PICKS,
+  MIN_PAGE1_MAPLE_PICKS,
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
@@ -6,7 +8,9 @@ import {
 } from "@/data/markets";
 import type { PageSaveError } from "@/i18n/validation";
 import {
+  page1CactusCompletedCount,
   page1CompletedCount,
+  page1MapleCompletedCount,
   page2CompletedCount,
   page3CompletedCount,
   playerAnswersFromPicks
@@ -50,6 +54,18 @@ export function validatePageSave(
   pagePickInputs: PlayerPickInput[]
 ): PageSaveError | null {
   if (page === 1) {
+    const answers: Record<string, string | null> = {};
+    for (const input of pagePickInputs) {
+      answers[input.marketId] = input.team;
+    }
+    const cactusCount = page1CactusCompletedCount(markets, answers);
+    if (cactusCount < MIN_PAGE1_CACTUS_PICKS) {
+      return { code: "page1_cactus_min", count: cactusCount, min: MIN_PAGE1_CACTUS_PICKS };
+    }
+    const mapleCount = page1MapleCompletedCount(markets, answers);
+    if (mapleCount < MIN_PAGE1_MAPLE_PICKS) {
+      return { code: "page1_maple_min", count: mapleCount, min: MIN_PAGE1_MAPLE_PICKS };
+    }
     const stats = pickStatsFromPickInputs(pagePickInputs, markets);
     if (stats.page1Count < MIN_PAGE1_PICKS) {
       return { code: "page1_min", count: stats.page1Count, min: MIN_PAGE1_PICKS };

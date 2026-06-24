@@ -1,4 +1,6 @@
 import {
+  setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore,
+  setPage3EarningsDeductions as setPage3EarningsDeductionsInStore,
   hydrateGameState,
   migrateStoredAnswers,
   savePlayerPicks,
@@ -257,6 +259,46 @@ export function removePlayer(playerId: string, expectedVersion?: number) {
       markets: state.markets,
       picks,
       config: state.config
+    });
+  }, expectedVersion);
+}
+
+export function setPhase12EarningsDeductions(enabled: boolean, expectedVersion?: number) {
+  return mutateAdmin((state) => {
+    const result = setPhase12EarningsDeductionsInStore(
+      {
+        players: state.players,
+        markets: state.markets,
+        picks: state.picks,
+        config: state.config
+      },
+      enabled
+    );
+    return snapshotFromState({
+      players: result.players,
+      markets: state.markets,
+      picks: state.picks,
+      config: result.config
+    });
+  }, expectedVersion);
+}
+
+export function setPage3EarningsDeductions(enabled: boolean, expectedVersion?: number) {
+  return mutateAdmin((state) => {
+    const result = setPage3EarningsDeductionsInStore(
+      {
+        players: state.players,
+        markets: state.markets,
+        picks: state.picks,
+        config: state.config
+      },
+      enabled
+    );
+    return snapshotFromState({
+      players: result.players,
+      markets: state.markets,
+      picks: state.picks,
+      config: result.config
     });
   }, expectedVersion);
 }

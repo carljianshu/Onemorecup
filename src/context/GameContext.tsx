@@ -13,6 +13,8 @@ import {
 import {
   deletePlayerApi,
   fetchLeaderboard,
+  setPhase12EarningsDeductionsApi,
+  setPage3EarningsDeductionsApi,
   patchAdminConfigApi,
   patchMarketWinnerApi,
   registerPlayer,
@@ -52,6 +54,8 @@ interface GameContextValue {
   ) => Promise<void>;
   refreshScores: () => void;
   refreshFromCloud: () => Promise<void>;
+  setPhase12EarningsDeductions: (enabled: boolean) => Promise<void>;
+  setPage3EarningsDeductions: (enabled: boolean) => Promise<void>;
   players: Player[];
   markets: Market[];
   picks: Pick[];
@@ -117,7 +121,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     answersPage3Public: false,
     answersPage1OpensAt: null,
     answersPage2OpensAt: null,
-    answersPage3OpensAt: null
+    answersPage3OpensAt: null,
+    phase12EarningsDeductionsApplied: false,
+    page3EarningsDeductionsApplied: false
   });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
@@ -309,6 +315,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
     applyResponse(await fetchLeaderboard());
   }, [apiSync, applyResponse]);
 
+  const setPhase12EarningsDeductions = useCallback(
+    async (enabled: boolean) => {
+      if (apiSync) {
+        applyResponse(await setPhase12EarningsDeductionsApi(requireAdminToken(), enabled));
+        return;
+      }
+      const { setPhase12EarningsDeductions: setLocal } = await import("@/lib/local-store");
+      const result = setLocal({ players, markets, picks, config }, enabled);
+      setPlayers(result.players);
+      setConfig(result.config);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, config, applyResponse]
+  );
+
+  const setPage3EarningsDeductions = useCallback(
+    async (enabled: boolean) => {
+      if (apiSync) {
+        applyResponse(await setPage3EarningsDeductionsApi(requireAdminToken(), enabled));
+        return;
+      }
+      const { setPage3EarningsDeductions: setLocal } = await import("@/lib/local-store");
+      const result = setLocal({ players, markets, picks, config }, enabled);
+      setPlayers(result.players);
+      setConfig(result.config);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, config, applyResponse]
+  );
+
   const value = useMemo(
     () => ({
       ready,
@@ -325,7 +361,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       togglePageLocked,
       setPublicFeature,
       refreshScores,
-      refreshFromCloud
+      refreshFromCloud,
+      setPhase12EarningsDeductions,
+      setPage3EarningsDeductions
     }),
     [
       ready,
@@ -342,7 +380,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       togglePageLocked,
       setPublicFeature,
       refreshScores,
-      refreshFromCloud
+      refreshFromCloud,
+      setPhase12EarningsDeductions,
+      setPage3EarningsDeductions
     ]
   );
 

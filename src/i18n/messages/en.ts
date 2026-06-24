@@ -48,7 +48,7 @@ export const en: Messages = {
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
     rule1: "Picks are split into three phases: {page1} in the Round of 32, {page2} in the Round of 16, {page3} in quarter-finals and later ({total} items total). Round of 32 needs at least {page1Min} picks to save; Round of 16 needs at least {page2Min} picks and {totalMin} combined with Round of 32; quarter-finals and later needs at least {page3Min} picks to save.",
-    rule2: "Pick at least {page1Min} Round of 32 matches and {page2Min} Round of 16 matches ({totalMin} combined across both phases). You may Double one pick per phase.",
+    rule2: "Pick at least {page1Min} Round of 32 matches ({page1CactusMin} Cactus, {page1MapleMin} Maple) and at least {page2Min} Round of 16 matches ({totalMin} combined across both phases). You may Double one pick per phase.",
     rule3:
       "This game simulates parimutuel betting: you stake on Round of 32 and Round of 16 outcomes. Wrong picks lose their stake; winners split the stakes lost by wrong picks. See",
     rule4: "If all players are right or all players are wrong on a match, that match is void and no player gains or loses anything.",
@@ -62,7 +62,7 @@ export const en: Messages = {
     s1Body:
       "On each question every player stakes a principal. Wrong picks lose that principal; right picks split the principals lost by wrong picks.",
     s1Example:
-      "Example: stake $16, 2 players right and 3 wrong—each loser loses $16; each winner gets 16 × 3 ÷ 2 = $24.",
+      "Example: stake $8, 2 players right and 3 wrong—each loser loses $8; each winner gets 8 × 3 ÷ 2 = $12.",
     s2Title: "2. Stake adjustment",
     s2Body:
       "To balance popular and unpopular outcomes, each question's stake is adjusted automatically based on how many players picked each side.\n\nThe system builds a reference P/L sequence: the larger side gets −10, the smaller side gets +10 × (larger count ÷ smaller count). Take the std dev of that sequence and divide by 10 to get the adjustment factor.\n\nEach player's actual stake is:\n\nStake = 10 ÷ adjustment factor\n\nAt settlement, wrong picks lose the stake; right picks split the total lost by wrong picks.",
@@ -75,7 +75,8 @@ export const en: Messages = {
     adjustmentColWrong: "Wrong",
     adjustmentColStd: "σ",
     adjustmentColFactor: "Adjustment",
-    adjustmentColStake: "Stake"
+    adjustmentColStake: "Stake",
+    adjustmentColWinnerEarning: "Winner earning"
   },
   markets: {
     page1: "Round of 32 ({count} picks)",
@@ -93,7 +94,7 @@ export const en: Messages = {
       "Each main question in the Round of 16 has 4 sub-questions: answer all subs, or tap Skip on the main question. Partial subs cannot be saved.",
     page2HintStrong: "answer all sub-questions",
     page3DistributionNote:
-      "P3-5–P3-7 use multi-option adjustment: among picks on each question, let N = players on the least-chosen option and M = everyone else. Reference P/L = M entries at −10 and N at +10×M/N; adjustment = σ÷10 (std dev σ); stake per slot = 20÷adjustment.",
+      "M3-5–M3-7 use multi-option adjustment: among picks on each question, let N = players on the least-chosen option and M = everyone else. Reference P/L = M entries at −10 and N at +10×M/N; adjustment = σ÷10 (std dev σ); stake per slot = 20÷adjustment.",
     page3StakeNote: "Quarter-finals and later: stake per slot is 20÷adjustment.",
     loadedEdit: "Your previous picks are loaded. Edit anytime, then Save this page.",
     pageLocked: "{page} is locked; you cannot edit these picks.",
@@ -111,9 +112,30 @@ export const en: Messages = {
     totalAnswered: "Total:",
     pageDouble: "Double this page:",
     doubleNone: "None",
+    pickMinPenaltyNote:
+      "Before the deadline, each missing required pick deducts $10 from earnings.",
+    page1SectionCactus: "Cactus",
+    page1SectionMaple: "Maple",
+    page1SectionCactusNote: "Pick at least 4 Cactus matches",
+    page1SectionMapleNote: "Pick at least 4 Maple matches",
     doubleHint: "(max 1 per page{perMain}, 20 pts)",
     doublePerMain: ", per main question",
     pleaseChoose: "Choose:",
+    p1_2GroupStandings: "Group I current pts: France 6, Norway 6, Senegal 0, Iraq 0",
+    p1_3GroupStandingsA: "Group A current pts: Mexico 6, South Korea 3, Czechia 1, South Africa 1",
+    p1_3GroupStandingsB: "Group B current pts: Canada 4, Switzerland 4, Bosnia 1, Qatar 1",
+    p1_4GroupStandingsF: "Group F current pts: Netherlands 4, Japan 4, Sweden 3, Tunisia 0",
+    p1_4GroupStandingsC: "Group C current pts: Brazil 4, Morocco 4, Scotland 3, Haiti 0",
+    p1_6GroupStandingsH: "Group H current pts: Spain 4, Uruguay 2, Cape Verde 2, Saudi Arabia 1",
+    p1_6GroupStandingsJ: "Group J current pts: Argentina 6, Austria 3, Algeria 3, Jordan 0",
+    p1_7GroupStandingsK: "Group K current pts: Colombia 6, Portugal 4, DR Congo 1, Uzbekistan 0",
+    p1_8GroupStandingsG: "Group G current pts: Egypt 4, Iran 2, Belgium 2, New Zealand 1",
+    p1_8GroupStandingsL: "Group L current pts: England 4, Ghana 4, Croatia 3, Panama 0",
+    p1_9GroupStandingsC: "Group C current pts: Brazil 4, Morocco 4, Scotland 3, Haiti 0",
+    p1_9GroupStandingsF: "Group F current pts: Netherlands 4, Japan 4, Sweden 3, Tunisia 0",
+    p1_10GroupStandingsE: "Group E current pts: Germany 6, Ivory Coast 3, Ecuador 1, Curaçao 1",
+    p1_10GroupStandingsI: "Group I current pts: France 6, Norway 6, Senegal 0, Iraq 0",
+    p1_14GroupStandingsD: "Group D current pts: USA 6, Australia 3, Paraguay 3, Turkey 0",
     doubleTitle: "Double stake (20 pts)",
     doublePoints: " · 20pts",
     doubleNeedAnswer: "Pick an answer before using Double",
@@ -139,6 +161,8 @@ export const en: Messages = {
   },
   validation: {
     page1Min: "Save the Round of 32 only after at least {min} picks (currently {count}).",
+    page1CactusMin: "Save only after at least {min} Cactus picks (currently {count}).",
+    page1MapleMin: "Save only after at least {min} Maple picks (currently {count}).",
     page3Min: "Save quarter-finals and later only after at least {min} picks (currently {count}).",
     page2Min: "Round of 16 requires at least {min} picks (currently {count}).",
     totalMin:
@@ -154,7 +178,9 @@ export const en: Messages = {
     collapse: "Collapse",
     perMarket: "Per-item earnings",
     promotionZone: "Advancing",
-    earning: "Earning"
+    earning: "Net earnings",
+    penaltyPhase12: "Earnings hit (R32·R16)",
+    penaltyPage3: "Earnings hit (QF+)"
   },
   answers: {
     title: "All picks",
@@ -207,6 +233,23 @@ export const en: Messages = {
       "Pages auto-lock at the scheduled time. Admins can still lock or unlock manually; unlocking overrides auto-lock until you lock again.",
     calcScores: "Recalculate scores",
     scoresRecalculated: "Scores recalculated.",
+    generatePenalties: "Deduct R32 / R16 earnings",
+    cancelPenaltiesPhase12: "Cancel R32 / R16 deductions",
+    confirmGeneratePenalties:
+      "Apply Round of 32 / Round of 16 earnings deductions ($10 × minimum picks still needed)?",
+    confirmCancelPenaltiesPhase12:
+      "Cancel Round of 32 / Round of 16 deductions? Leaderboard amounts reset to $0.",
+    generatePenaltiesPage3: "Deduct QF+ earnings",
+    cancelPenaltiesPage3: "Cancel QF+ deductions",
+    confirmGeneratePenaltiesPage3:
+      "Apply quarter-finals+ deductions for promoted players ($10 × missing picks)?",
+    confirmCancelPenaltiesPage3:
+      "Cancel quarter-finals+ deductions? Leaderboard amounts reset to $0.",
+    penaltiesGenerated: "Round of 32 / Round of 16 deductions are on.",
+    penaltiesPhase12Cancelled: "Round of 32 / Round of 16 deductions cancelled.",
+    penaltiesPage3Generated: "Quarter-finals+ deductions are on.",
+    penaltiesPage3Cancelled: "Quarter-finals+ deductions cancelled.",
+    penaltiesGenerateFailed: "Failed to generate earnings deductions. Please try again.",
     lockPage: "Lock {page}",
     unlockPage: "Unlock {page}",
     publicAnswersTitle: "Publish all picks",

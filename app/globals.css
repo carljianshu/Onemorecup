@@ -258,6 +258,35 @@ a {
 .item-card h3 {
   margin: 0 0 0.25rem;
   font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.page1-market-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.market-inline-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.market-inline-hint {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.team-option-with-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .item-card .desc {
@@ -275,6 +304,7 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+  align-items: center;
 }
 
 .team-btn {
@@ -937,6 +967,48 @@ th {
   background: rgba(56, 189, 248, 0.08);
 }
 
+.play-page1-section-label {
+  margin: 1.25rem 0 0.85rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+.play-page1-section-label-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.play-page1-section-label-note {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.95;
+}
+
+.play-page1-section-label--cactus {
+  border: 2px solid rgba(34, 197, 94, 0.55);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(22, 163, 74, 0.1));
+  color: #bbf7d0;
+}
+
+.play-page1-section-label--maple {
+  border: 2px solid rgba(249, 115, 22, 0.55);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.24), rgba(234, 88, 12, 0.1));
+  color: #fed7aa;
+}
+
+.play-page1-section-label:first-child {
+  margin-top: 0;
+}
+
 .play-distribution-note p {
   margin: 0;
   font-size: 0.95rem;
@@ -1062,6 +1134,13 @@ th {
   flex-direction: column;
   align-items: stretch;
   gap: 0.5rem;
+}
+
+.pick-stats-penalty-note {
+  margin: -0.25rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 @media (min-width: 640px) {

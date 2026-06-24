@@ -9,6 +9,10 @@ import { useGame } from "@/context/GameContext";
 import {
   DOUBLE_STAKE,
   DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID,
+  MARKET_INLINE_HINT_KEYS,
+  PAGE1_SECTION_LABEL_KEYS,
+  PAGE1_SECTION_NOTE_KEYS,
+  page1SectionIcon,
   PAGE3_STAKE_NOTE_MARKET_ID,
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
@@ -21,7 +25,7 @@ import {
   formatPageDeadlineDisplay,
   PLAY_PAGES
 } from "@/data/markets";
-import { translateMarketName, translateMarketCandidate } from "@/i18n";
+import { translateMarketName, formatPlayMarketCandidate } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
@@ -425,8 +429,29 @@ export default function PlayPage() {
         </span>
       </div>
 
-      {pageMarkets.map((market) => (
+      <p className="pick-stats-penalty-note">{t("play.pickMinPenaltyNote")}</p>
+
+      {pageMarkets.map((market) => {
+        const p1Icon = step === 1 ? page1SectionIcon(market.id) : null;
+        return (
         <Fragment key={market.id}>
+          {PAGE1_SECTION_LABEL_KEYS[market.id] ? (
+            <div
+              className={`play-page1-section-label ${
+                market.id === "m1-1" ? "play-page1-section-label--cactus" : "play-page1-section-label--maple"
+              }`}
+              role="note"
+            >
+              <span className="play-page1-section-label-title">
+                {t(PAGE1_SECTION_LABEL_KEYS[market.id])}
+              </span>
+              {PAGE1_SECTION_NOTE_KEYS[market.id] ? (
+                <span className="play-page1-section-label-note">
+                  {t(PAGE1_SECTION_NOTE_KEYS[market.id])}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           {market.id === PAGE3_STAKE_NOTE_MARKET_ID && (
             <div className="play-distribution-note card" role="note">
               <p>{t("play.page3StakeNote")}</p>
@@ -439,6 +464,11 @@ export default function PlayPage() {
           )}
           <section className="card item-card">
           <h3>
+            {p1Icon ? (
+              <span className="page1-market-icon" aria-hidden="true">
+                {p1Icon === "cactus" ? "🌵" : "🍁"}
+              </span>
+            ) : null}
             {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
           </h3>
           <p className="prompt">{t("play.pleaseChoose")}</p>
@@ -451,7 +481,7 @@ export default function PlayPage() {
                 onClick={() => selectAnswer(market.id, team)}
                 disabled={pageInputBlocked}
               >
-                {translateMarketCandidate(locale, team)}
+                {formatPlayMarketCandidate(locale, team)}
               </button>
             ))}
             <button
@@ -462,15 +492,27 @@ export default function PlayPage() {
             >
               {t("common.skip")}
             </button>
-            {renderDoubleButton(
-              market.id,
-              selections[market.id] !== null,
-              t("play.doubleNeedAnswer")
-            )}
+            <div className="team-option-with-hint">
+              {renderDoubleButton(
+                market.id,
+                selections[market.id] !== null,
+                t("play.doubleNeedAnswer")
+              )}
+              {MARKET_INLINE_HINT_KEYS[market.id] ? (
+                <span className="market-inline-hints">
+                  {MARKET_INLINE_HINT_KEYS[market.id].map((hintKey) => (
+                    <span key={hintKey} className="market-inline-hint">
+                      {t(hintKey)}
+                    </span>
+                  ))}
+                </span>
+              ) : null}
+            </div>
           </div>
         </section>
         </Fragment>
-      ))}
+        );
+      })}
 
       {message && (
         <div ref={bottomMessageRef} className={`message ${message.type}`}>

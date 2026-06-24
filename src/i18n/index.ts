@@ -1,6 +1,8 @@
 import { en } from "./messages/en";
 import { zh, type Messages } from "./messages/zh";
 import {
+  MIN_PAGE1_CACTUS_PICKS,
+  MIN_PAGE1_MAPLE_PICKS,
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
@@ -87,11 +89,56 @@ export function translateMarketName(locale: Locale, name: string) {
 
 export function translateMarketCandidate(locale: Locale, candidate: string) {
   if (locale === "zh") return candidate;
-  let translated = candidate.replaceAll("墨西哥", "Mexico").replaceAll("美国", "USA");
+  let translated = candidate
+    .replaceAll("墨西哥", "Mexico")
+    .replaceAll("美国", "USA")
+    .replaceAll("德国", "Germany")
+    .replaceAll("阿根廷", "Argentina")
+    .replaceAll("法国", "France")
+    .replaceAll("挪威", "Norway");
   const tbd = translated.match(/^待填\s*(\d+)$/);
   if (tbd) return `TBD ${tbd[1]}`;
   if (translated.endsWith("区")) return `${translated.slice(0, -1)} bracket`;
   return translated;
+}
+
+const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
+  zh: {
+    阿根廷: "🇦🇷",
+    墨西哥: "🇲🇽",
+    德国: "🇩🇪",
+    法国: "🇫🇷",
+    挪威: "🇳🇴",
+    美国: "🇺🇸"
+  },
+  en: {
+    Argentina: "🇦🇷",
+    Mexico: "🇲🇽",
+    Germany: "🇩🇪",
+    France: "🇫🇷",
+    Norway: "🇳🇴",
+    USA: "🇺🇸"
+  }
+};
+
+function prefixPlayCandidateCountryFlags(text: string, locale: Locale): string {
+  const flags = PLAY_CANDIDATE_COUNTRY_FLAGS[locale];
+  const names = Object.keys(flags).sort((a, b) => b.length - a.length);
+  let result = text;
+  for (const name of names) {
+    const flag = flags[name]!;
+    const flagged = `${flag}${name}`;
+    const placeholder = `\u0000${name}\u0000`;
+    result = result.replaceAll(flagged, placeholder);
+    result = result.replaceAll(name, flagged);
+    result = result.replaceAll(placeholder, flagged);
+  }
+  return result;
+}
+
+/** 竞猜页选项展示：翻译后在国家/地区名左侧加国旗。 */
+export function formatPlayMarketCandidate(locale: Locale, candidate: string): string {
+  return prefixPlayCandidateCountryFlags(translateMarketCandidate(locale, candidate), locale);
 }
 
 export function formatMarketHeading(locale: Locale, marketId: string, name: string) {
@@ -106,6 +153,8 @@ export function homeRuleValues() {
     page3: PAGE3_COUNT,
     total: PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT,
     page1Min: MIN_PAGE1_PICKS,
+    page1CactusMin: MIN_PAGE1_CACTUS_PICKS,
+    page1MapleMin: MIN_PAGE1_MAPLE_PICKS,
     page2Min: MIN_PAGE2_PICKS,
     page3Min: MIN_PAGE3_PICKS,
     totalMin: MIN_TOTAL_PICKS

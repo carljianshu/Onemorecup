@@ -113,9 +113,9 @@ export function computeStandardParimutuelAdjustment(
 
   const adjustment = scoreStd / STAKE_PER_PICK;
   return {
-    scoreStd: roundScore(scoreStd),
-    adjustment: roundScore(adjustment),
-    stakePerSlot: roundScore(STAKE_PER_PICK / adjustment)
+    scoreStd,
+    adjustment,
+    stakePerSlot: STAKE_PER_PICK / adjustment
   };
 }
 
@@ -125,6 +125,7 @@ export interface StandardAdjustmentTableRow {
   scoreStd: number;
   adjustment: number;
   stakePerSlot: number;
+  winnerEarning: number;
 }
 
 /** 一题固定参与人数时，从 1 人对 (n−1) 人错到 (n−1) 人对 1 人错的调整系数与本金。 */
@@ -138,14 +139,15 @@ export function buildStandardAdjustmentTableRows(
     rows.push({
       correctCount: correct,
       wrongCount: wrong,
-      ...stats
+      ...stats,
+      winnerEarning: (wrong * stats.stakePerSlot) / correct
     });
   }
   return rows;
 }
 
 /**
- * P3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
+ * M3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
  * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10；实际本金见 marketStakePerPick。
  */
 function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
@@ -489,6 +491,9 @@ export function buildLeaderboard(
         markets
       );
     const totalScore = roundScore(computed.totalScore);
+    const pickPenalty = player.pickPenalty ?? 0;
+    const pickPenaltyPage3 = player.pickPenaltyPage3 ?? 0;
+    const netEarnings = roundScore(totalScore - pickPenalty - pickPenaltyPage3);
     const marketScores = Object.fromEntries(
       Object.entries(computed.marketScores).map(([id, score]) => [id, roundScore(score)])
     );
@@ -496,6 +501,9 @@ export function buildLeaderboard(
       playerId: player.id,
       name: player.name,
       totalScore,
+      netEarnings,
+      pickPenalty,
+      pickPenaltyPage3,
       settledCount: computed.settledCount,
       guessedCount: countPlayerGuessedItems(player.id, picks, markets),
       pickStats,
@@ -504,20 +512,23 @@ export function buildLeaderboard(
     };
   });
 
-  entries.sort((a, b) => b.totalScore - a.totalScore || a.createdAt.localeCompare(b.createdAt));
+  entries.sort((a, b) => b.netEarnings - a.netEarnings || a.createdAt.localeCompare(b.createdAt));
 
   let lastScore: number | null = null;
   let lastRank = 0;
 
   return entries.map((entry, i) => {
-    const rank = entry.totalScore === lastScore ? lastRank : i + 1;
-    lastScore = entry.totalScore;
+    const rank = entry.netEarnings === lastScore ? lastRank : i + 1;
+    lastScore = entry.netEarnings;
     lastRank = rank;
     return {
       rank,
       playerId: entry.playerId,
       name: entry.name,
       totalScore: entry.totalScore,
+      netEarnings: entry.netEarnings,
+      pickPenalty: entry.pickPenalty,
+      pickPenaltyPage3: entry.pickPenaltyPage3,
       settledCount: entry.settledCount,
       guessedCount: entry.guessedCount,
       pickStats: entry.pickStats,

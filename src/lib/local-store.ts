@@ -3,6 +3,8 @@ import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/li
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
+import { calculatePhase12PickPenalty, calculatePage3PickPenalty } from "@/lib/pick-penalty";
+import { isPlayerPromoted } from "@/lib/promotion";
 import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, LeaderboardEntry, Market, Pick, Player, PlayerPickInput, PlayPage } from "@/types";
 import type { AnswersPageFeature } from "@/lib/public-features";
@@ -58,6 +60,8 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
     answersPage1OpensAt: null,
     answersPage2OpensAt: null,
     answersPage3OpensAt: null,
+    phase12EarningsDeductionsApplied: false,
+    page3EarningsDeductionsApplied: false,
     ...overrides
   };
 }
@@ -88,7 +92,9 @@ function normalizeConfig(raw: unknown): GameConfig {
     answersPage3Public: config?.answersPage3Public ?? false,
     answersPage1OpensAt: config?.answersPage1OpensAt ?? legacyAnswersOpensAt,
     answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt,
-    answersPage3OpensAt: config?.answersPage3OpensAt ?? null
+    answersPage3OpensAt: config?.answersPage3OpensAt ?? null,
+    phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
+    page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false
   });
 }
 
@@ -364,6 +370,93 @@ export function deletePlayer(
   savePicks(picks);
   const leaderboard = refreshLeaderboard(players, state.markets, picks);
   return { players, picks, leaderboard };
+}
+
+export function setPhase12EarningsDeductions(
+  state: {
+    players: Player[];
+    markets: Market[];
+    picks: Pick[];
+    config: GameConfig;
+  },
+  enabled: boolean
+) {
+  const players = enabled
+    ? state.players.map((player) => {
+        const pickStats =
+          player.pickStats ??
+          computePickStats(
+            state.picks.filter((pick) => pick.playerId === player.id),
+            state.markets
+          );
+        return { ...player, pickPenalty: calculatePhase12PickPenalty(pickStats) };
+      })
+    : state.players.map((player) => ({ ...player, pickPenalty: 0 }));
+  const config = { ...state.config, phase12EarningsDeductionsApplied: enabled };
+  savePlayers(players);
+  saveConfig(config);
+  const leaderboard = refreshLeaderboard(players, state.markets, state.picks);
+  return { players, config, leaderboard };
+}
+
+export function setPage3EarningsDeductions(
+  state: {
+    players: Player[];
+    markets: Market[];
+    picks: Pick[];
+    config: GameConfig;
+  },
+  enabled: boolean
+) {
+  const leaderboard = refreshLeaderboard(state.players, state.markets, state.picks);
+  const players = enabled
+    ? state.players.map((player) => {
+        const pickStats =
+          player.pickStats ??
+          computePickStats(
+            state.picks.filter((pick) => pick.playerId === player.id),
+            state.markets
+          );
+        return {
+          ...player,
+          pickPenaltyPage3: calculatePage3PickPenalty(
+            pickStats,
+            isPlayerPromoted(leaderboard, player.id)
+          )
+        };
+      })
+    : state.players.map((player) => ({ ...player, pickPenaltyPage3: 0 }));
+  const config = { ...state.config, page3EarningsDeductionsApplied: enabled };
+  savePlayers(players);
+  saveConfig(config);
+  const nextLeaderboard = refreshLeaderboard(players, state.markets, state.picks);
+  return { players, config, leaderboard: nextLeaderboard };
+}
+
+/** @deprecated Use setPhase12EarningsDeductions */
+export function applyPickPenalties(state: {
+  players: Player[];
+  markets: Market[];
+  picks: Pick[];
+}) {
+  const result = setPhase12EarningsDeductions(
+    { ...state, config: defaultGameConfig({ phase12EarningsDeductionsApplied: true }) },
+    true
+  );
+  return { players: result.players, leaderboard: result.leaderboard };
+}
+
+/** @deprecated Use setPage3EarningsDeductions */
+export function applyPickPenaltiesPage3(state: {
+  players: Player[];
+  markets: Market[];
+  picks: Pick[];
+}) {
+  const result = setPage3EarningsDeductions(
+    { ...state, config: defaultGameConfig({ page3EarningsDeductionsApplied: true }) },
+    true
+  );
+  return { players: result.players, leaderboard: result.leaderboard };
 }
 
 export function updateMarketWinner(

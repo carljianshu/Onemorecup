@@ -177,7 +177,7 @@ export default function AnswersPage() {
             </thead>
             <tbody>
               {sortedPlayers.map((player) => {
-                const score = leaderboard.find((e) => e.playerId === player.id)?.totalScore ?? 0;
+                const score = leaderboard.find((e) => e.playerId === player.id)?.netEarnings ?? 0;
                 return (
                   <tr key={player.id}>
                     <td className="sticky-col player-name">{player.name}</td>

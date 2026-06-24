@@ -46,7 +46,7 @@ export const zh = {
     subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
     rulesTitle: "简单规则",
     rule1: "提交竞猜共分三页：1/16决赛 {page1} 题，1/8决赛 {page2} 题，1/4决赛及以后 {page3} 题，共 {total} 个项目。1/16决赛至少猜 {page1Min} 题才能保存；1/8决赛至少猜 {page2Min} 题，且与 1/16 合计至少 {totalMin} 题才能保存；1/4决赛及以后至少猜 {page3Min} 题才能保存。",
-    rule2: "1/16决赛需至少竞猜 {page1Min} 场，1/8决赛需至少竞猜 {page2Min} 场，两阶段合计需至少竞猜 {totalMin} 场。每阶段可选一场比赛 Double 双倍下注。",
+    rule2: "1/16决赛需至少竞猜 {page1Min} 场（{page1CactusMin}场仙人掌，{page1MapleMin}场枫叶），1/8决赛需至少竞猜 {page2Min} 场，两阶段合计需至少竞猜 {totalMin} 场。每阶段可选一场比赛 Double 双倍下注。",
     rule3:
       "本游戏模拟对赌投注，玩家竞猜投注1/16决赛和1/8决赛的结果，猜错者损失竞猜本金，猜对者平分猜错玩家的投注本金。具体投注规则请见",
     rule4: "若某场比赛所有玩家都猜对或都猜错，该场作废，所有玩家均无收益或损失。",
@@ -60,7 +60,7 @@ export const zh = {
     s1Body:
       "每位玩家在每道题会投注一个本金，如果猜错就损失本金，猜对的玩家可以平分猜错玩家的本金。",
     s1Example:
-      "例子：本金是 $16，2 位玩家猜对，3 位玩家猜错，则猜错的玩家损失 $16，猜对的玩家各获得 16 × 3 ÷ 2 = $24。",
+      "例子：本金是 $8，2 位玩家猜对，3 位玩家猜错，则猜错的玩家损失 $8，猜对的玩家各获得 8 × 3 ÷ 2 = $12。",
     s2Title: "2. 本金调整",
     s2Body:
       "为平衡热门与冷门赛果，每题的投注本金会根据支持人数自动调整。\n\n系统先根据两边人数生成一个参考盈亏序列：人数较多的一方记为 −10，人数较少的一方记为 +10×(较多人数÷较少人数)。计算该序列的标准差，并将其除以 10 得到调整系数。\n\n最终每位玩家的实际投注本金为：\n\n本金 = 10 ÷ 调整系数\n\n结算时，猜错玩家损失本金，猜对玩家平分猜错玩家的总投注。",
@@ -73,7 +73,8 @@ export const zh = {
     adjustmentColWrong: "猜错人数",
     adjustmentColStd: "σ",
     adjustmentColFactor: "调整系数",
-    adjustmentColStake: "本金"
+    adjustmentColStake: "本金",
+    adjustmentColWinnerEarning: "赢家收益"
   },
   markets: {
     page1: "1/16决赛（{count} 题）",
@@ -91,7 +92,7 @@ export const zh = {
       "1/8决赛每道大题含 4 个小题：须全部小题都作答，或点击大题旁的「不选」跳过该题。只答了部分小题时无法保存。",
     page2HintStrong: "全部小题都作答",
     page3DistributionNote:
-      "P3-5～P3-7 为多选项题，采用专用调整系数：在本题已作答玩家中，统计各选项人数；人数最少的选项为 N 人，其余合计 M 人。参考盈亏序列为 M 个 −10、N 个 +10×M/N，标准差 σ÷10 = 调整系数，每位玩家实际本金 = 20÷调整系数。",
+      "M3-5～M3-7 为多选项题，采用专用调整系数：在本题已作答玩家中，统计各选项人数；人数最少的选项为 N 人，其余合计 M 人。参考盈亏序列为 M 个 −10、N 个 +10×M/N，标准差 σ÷10 = 调整系数，每位玩家实际本金 = 20÷调整系数。",
     page3StakeNote: "1/4决赛及以后投注本金为 20÷调整系数",
     loadedEdit: "已加载你上次的竞猜，可随时修改并点击「保存当页」。",
     pageLocked: "{page} 已锁定，无法再修改本页题目。",
@@ -109,9 +110,29 @@ export const zh = {
     totalAnswered: "总计已答：",
     pageDouble: "本页 Double：",
     doubleNone: "未选",
+    pickMinPenaltyNote: "截止时间前未答满要求题数，每缺 1 题扣 $10 收益",
+    page1SectionCactus: "仙人掌题",
+    page1SectionMaple: "枫叶题",
+    page1SectionCactusNote: "至少猜4场仙人掌题",
+    page1SectionMapleNote: "至少猜4场枫叶题",
     doubleHint: "（每页最多 1 次{perMain}，20 分）",
     doublePerMain: "，按大题",
     pleaseChoose: "请选择：",
+    p1_2GroupStandings: "I组当前积分：法国6，挪威6，塞内加尔0，伊拉克0",
+    p1_3GroupStandingsA: "A组当前积分：墨西哥6，韩国3，捷克1，南非1",
+    p1_3GroupStandingsB: "B组当前积分：加拿大4，瑞士4，波黑1，卡塔尔1",
+    p1_4GroupStandingsF: "F组当前积分：荷兰4，日本4，瑞典3，突尼斯0",
+    p1_4GroupStandingsC: "C组当前积分：巴西4，摩洛哥4，苏格兰3，海地0",
+    p1_6GroupStandingsH: "H组当前积分：西班牙4，乌拉圭2，佛得角2，沙特1",
+    p1_6GroupStandingsJ: "J组当前积分：阿根廷6，奥地利3，阿尔及利亚3，约旦0",
+    p1_7GroupStandingsK: "K组当前积分：哥伦比亚6，葡萄牙4，民主刚果1，乌兹别克斯坦0",
+    p1_8GroupStandingsG: "G组当前积分：埃及4，伊朗2，比利时2，新西兰1",
+    p1_8GroupStandingsL: "L组当前积分：英格兰4，加纳4，克罗地亚3，巴拿马0",
+    p1_9GroupStandingsC: "C组当前积分：巴西4，摩洛哥4，苏格兰3，海地0",
+    p1_9GroupStandingsF: "F组当前积分：荷兰4，日本4，瑞典3，突尼斯0",
+    p1_10GroupStandingsE: "E组当前积分：德国6，科特迪瓦3，厄瓜多尔1，库拉索1",
+    p1_10GroupStandingsI: "I组当前积分：法国6，挪威6，塞内加尔0，伊拉克0",
+    p1_14GroupStandingsD: "D组当前积分：美国6，澳大利亚3，巴拉圭3，土耳其0",
     doubleTitle: "双倍投注（20 分）",
     doublePoints: " · 20分",
     doubleNeedAnswer: "请先选择答案再使用 Double",
@@ -137,6 +158,8 @@ export const zh = {
   },
   validation: {
     page1Min: "1/16决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
+    page1CactusMin: "至少猜 {min} 场仙人掌题才能保存（当前 {count} 场）。",
+    page1MapleMin: "至少猜 {min} 场枫叶题才能保存（当前 {count} 场）。",
     page3Min: "1/4决赛及以后至少需答满 {min} 题才能保存（当前 {count} 题）。",
     page2Min: "1/8决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",
     totalMin: "1/16决赛与1/8决赛合计至少需答满 {min} 题才能保存（当前 {count} 题）。"
@@ -151,7 +174,9 @@ export const zh = {
     collapse: "收起",
     perMarket: "每场收益",
     promotionZone: "晋级区",
-    earning: "收益"
+    earning: "总收益",
+    penaltyPhase12: "扣收益(1/16·1/8)",
+    penaltyPage3: "扣收益(1/4+)"
   },
   answers: {
     title: "答题总览",
@@ -203,6 +228,21 @@ export const zh = {
     autoLockDesc: "到达设定时间后自动锁定；管理员仍可手动锁定或解锁，手动解锁会覆盖自动锁定直至再次手动锁定。",
     calcScores: "计算分数",
     scoresRecalculated: "分数已重新计算。",
+    generatePenalties: "生成1/16·1/8扣收益",
+    cancelPenaltiesPhase12: "取消1/16·1/8扣收益",
+    confirmGeneratePenalties:
+      "开启 1/16、1/8 扣收益（未答满要求的最少缺题数 × $10）？",
+    confirmCancelPenaltiesPhase12: "取消 1/16、1/8 扣收益？排行榜将清零该阶段扣收益。",
+    generatePenaltiesPage3: "生成1/4+扣收益",
+    cancelPenaltiesPage3: "取消1/4+扣收益",
+    confirmGeneratePenaltiesPage3:
+      "开启 1/4 决赛及以后扣收益（晋级区玩家：缺题数 × $10）？",
+    confirmCancelPenaltiesPage3: "取消 1/4 决赛及以后扣收益？排行榜将清零该阶段扣收益。",
+    penaltiesGenerated: "前两阶段扣收益已开启。",
+    penaltiesPhase12Cancelled: "前两阶段扣收益已取消。",
+    penaltiesPage3Generated: "1/4 决赛及以后扣收益已开启。",
+    penaltiesPage3Cancelled: "1/4 决赛及以后扣收益已取消。",
+    penaltiesGenerateFailed: "生成扣收益失败，请重试。",
     lockPage: "锁定{page}",
     unlockPage: "解锁{page}",
     publicAnswersTitle: "向玩家开放答题总览",

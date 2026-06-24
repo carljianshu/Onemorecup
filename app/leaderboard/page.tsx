@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
-import { formatScore } from "@/lib/score-format";
+import { formatEarningsDeduction, formatScore } from "@/lib/score-format";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
@@ -56,9 +56,9 @@ export default function LeaderboardPage() {
                 <th>{t("common.page2Short")}</th>
                 <th>{t("leaderboard.phase12Picks")}</th>
                 <th>{t("common.page3Short")}</th>
-                <th>{t("leaderboard.earning")}</th>
                 <th>{t("leaderboard.settled")}</th>
                 <th>{t("leaderboard.details")}</th>
+                <th>{t("leaderboard.earning")}</th>
               </tr>
             </thead>
             <tbody>
@@ -79,7 +79,6 @@ export default function LeaderboardPage() {
                     <td>
                       {entry.pickStats.page3Count} / {MIN_PAGE3_PICKS}
                     </td>
-                    <td className={scoreClass(entry.totalScore)}>{formatScore(entry.totalScore)}</td>
                     <td>
                       {entry.settledCount} / {entry.guessedCount}
                     </td>
@@ -96,6 +95,7 @@ export default function LeaderboardPage() {
                           : t("leaderboard.perMarket")}
                       </button>
                     </td>
+                    <td className={scoreClass(entry.netEarnings)}>{formatScore(entry.netEarnings)}</td>
                   </tr>
                   {expanded === entry.playerId && (
                     <tr className="submission-row">
@@ -109,6 +109,22 @@ export default function LeaderboardPage() {
                               </span>
                             );
                           })}
+                          <span
+                            className={
+                              entry.pickPenalty > 0 ? "score-negative" : "score-zero"
+                            }
+                          >
+                            {t("leaderboard.penaltyPhase12")}:{" "}
+                            {formatEarningsDeduction(entry.pickPenalty)}
+                          </span>
+                          <span
+                            className={
+                              entry.pickPenaltyPage3 > 0 ? "score-negative" : "score-zero"
+                            }
+                          >
+                            {t("leaderboard.penaltyPage3")}:{" "}
+                            {formatEarningsDeduction(entry.pickPenaltyPage3)}
+                          </span>
                         </div>
                       </td>
                     </tr>

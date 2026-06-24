@@ -24,6 +24,7 @@ export function ScoringAdjustmentTable() {
               <th>{t("scoringRules.adjustmentColStd")}</th>
               <th>{t("scoringRules.adjustmentColFactor")}</th>
               <th>{t("scoringRules.adjustmentColStake")}</th>
+              <th>{t("scoringRules.adjustmentColWinnerEarning")}</th>
             </tr>
           </thead>
           <tbody>
@@ -34,6 +35,7 @@ export function ScoringAdjustmentTable() {
                 <td>{formatScorePlain(row.scoreStd)}</td>
                 <td>{formatScorePlain(row.adjustment)}</td>
                 <td>{formatScorePlain(row.stakePerSlot)}</td>
+                <td>{formatScorePlain(row.winnerEarning)}</td>
               </tr>
             ))}
           </tbody>

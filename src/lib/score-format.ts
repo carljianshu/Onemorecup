@@ -22,3 +22,9 @@ export function formatSignedScore(value: number | undefined | null): string {
 export function formatScore(value: number | undefined | null): string {
   return formatSignedScore(value);
 }
+
+/** 扣收益展示：$0.00 或 -$10.00 */
+export function formatEarningsDeduction(amount: number | undefined | null): string {
+  if (amount === undefined || amount === null || amount <= 0) return "$0.00";
+  return `-$${formatScorePlain(amount)}`;
+}

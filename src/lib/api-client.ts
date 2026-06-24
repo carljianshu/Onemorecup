@@ -144,3 +144,21 @@ export async function deletePlayerApi(token: string, playerId: string) {
   });
   return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
+
+export async function setPhase12EarningsDeductionsApi(token: string, enabled: boolean) {
+  const response = await fetch("/api/admin/penalties", {
+    method: "POST",
+    headers: adminHeaders(token),
+    body: JSON.stringify({ enabled })
+  });
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
+export async function setPage3EarningsDeductionsApi(token: string, enabled: boolean) {
+  const response = await fetch("/api/admin/penalties/page3", {
+    method: "POST",
+    headers: adminHeaders(token),
+    body: JSON.stringify({ enabled })
+  });
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}

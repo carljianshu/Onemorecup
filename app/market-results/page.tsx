@@ -6,7 +6,7 @@ import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { OptionPayoutHints } from "@/components/OptionPayoutHints";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { formatMarketHeading, translateMarketCandidate } from "@/i18n";
+import { formatMarketHeading, formatPlayMarketCandidate } from "@/i18n";
 import { buildMarketResultSections } from "@/lib/market-results";
 import { formatScorePlain } from "@/lib/score-format";
 import { isAnswersAnyPublic, isAnswersPagePublic } from "@/lib/public-features";
@@ -167,7 +167,7 @@ export default function MarketResultsPage() {
                       <div className="market-result-option-head">
                         <h3 className="market-result-option-label">
                           <span className="market-result-option-name">
-                            {translateMarketCandidate(locale, option)}
+                            {formatPlayMarketCandidate(locale, option)}
                           </span>
                           <OptionPayoutHints
                             option={option}
