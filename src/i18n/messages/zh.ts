@@ -1,6 +1,6 @@
 export const zh = {
   meta: {
-    title: "淘汰赛竞猜",
+    title: "2026世界杯淘汰赛竞猜",
     description: "世界杯淘汰赛竞猜小游戏"
   },
   common: {
@@ -42,7 +42,7 @@ export const zh = {
     refreshFailed: "刷新失败，请稍后重试。"
   },
   home: {
-    title: "淘汰赛竞猜",
+    title: "2026世界杯淘汰赛竞猜",
     subtitle: "预测世界杯淘汰赛走势，与好友同台竞技",
     rulesTitle: "简单规则",
     rule1: "提交竞猜共分三页：1/16决赛 {page1} 题，1/8决赛 {page2} 题，1/4决赛及以后 {page3} 题，共 {total} 个项目。1/16决赛至少猜 {page1Min} 题才能保存；1/8决赛至少猜 {page2Min} 题，且与 1/16 合计至少 {totalMin} 题才能保存；1/4决赛及以后至少猜 {page3Min} 题才能保存。",
@@ -50,7 +50,7 @@ export const zh = {
     rule3:
       "本游戏模拟对赌投注，玩家竞猜投注1/16决赛和1/8决赛的结果，猜错者损失竞猜本金，猜对者平分猜错玩家的投注本金。具体投注规则请见",
     rule4: "若某场比赛所有玩家都猜对或都猜错，该场作废，所有玩家均无收益或损失。",
-    rule5: "总收益排名前2/3的玩家将有机会参加1/4决赛及以后的对赌游戏，后1/3玩家被淘汰。世界杯决赛后，总收益最高的玩家获胜。"
+    rule5: "总收益排名前2/3的玩家将有机会参加1/4决赛及以后的对赌游戏，并把此前收益带入该阶段竞猜；后1/3玩家被淘汰。世界杯决赛后，总收益最高的玩家获胜。"
   },
   scoringRules: {
     linkLabel: "投注积分计算",
@@ -94,7 +94,7 @@ export const zh = {
     page3DistributionNote:
       "M3-5～M3-7 为多选项题，采用专用调整系数：在本题已作答玩家中，统计各选项人数；人数最少的选项为 N 人，其余合计 M 人。参考盈亏序列为 M 个 −10、N 个 +10×M/N，标准差 σ÷10 = 调整系数，每位玩家实际本金 = 20÷调整系数。",
     page3StakeNote: "1/4决赛及以后投注本金为 20÷调整系数",
-    loadedEdit: "已加载你上次的竞猜，可随时修改并点击「保存当页」。",
+    loadedEdit: "已加载你上次的竞猜，截止时间前可随时修改并点击「保存当页」。",
     pageLocked: "{page} 已锁定，无法再修改本页题目。",
     pageLockedSubmit: "{page} 已锁定，无法修改本页竞猜。",
     pageDeadline: "截止时间：{time}",
@@ -151,10 +151,10 @@ export const zh = {
     errTooManyDoublesP1: "1/16决赛最多只能选 1 题 Double。",
     errTooManyDoublesP3: "1/4决赛及以后最多只能选 1 题 Double。",
     errTooManyDoublesP2: "1/8决赛最多只能选 1 道大题 Double。",
-    successP1: "1/16决赛已保存！已答 {count}/{min} 题。锁定前可随时修改。",
-    successP3: "1/4决赛及以后已保存！已答 {count}/{min} 题。锁定前可随时修改。",
+    successP1: "1/16决赛已保存！已答 {count}/{min} 题。截止时间前可随时修改。",
+    successP3: "1/4决赛及以后已保存！已答 {count}/{min} 题。截止时间前可随时修改。",
     successP2:
-      "1/8决赛已保存！1/16决赛 {p1} 题，1/8决赛 {p2} 题，两阶段合计 {total} 题。锁定前可随时修改。",
+      "1/8决赛已保存！1/16决赛 {p1} 题，1/8决赛 {p2} 题，两阶段合计 {total} 题。截止时间前可随时修改。",
   },
   validation: {
     page1Min: "1/16决赛至少需答满 {min} 题才能保存（当前 {count} 题）。",

@@ -1,31 +1,59 @@
 :root {
-  --bg: #0f1419;
-  --surface: #1a2332;
-  --surface-2: #243044;
-  --border: #334155;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
+  --bg: #0a1220;
+  --surface: rgba(10, 18, 32, 0.74);
+  --surface-2: rgba(16, 28, 46, 0.84);
+  --border: rgba(148, 163, 184, 0.24);
+  --text: #f8fafc;
+  --muted: #b8c5d6;
   --accent: #22c55e;
   --accent-hover: #16a34a;
+  --wc-gold: #fbbf24;
   --danger: #ef4444;
   --warning: #f59e0b;
   --radius: 12px;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
 * {
   box-sizing: border-box;
 }
 
-html,
+html {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: radial-gradient(ellipse at top, #1e293b 0%, var(--bg) 55%);
+  background-color: var(--bg);
   color: var(--text);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   line-height: 1.5;
+  position: relative;
+  isolation: isolate;
+}
+
+/* 全站：实拍球场 + 大力神杯；中央少遮罩，让奖杯透出 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: url("/world-cup-bg.png") center 22% / cover no-repeat;
+  background-attachment: fixed;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 75% at 50% 36%, transparent 0%, rgba(2, 6, 23, 0.22) 62%, rgba(2, 6, 23, 0.55) 100%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.55) 0%, transparent 14%, transparent 78%, rgba(2, 6, 23, 0.6) 100%);
 }
 
 a {
@@ -50,10 +78,26 @@ a {
   letter-spacing: -0.02em;
 }
 
+.hero h1 {
+  background: linear-gradient(135deg, #fef9c3 0%, #fbbf24 35%, #f8fafc 70%, #fde68a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 28px rgba(0, 0, 0, 0.45));
+}
+
+.container > h1 {
+  color: #fde047;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.95),
+    0 0 24px rgba(0, 0, 0, 0.65);
+}
+
 .hero p {
   margin: 0;
-  color: var(--muted);
+  color: #e2e8f0;
   font-size: 1.05rem;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
 }
 
 .card {
@@ -62,6 +106,12 @@ a {
   border-radius: var(--radius);
   padding: 1.5rem;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.card :where(h2, h3, h4, p, li, th, td, label) {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
 }
 
 .rules-list {
@@ -202,16 +252,20 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .nav-bar a {
-  color: var(--muted);
+  color: #fef9c3;
   font-size: 0.95rem;
+  font-weight: 600;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 14px rgba(0, 0, 0, 0.7);
 }
 
 .nav-bar a:hover {
-  color: var(--text);
+  color: #ffffff;
 }
 
 .field {
@@ -404,8 +458,12 @@ a {
 }
 
 .page-lead {
-  color: var(--muted);
+  color: #fff7ed;
+  font-weight: 500;
   margin: -0.25rem 0 1.25rem;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 18px rgba(0, 0, 0, 0.75);
 }
 
 .answers-toolbar {
@@ -492,9 +550,17 @@ a {
   white-space: nowrap;
 }
 
+.answers-table thead th {
+  background: rgba(8, 16, 30, 0.94);
+  color: #f8fafc;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+}
+
 .answers-table .group-header {
   text-align: center;
-  color: var(--text);
+  color: #fde68a;
   border-bottom: 1px solid var(--border);
 }
 
@@ -506,7 +572,7 @@ a {
   position: sticky;
   left: 0;
   z-index: 2;
-  background: var(--surface);
+  background: rgba(8, 16, 30, 0.96);
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.12);
 }
 
@@ -558,7 +624,9 @@ a {
 .market-result-title {
   margin: 0;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: #fef9c3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 .market-result-meta {
@@ -951,13 +1019,15 @@ th {
   margin-bottom: 1rem;
   border-radius: var(--radius);
   border: 2px solid rgba(245, 158, 11, 0.7);
-  background: rgba(245, 158, 11, 0.16);
+  background: rgba(20, 14, 4, 0.72);
+  backdrop-filter: blur(16px);
   color: #fde68a;
   font-size: 1.1rem;
   font-weight: 700;
   text-align: center;
   letter-spacing: 0.02em;
   box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15) inset;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .play-distribution-note {
@@ -995,14 +1065,20 @@ th {
 
 .play-page1-section-label--cactus {
   border: 2px solid rgba(34, 197, 94, 0.55);
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(22, 163, 74, 0.1));
-  color: #bbf7d0;
+  background: linear-gradient(135deg, rgba(134, 239, 172, 0.82), rgba(74, 222, 128, 0.65));
+  color: #0f172a;
 }
 
 .play-page1-section-label--maple {
   border: 2px solid rgba(249, 115, 22, 0.55);
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.24), rgba(234, 88, 12, 0.1));
-  color: #fed7aa;
+  background: linear-gradient(135deg, rgba(253, 186, 116, 0.85), rgba(251, 146, 60, 0.68));
+  color: #0f172a;
+}
+
+.play-page1-section-label--cactus .play-page1-section-label-note,
+.play-page1-section-label--maple .play-page1-section-label-note {
+  color: #1e293b;
+  opacity: 1;
 }
 
 .play-page1-section-label:first-child {
@@ -1138,9 +1214,17 @@ th {
 
 .pick-stats-penalty-note {
   margin: -0.25rem 0 1rem;
-  color: var(--muted);
+  padding: 0.65rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: rgba(20, 14, 4, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fef3c7;
   font-size: 0.9rem;
+  font-weight: 600;
   line-height: 1.45;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 @media (min-width: 640px) {
@@ -1214,17 +1298,21 @@ th {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem clamp(1rem, 4vw, 2rem);
-  border-bottom: 1px solid var(--border);
-  background: rgba(15, 20, 25, 0.96);
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(6, 12, 24, 0.88);
+  backdrop-filter: blur(16px);
 }
 
 .site-header-brand {
   font-weight: 700;
   font-size: 1rem;
   white-space: nowrap;
+  background: linear-gradient(90deg, var(--wc-gold) 0%, #fef9c3 45%, #86efac 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .site-header-brand:hover {
-  color: var(--accent);
+  filter: brightness(1.12);
 }

@@ -3,7 +3,7 @@ import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "淘汰赛竞猜",
+  title: "2026世界杯淘汰赛竞猜",
   description: "世界杯淘汰赛竞猜小游戏"
 };
 

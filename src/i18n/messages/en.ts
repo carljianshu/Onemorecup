@@ -2,7 +2,7 @@ import type { Messages } from "./zh";
 
 export const en: Messages = {
   meta: {
-    title: "Knockout Bracket Pool",
+    title: "2026 World Cup Knockout Pool",
     description: "World Cup knockout prediction game"
   },
   common: {
@@ -44,7 +44,7 @@ export const en: Messages = {
     refreshFailed: "Refresh failed. Try again later."
   },
   home: {
-    title: "Knockout Bracket Pool",
+    title: "2026 World Cup Knockout Pool",
     subtitle: "Predict the World Cup knockout stage and compete with friends",
     rulesTitle: "Rules",
     rule1: "Picks are split into three phases: {page1} in the Round of 32, {page2} in the Round of 16, {page3} in quarter-finals and later ({total} items total). Round of 32 needs at least {page1Min} picks to save; Round of 16 needs at least {page2Min} picks and {totalMin} combined with Round of 32; quarter-finals and later needs at least {page3Min} picks to save.",
@@ -52,7 +52,7 @@ export const en: Messages = {
     rule3:
       "This game simulates parimutuel betting: you stake on Round of 32 and Round of 16 outcomes. Wrong picks lose their stake; winners split the stakes lost by wrong picks. See",
     rule4: "If all players are right or all players are wrong on a match, that match is void and no player gains or loses anything.",
-    rule5: "The top two-thirds by total earnings advance to quarter-finals and later parimutuel rounds; the bottom third are eliminated. After the World Cup final, the player with the highest total earnings wins."
+    rule5: "The top two-thirds by total earnings advance to quarter-finals and later parimutuel rounds and carry those earnings into that stage; the bottom third are eliminated. After the World Cup final, the player with the highest total earnings wins."
   },
   scoringRules: {
     linkLabel: "stake scoring",
@@ -96,7 +96,7 @@ export const en: Messages = {
     page3DistributionNote:
       "M3-5–M3-7 use multi-option adjustment: among picks on each question, let N = players on the least-chosen option and M = everyone else. Reference P/L = M entries at −10 and N at +10×M/N; adjustment = σ÷10 (std dev σ); stake per slot = 20÷adjustment.",
     page3StakeNote: "Quarter-finals and later: stake per slot is 20÷adjustment.",
-    loadedEdit: "Your previous picks are loaded. Edit anytime, then Save this page.",
+    loadedEdit: "Your previous picks are loaded. You can edit before the deadline, then Save this page.",
     pageLocked: "{page} is locked; you cannot edit these picks.",
     pageLockedSubmit: "{page} is locked; you cannot save changes.",
     pageDeadline: "Deadline: {time}",
@@ -154,10 +154,10 @@ export const en: Messages = {
     errTooManyDoublesP1: "At most one Double in the Round of 32.",
     errTooManyDoublesP3: "At most one Double in quarter-finals and later.",
     errTooManyDoublesP2: "At most one Double main question in the Round of 16.",
-    successP1: "Round of 32 saved! {count}/{min} answered. You can edit until locked.",
-    successP3: "Quarter-finals and later saved! {count}/{min} answered. You can edit until locked.",
+    successP1: "Round of 32 saved! {count}/{min} answered. You can edit before the deadline.",
+    successP3: "Quarter-finals and later saved! {count}/{min} answered. You can edit before the deadline.",
     successP2:
-      "Round of 16 saved! Round of 32: {p1}, Round of 16: {p2}, combined: {total}. You can edit until locked.",
+      "Round of 16 saved! Round of 32: {p1}, Round of 16: {p2}, combined: {total}. You can edit before the deadline.",
   },
   validation: {
     page1Min: "Save the Round of 32 only after at least {min} picks (currently {count}).",
