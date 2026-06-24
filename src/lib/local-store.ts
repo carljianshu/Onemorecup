@@ -1,5 +1,5 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
-import { applyManualPageLock, defaultPageLockSchedule, isPageLocked } from "@/lib/page-lock";
+import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
@@ -77,25 +77,27 @@ function normalizeConfig(raw: unknown): GameConfig {
   } | null;
   const legacyAnswersPublic = config?.answersPublic ?? false;
   const legacyAnswersOpensAt = config?.answersOpensAt ?? null;
-  return defaultGameConfig({
-    page1Locked: config?.page1Locked ?? false,
-    page2Locked: config?.page2Locked ?? false,
-    page3Locked: config?.page3Locked ?? false,
-    page1LocksAt: config?.page1LocksAt ?? defaultPageLockSchedule().page1LocksAt,
-    page2LocksAt: config?.page2LocksAt ?? defaultPageLockSchedule().page2LocksAt,
-    page3LocksAt: config?.page3LocksAt ?? defaultPageLockSchedule().page3LocksAt,
-    page1LockOverridden: config?.page1LockOverridden ?? false,
-    page2LockOverridden: config?.page2LockOverridden ?? false,
-    page3LockOverridden: config?.page3LockOverridden ?? false,
-    answersPage1Public: config?.answersPage1Public ?? legacyAnswersPublic,
-    answersPage2Public: config?.answersPage2Public ?? legacyAnswersPublic,
-    answersPage3Public: config?.answersPage3Public ?? false,
-    answersPage1OpensAt: config?.answersPage1OpensAt ?? legacyAnswersOpensAt,
-    answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt,
-    answersPage3OpensAt: config?.answersPage3OpensAt ?? null,
-    phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
-    page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false
-  });
+  return migratePageLockSchedule(
+    defaultGameConfig({
+      page1Locked: config?.page1Locked ?? false,
+      page2Locked: config?.page2Locked ?? false,
+      page3Locked: config?.page3Locked ?? false,
+      page1LocksAt: config?.page1LocksAt ?? defaultPageLockSchedule().page1LocksAt,
+      page2LocksAt: config?.page2LocksAt ?? defaultPageLockSchedule().page2LocksAt,
+      page3LocksAt: config?.page3LocksAt ?? defaultPageLockSchedule().page3LocksAt,
+      page1LockOverridden: config?.page1LockOverridden ?? false,
+      page2LockOverridden: config?.page2LockOverridden ?? false,
+      page3LockOverridden: config?.page3LockOverridden ?? false,
+      answersPage1Public: config?.answersPage1Public ?? legacyAnswersPublic,
+      answersPage2Public: config?.answersPage2Public ?? legacyAnswersPublic,
+      answersPage3Public: config?.answersPage3Public ?? false,
+      answersPage1OpensAt: config?.answersPage1OpensAt ?? legacyAnswersOpensAt,
+      answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt,
+      answersPage3OpensAt: config?.answersPage3OpensAt ?? null,
+      phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
+      page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false
+    })
+  ).config;
 }
 
 function enrichPlayers(players: Player[], picks: Pick[], markets: Market[]): Player[] {

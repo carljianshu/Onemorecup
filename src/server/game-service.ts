@@ -13,7 +13,7 @@ import {
 import { migratePickInputsForMarkets } from "@/data/markets";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
-import { applyManualPageLock, isPageLocked } from "@/lib/page-lock";
+import { applyManualPageLock, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, readStoredVersion, getStorageBackend } from "@/server/storage";
 import type { AnswersPageFeature } from "@/lib/public-features";
@@ -44,13 +44,15 @@ function toResponse(stored: { version: number; payload: GameSnapshot }): Leaderb
 
 export async function getLeaderboard(): Promise<LeaderboardResponse> {
   let stored = await readStoredGame();
-  const migrated = migrateStoredAnswers(stored.payload);
-  if (migrated.changed) {
+  const migratedAnswers = migrateStoredAnswers(stored.payload);
+  const migratedLocks = migratePageLockSchedule(stored.payload.config);
+  if (migratedAnswers.changed || migratedLocks.changed) {
     stored = await mutateStoredGame(
       (current) => ({
         ...current.payload,
-        markets: migrated.markets,
-        picks: migrated.picks
+        markets: migratedAnswers.changed ? migratedAnswers.markets : current.payload.markets,
+        picks: migratedAnswers.changed ? migratedAnswers.picks : current.payload.picks,
+        config: migratedLocks.changed ? migratedLocks.config : current.payload.config
       }),
       stored.version
     );
