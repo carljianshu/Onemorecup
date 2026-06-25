@@ -4,6 +4,7 @@ import {
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
+  MIN_PAGE3_SEQUOIA_PICKS,
   MIN_TOTAL_PICKS
 } from "@/data/markets";
 import type { PageSaveError } from "@/i18n/validation";
@@ -13,6 +14,7 @@ import {
   page1MapleCompletedCount,
   page2CompletedCount,
   page3CompletedCount,
+  page3SequoiaCompletedCount,
   playerAnswersFromPicks
 } from "@/lib/market-helpers";
 import type { Market, Pick, PickStats, PlayerPickInput, PlayPage } from "@/types";
@@ -86,6 +88,14 @@ export function validatePageSave(
   }
 
   if (page === 3) {
+    const answers: Record<string, string | null> = {};
+    for (const input of pagePickInputs) {
+      answers[input.marketId] = input.team;
+    }
+    const sequoiaCount = page3SequoiaCompletedCount(markets, answers);
+    if (sequoiaCount < MIN_PAGE3_SEQUOIA_PICKS) {
+      return { code: "page3_sequoia_min", count: sequoiaCount, min: MIN_PAGE3_SEQUOIA_PICKS };
+    }
     const stats = pickStatsFromPickInputs(pagePickInputs, markets);
     if (stats.page3Count < MIN_PAGE3_PICKS) {
       return { code: "page3_min", count: stats.page3Count, min: MIN_PAGE3_PICKS };

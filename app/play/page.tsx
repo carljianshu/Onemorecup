@@ -10,13 +10,14 @@ import {
   DOUBLE_STAKE,
   DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID,
   MARKET_INLINE_HINT_KEYS,
-  PAGE1_SECTION_LABEL_KEYS,
-  PAGE1_SECTION_NOTE_KEYS,
-  page1SectionIcon,
-  PAGE3_STAKE_NOTE_MARKET_ID,
+  PLAY_SECTION_LABEL_KEYS,
+  PLAY_SECTION_NOTE_KEYS,
+  playMarketSectionIcon,
+  playSectionTheme,
   MIN_PAGE1_PICKS,
   MIN_PAGE2_PICKS,
   MIN_PAGE3_PICKS,
+  MIN_PAGE3_SEQUOIA_PICKS,
   MIN_TOTAL_PICKS,
   isPageLocked,
   marketsForPage,
@@ -27,7 +28,7 @@ import {
 } from "@/data/markets";
 import { translateMarketName, formatPlayMarketCandidate } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
-import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave } from "@/lib/market-helpers";
+import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
 import { isValidInviteCode } from "@/lib/invite-code";
 import { isPlayerPromoted, promotionCutoffCount } from "@/lib/promotion";
@@ -129,6 +130,10 @@ export default function PlayPage() {
   }, [ready, markets, currentPlayerId, players, picks]);
 
   const pickStats = useMemo(() => countSelections(selections, markets), [selections, markets]);
+  const page3SequoiaCount = useMemo(
+    () => page3SequoiaCompletedCount(markets, selections),
+    [markets, selections]
+  );
 
   const pageDoubleId = useMemo(() => {
     for (const id of doubleIdsForPage(markets, step)) {
@@ -359,7 +364,10 @@ export default function PlayPage() {
 
       {pageDeadline && (
         <div className="page-deadline-banner" role="status">
-          {t("play.pageDeadline", { time: pageDeadline })}
+          {t(
+            step === 1 ? "play.page1Deadline" : step === 2 ? "play.page2Deadline" : "play.page3Deadline",
+            { time: pageDeadline }
+          )}
         </div>
       )}
 
@@ -411,52 +419,76 @@ export default function PlayPage() {
       )}
 
       <div className="status-bar pick-stats-bar">
-        <span>
-          {t("play.page1Answered")}<strong>{pickStats.page1Count}</strong> / {MIN_PAGE1_PICKS}
-        </span>
-        <span>
-          {t("play.page2Answered")}<strong>{pickStats.page2Count}</strong> / {MIN_PAGE2_PICKS}
-        </span>
-        <span>
-          {t("play.page3Answered")}<strong>{pickStats.page3Count}</strong> / {MIN_PAGE3_PICKS}
-        </span>
-        <span>
-          {t("play.totalAnswered")}<strong>{pickStats.totalCount}</strong> / {MIN_TOTAL_PICKS}
-        </span>
-        <span>
-          {t("play.pageDouble")}
-          <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : t("play.doubleNone")}</strong>
-        </span>
+        {step === 3 ? (
+          <>
+            <span>
+              {t("play.page3SequoiaAnswered")}
+              <strong>{page3SequoiaCount}</strong> / {MIN_PAGE3_SEQUOIA_PICKS}
+            </span>
+            <span>
+              {t("play.totalAnswered")}
+              <strong>{pickStats.page3Count}</strong> / {MIN_PAGE3_PICKS}
+            </span>
+            <span>
+              {t("play.pageDouble")}
+              <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : t("play.doubleNone")}</strong>
+            </span>
+          </>
+        ) : (
+          <>
+            <span>
+              {t("play.page1Answered")}<strong>{pickStats.page1Count}</strong> / {MIN_PAGE1_PICKS}
+            </span>
+            <span>
+              {t("play.page2Answered")}<strong>{pickStats.page2Count}</strong> / {MIN_PAGE2_PICKS}
+            </span>
+            <span>
+              {t("play.totalAnswered")}<strong>{pickStats.totalCount}</strong> / {MIN_TOTAL_PICKS}
+            </span>
+            <span>
+              {t("play.pageDouble")}
+              <strong>{pageDoubleId ? pageDoubleId.toUpperCase() : t("play.doubleNone")}</strong>
+            </span>
+          </>
+        )}
       </div>
 
-      <p className="pick-stats-penalty-note">{t("play.pickMinPenaltyNote")}</p>
+      <p className="pick-stats-penalty-note">
+        {step === 3 ? (
+          <>
+            {t("play.page3MinNote")}
+            <br />
+            {t("play.pickMinPenaltyNote")}
+          </>
+        ) : (
+          <>
+            {t("play.phase12MinNote")}
+            <br />
+            {t("play.phase12PenaltyNote")}
+          </>
+        )}
+      </p>
 
       {pageMarkets.map((market) => {
-        const p1Icon = step === 1 ? page1SectionIcon(market.id) : null;
+        const sectionIcon = playMarketSectionIcon(market.id);
+        const sectionTheme = playSectionTheme(market.id);
         return (
         <Fragment key={market.id}>
-          {PAGE1_SECTION_LABEL_KEYS[market.id] ? (
+          {PLAY_SECTION_LABEL_KEYS[market.id] && sectionTheme ? (
             <div
-              className={`play-page1-section-label ${
-                market.id === "m1-1" ? "play-page1-section-label--cactus" : "play-page1-section-label--maple"
-              }`}
+              className={`play-page1-section-label play-page1-section-label--${sectionTheme}`}
               role="note"
             >
               <span className="play-page1-section-label-title">
-                {t(PAGE1_SECTION_LABEL_KEYS[market.id])}
+                {t(PLAY_SECTION_LABEL_KEYS[market.id])}
               </span>
-              {PAGE1_SECTION_NOTE_KEYS[market.id] ? (
+              {PLAY_SECTION_NOTE_KEYS[market.id] ? (
                 <span className="play-page1-section-label-note">
-                  {t(PAGE1_SECTION_NOTE_KEYS[market.id])}
+                  {t(PLAY_SECTION_NOTE_KEYS[market.id])}
                 </span>
               ) : null}
             </div>
           ) : null}
-          {market.id === PAGE3_STAKE_NOTE_MARKET_ID && (
-            <div className="play-distribution-note card" role="note">
-              <p>{t("play.page3StakeNote")}</p>
-            </div>
-          )}
           {market.id === DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID && (
             <div className="play-distribution-note card" role="note">
               <p>{t("play.page3DistributionNote")}</p>
@@ -464,9 +496,19 @@ export default function PlayPage() {
           )}
           <section className="card item-card">
           <h3>
-            {p1Icon ? (
+            {sectionIcon ? (
               <span className="page1-market-icon" aria-hidden="true">
-                {p1Icon === "cactus" ? "🌵" : "🍁"}
+                {sectionIcon === "canyon" ? (
+                  <img src="/canyon-icon.svg" alt="" className="page-section-icon-img" />
+                ) : sectionIcon === "niagara" ? (
+                  <img src="/niagara-icon.svg" alt="" className="page-section-icon-img" />
+                ) : sectionIcon === "cactus" ? (
+                  "🌵"
+                ) : sectionIcon === "maple" ? (
+                  "🍁"
+                ) : (
+                  "🌲"
+                )}
               </span>
             ) : null}
             {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}

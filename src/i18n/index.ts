@@ -91,11 +91,18 @@ export function translateMarketCandidate(locale: Locale, candidate: string) {
   if (locale === "zh") return candidate;
   let translated = candidate
     .replaceAll("墨西哥", "Mexico")
+    .replaceAll("南非", "South Africa")
     .replaceAll("美国", "USA")
     .replaceAll("德国", "Germany")
     .replaceAll("阿根廷", "Argentina")
     .replaceAll("法国", "France")
-    .replaceAll("挪威", "Norway");
+    .replaceAll("挪威", "Norway")
+    .replaceAll("瑞士", "Switzerland")
+    .replaceAll("加拿大", "Canada")
+    .replaceAll("巴西", "Brazil")
+    .replaceAll("摩洛哥", "Morocco")
+    .replaceAll("奥地利", "Austria")
+    .replaceAll("阿尔及利亚", "Algeria");
   const tbd = translated.match(/^待填\s*(\d+)$/);
   if (tbd) return `TBD ${tbd[1]}`;
   if (translated.endsWith("区")) return `${translated.slice(0, -1)} bracket`;
@@ -106,18 +113,32 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
   zh: {
     阿根廷: "🇦🇷",
     墨西哥: "🇲🇽",
+    南非: "🇿🇦",
     德国: "🇩🇪",
     法国: "🇫🇷",
     挪威: "🇳🇴",
-    美国: "🇺🇸"
+    美国: "🇺🇸",
+    瑞士: "🇨🇭",
+    加拿大: "🇨🇦",
+    巴西: "🇧🇷",
+    摩洛哥: "🇲🇦",
+    奥地利: "🇦🇹",
+    阿尔及利亚: "🇩🇿"
   },
   en: {
     Argentina: "🇦🇷",
     Mexico: "🇲🇽",
+    "South Africa": "🇿🇦",
     Germany: "🇩🇪",
     France: "🇫🇷",
     Norway: "🇳🇴",
-    USA: "🇺🇸"
+    USA: "🇺🇸",
+    Switzerland: "🇨🇭",
+    Canada: "🇨🇦",
+    Brazil: "🇧🇷",
+    Morocco: "🇲🇦",
+    Austria: "🇦🇹",
+    Algeria: "🇩🇿"
   }
 };
 

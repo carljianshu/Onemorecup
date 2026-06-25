@@ -8,6 +8,7 @@ export const MIN_PAGE1_CACTUS_PICKS = 4;
 export const MIN_PAGE1_MAPLE_PICKS = 4;
 export const MIN_PAGE2_PICKS = 4;
 export const MIN_PAGE3_PICKS = 4;
+export const MIN_PAGE3_SEQUOIA_PICKS = 1;
 /** 总计 = 三页已答题数之和，至少 16 */
 export const MIN_TOTAL_PICKS = 16;
 export const TOTAL_MARKETS = PAGE1_COUNT + PAGE2_COUNT + PAGE3_COUNT;
@@ -43,19 +44,19 @@ export const LEGACY_PAGE1_MARKET_ID_MAP: Record<string, string> = Object.fromEnt
 const PAGE1_LEGACY_CANDIDATES: readonly (readonly [string, string])[] = [
   ["德国", "A/B/C/D/F3"],
   ["I1", "C/D/F/G/H3"],
-  ["A2", "B2"],
-  ["F1", "C2"],
+  ["南非", "加拿大"],
+  ["F1", "摩洛哥"],
   ["K2", "L2"],
-  ["H1", "J2"],
+  ["H1", "奥地利/阿尔及利亚"],
   ["美国", "B/E/F/I/J3"],
   ["G1", "A/E/H/I/J3"],
-  ["C1", "F2"],
+  ["巴西", "F2"],
   ["E2", "I2"],
   ["墨西哥", "C/E/F/H/I3"],
   ["L1", "E/H/I/J/K3"],
   ["阿根廷", "H2"],
   ["D2", "G2"],
-  ["B1", "E/F/G/I/J3"],
+  ["瑞士", "E/F/G/I/J3"],
   ["K1", "D/E/I/J/L3"]
 ] as const;
 
@@ -108,19 +109,91 @@ export function page1SectionIcon(marketId: string): "cactus" | "maple" | null {
   if ((PAGE1_MAPLE_MARKET_IDS as readonly string[]).includes(marketId)) return "maple";
   return null;
 }
+
+/** 1/8 决赛分区标题：M2-1～M2-8 为 Niagara（瀑布）。 */
+export const PAGE2_SECTION_LABEL_KEYS: Record<string, string> = {
+  "m2-1": "play.page2SectionNiagara"
+};
+
+export const PAGE2_SECTION_NOTE_KEYS: Record<string, string> = {
+  "m2-1": "play.page2SectionNiagaraNote"
+};
+
+export const PAGE2_NIAGARA_MARKET_IDS = [
+  "m2-1",
+  "m2-2",
+  "m2-3",
+  "m2-4",
+  "m2-5",
+  "m2-6",
+  "m2-7",
+  "m2-8"
+] as const;
+
+export function page2SectionIcon(marketId: string): "niagara" | null {
+  if ((PAGE2_NIAGARA_MARKET_IDS as readonly string[]).includes(marketId)) return "niagara";
+  return null;
+}
+
+/** 1/4 及以后分区标题：M3-1～M3-4 为 Canyon，M3-5～M3-7 为 Sequoia。 */
+export const PAGE3_SECTION_LABEL_KEYS: Record<string, string> = {
+  "m3-1": "play.page3SectionCanyon",
+  "m3-5": "play.page3SectionSequoia"
+};
+
+export const PAGE3_SECTION_NOTE_KEYS: Record<string, string> = {
+  "m3-1": "play.page3SectionCanyonNote",
+  "m3-5": "play.page3SectionSequoiaNote"
+};
+
+export const PAGE3_CANYON_MARKET_IDS = ["m3-1", "m3-2", "m3-3", "m3-4"] as const;
+
+export const PAGE3_SEQUOIA_MARKET_IDS = ["m3-5", "m3-6", "m3-7"] as const;
+
+export function page3SectionIcon(marketId: string): "canyon" | "sequoia" | null {
+  if ((PAGE3_CANYON_MARKET_IDS as readonly string[]).includes(marketId)) return "canyon";
+  if ((PAGE3_SEQUOIA_MARKET_IDS as readonly string[]).includes(marketId)) return "sequoia";
+  return null;
+}
+
+export const PLAY_SECTION_LABEL_KEYS: Record<string, string> = {
+  ...PAGE1_SECTION_LABEL_KEYS,
+  ...PAGE2_SECTION_LABEL_KEYS,
+  ...PAGE3_SECTION_LABEL_KEYS
+};
+
+export const PLAY_SECTION_NOTE_KEYS: Record<string, string> = {
+  ...PAGE1_SECTION_NOTE_KEYS,
+  ...PAGE2_SECTION_NOTE_KEYS,
+  ...PAGE3_SECTION_NOTE_KEYS
+};
+
+export type PlaySectionTheme = "cactus" | "maple" | "niagara" | "canyon" | "sequoia";
+
+export function playSectionTheme(marketId: string): PlaySectionTheme | null {
+  if (marketId === "m1-1") return "cactus";
+  if (marketId === "m1-9") return "maple";
+  if (marketId === "m2-1") return "niagara";
+  if (marketId === "m3-1") return "canyon";
+  if (marketId === "m3-5") return "sequoia";
+  return null;
+}
+
+export function playMarketSectionIcon(marketId: string): PlaySectionTheme | null {
+  return page1SectionIcon(marketId) ?? page2SectionIcon(marketId) ?? page3SectionIcon(marketId);
+}
 export const MARKET_INLINE_HINT_KEYS: Record<string, string[]> = {
-  "m1-2": ["play.p1_3GroupStandingsB"],
+  "m1-3": ["play.p1_3UsaBosniaNote"],
   "m1-5": ["play.p1_8GroupStandingsG"],
   "m1-6": ["play.p1_2GroupStandings"],
-  "m1-9": ["play.p1_9GroupStandingsC", "play.p1_9GroupStandingsF"],
-  "m1-10": ["play.p1_4GroupStandingsF", "play.p1_4GroupStandingsC"],
+  "m1-9": ["play.p1_9GroupStandingsF"],
+  "m1-10": ["play.p1_4GroupStandingsF"],
   "m1-11": ["play.p1_6GroupStandingsH", "play.p1_6GroupStandingsJ"],
   "m1-12": ["play.p1_6GroupStandingsH"],
-  "m1-13": ["play.p1_3GroupStandingsA", "play.p1_3GroupStandingsB"],
   "m1-14": ["play.p1_14GroupStandingsD", "play.p1_8GroupStandingsG"],
   "m1-15": ["play.p1_10GroupStandingsE", "play.p1_10GroupStandingsI"],
-  "m1-8": ["play.p1_8GroupStandingsL"],
-  "m1-7": ["play.p1_7GroupStandingsK"],
+  "m1-8": ["play.p1_8GroupStandingsL", "play.p1_8L1K3Note"],
+  "m1-7": ["play.p1_7GroupStandingsK", "play.p1_7K1L3Note"],
   "m1-16": ["play.p1_7GroupStandingsK", "play.p1_8GroupStandingsL"]
 };
 
@@ -130,11 +203,9 @@ export const MARKET_INLINE_HINT_KEYS: Record<string, string[]> = {
  */
 const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
   "m1-6": { "法国/挪威": "I1" },
-  "m1-11": { "奥地利/阿尔及利亚": "J2" },
   "m1-15": { "法国/挪威": "I2" },
   "m1-14": { "澳大利亚/巴拉圭": "D2" },
   "m2-1": { "(法国/挪威)/CDFGH3": "I1/CDFGH3" },
-  "m2-3": { "H1/(奥地利/阿尔及利亚)": "H1/J2" },
   "m2-5": { "E2/(法国/挪威)": "E2/I2" },
   "m2-7": { "(澳大利亚/巴拉圭)/G2": "D2/G2" },
   "m3-1": { "德国/(法国/挪威)区": "德国/I1区" },
@@ -146,10 +217,10 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "待填 4": "美国/G1区"
   },
   "m3-6": {
-    "待填 1": "C1区",
+    "待填 1": "巴西区",
     "待填 2": "墨西哥/L1区",
     "待填 3": "阿根廷区",
-    "待填 4": "B1/K1区"
+    "待填 4": "瑞士/K1区"
   },
   "m3-7": {
     "待填 1": "德国/I1区",
@@ -157,10 +228,10 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "待填 2": "F1区",
     "待填 3": "H1区",
     "待填 4": "美国/G1区",
-    "待填 5": "C1区",
+    "待填 5": "巴西区",
     "待填 6": "墨西哥/L1区",
     "待填 7": "阿根廷区",
-    "待填 8": "B1/K1区"
+    "待填 8": "瑞士/K1区"
   }
 };
 
@@ -193,12 +264,66 @@ export function renameJ1InTeamName(team: string): string {
   return team;
 }
 
+/** 将旧选项名 B1、B1/…、B1区 迁移为瑞士/… */
+export function renameB1InTeamName(team: string): string {
+  if (team === "B1") return "瑞士";
+  if (team === "B1区") return "瑞士区";
+  if (team.startsWith("B1/")) return `瑞士/${team.slice(3)}`;
+  return team;
+}
+
+/** 将旧选项名 B2、B2/… 迁移为加拿大/… */
+export function renameB2InTeamName(team: string): string {
+  if (team === "B2") return "加拿大";
+  if (team.startsWith("B2/")) return `加拿大/${team.slice(3)}`;
+  if (team.endsWith("/B2")) return `${team.slice(0, -3)}/加拿大`;
+  return team;
+}
+
+/** 将旧选项名 A2、A2/… 迁移为南非/… */
+export function renameA2InTeamName(team: string): string {
+  if (team === "A2") return "南非";
+  if (team.startsWith("A2/")) return `南非/${team.slice(3)}`;
+  if (team.endsWith("/A2")) return `${team.slice(0, -3)}/南非`;
+  return team;
+}
+
+/** 将旧选项名 C1、C1/…、C1区 迁移为巴西/… */
+export function renameC1InTeamName(team: string): string {
+  if (team === "C1") return "巴西";
+  if (team === "C1区") return "巴西区";
+  if (team.startsWith("C1/")) return `巴西/${team.slice(3)}`;
+  return team;
+}
+
+/** 将旧选项名 C2、C2/… 迁移为摩洛哥/… */
+export function renameC2InTeamName(team: string): string {
+  if (team === "C2") return "摩洛哥";
+  if (team.startsWith("C2/")) return `摩洛哥/${team.slice(3)}`;
+  if (team.endsWith("/C2")) return `${team.slice(0, -3)}/摩洛哥`;
+  return team;
+}
+
+/** 将旧选项名 J2、…/J2 迁移为奥地利/阿尔及利亚（后续页面带括号便于阅读）。 */
+export function renameJ2InTeamName(team: string): string {
+  if (team === "J2") return "奥地利/阿尔及利亚";
+  if (team.startsWith("J2/")) return `(奥地利/阿尔及利亚)/${team.slice(3)}`;
+  if (team.endsWith("/J2")) return `${team.slice(0, -3)}/(奥地利/阿尔及利亚)`;
+  return team;
+}
+
 export function migratePickTeam(marketId: string, team: string, candidates: string[]): string {
   let mapped = LEGACY_CANDIDATE_ALIASES[marketId]?.[team] ?? team;
   mapped = renameA1InTeamName(mapped);
+  mapped = renameA2InTeamName(mapped);
   mapped = renameD1InTeamName(mapped);
   mapped = renameE1InTeamName(mapped);
   mapped = renameJ1InTeamName(mapped);
+  mapped = renameB1InTeamName(mapped);
+  mapped = renameB2InTeamName(mapped);
+  mapped = renameC1InTeamName(mapped);
+  mapped = renameC2InTeamName(mapped);
+  mapped = renameJ2InTeamName(mapped);
   if (candidates.includes(mapped)) return mapped;
   if (candidates.includes(team)) return team;
   return mapped;
@@ -286,7 +411,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-2",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["A2/B2", "F1/C2"],
+    candidates: ["南非/加拿大", "F1/摩洛哥"],
     winner: null,
     page: 2
   },
@@ -294,7 +419,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-3",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["K2/L2", "H1/J2"],
+    candidates: ["K2/L2", "H1/(奥地利/阿尔及利亚)"],
     winner: null,
     page: 2
   },
@@ -310,7 +435,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-5",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["C1/F2", "E2/I2"],
+    candidates: ["巴西/F2", "E2/I2"],
     winner: null,
     page: 2
   },
@@ -334,7 +459,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-8",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["B1/EFGIJ3", "K1/DEIJL3"],
+    candidates: ["瑞士/EFGIJ3", "K1/DEIJL3"],
     winner: null,
     page: 2
   },
@@ -360,7 +485,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-3",
     round: "M3",
     name: "第三场1/4决赛谁会晋级？",
-    candidates: ["C1区", "墨西哥/L1区"],
+    candidates: ["巴西区", "墨西哥/L1区"],
     winner: null,
     page: 3
   },
@@ -368,7 +493,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-4",
     round: "M3",
     name: "第四场1/4决赛谁会晋级？",
-    candidates: ["阿根廷区", "B1/K1区"],
+    candidates: ["阿根廷区", "瑞士/K1区"],
     winner: null,
     page: 3
   },
@@ -384,7 +509,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-6",
     round: "M3",
     name: "第二场半决赛谁会晋级？",
-    candidates: ["C1区", "墨西哥/L1区", "阿根廷区", "B1/K1区"],
+    candidates: ["巴西区", "墨西哥/L1区", "阿根廷区", "瑞士/K1区"],
     winner: null,
     page: 3
   },
@@ -397,10 +522,10 @@ export const DEFAULT_MARKETS: Market[] = [
       "F1区",
       "H1区",
       "美国/G1区",
-      "C1区",
+      "巴西区",
       "墨西哥/L1区",
       "阿根廷区",
-      "B1/K1区"
+      "瑞士/K1区"
     ],
     winner: null,
     page: 3

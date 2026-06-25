@@ -2,6 +2,7 @@ import {
   DOUBLE_STAKE,
   PAGE1_CACTUS_MARKET_IDS,
   PAGE1_MAPLE_MARKET_IDS,
+  PAGE3_SEQUOIA_MARKET_IDS,
   PLAY_PAGES
 } from "@/data/markets";
 import type { Market, Pick, PlayPage, PlayerPickInput } from "@/types";
@@ -88,6 +89,11 @@ export function page2CompletedCount(markets: Market[], answers: Record<string, s
 
 export function page3CompletedCount(markets: Market[], answers: Record<string, string | null>) {
   return flatPageCompletedCount(markets, 3, answers);
+}
+
+export function page3SequoiaCompletedCount(markets: Market[], answers: Record<string, string | null>) {
+  const idSet = new Set<string>(PAGE3_SEQUOIA_MARKET_IDS);
+  return markets.filter((m) => m.page === 3 && idSet.has(m.id) && answers[m.id] != null).length;
 }
 
 export function initSelectionMap(markets: Market[]): Record<string, string | null> {

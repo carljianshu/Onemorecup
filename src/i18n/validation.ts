@@ -12,6 +12,7 @@ export type PageSaveError =
   | { code: "page1_maple_min"; count: number; min: number }
   | { code: "page2_min"; count: number; min: number }
   | { code: "page3_min"; count: number; min: number }
+  | { code: "page3_sequoia_min"; count: number; min: number }
   | { code: "total_min"; count: number; min: number };
 
 export function translatePageSaveError(
@@ -29,6 +30,8 @@ export function translatePageSaveError(
       return t("validation.page2Min", { min: error.min, count: error.count });
     case "page3_min":
       return t("validation.page3Min", { min: error.min, count: error.count });
+    case "page3_sequoia_min":
+      return t("validation.page3SequoiaMin", { min: error.min, count: error.count });
     case "total_min":
       return t("validation.totalMin", { min: error.min, count: error.count });
   }
