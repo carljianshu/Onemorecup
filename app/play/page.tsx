@@ -185,7 +185,7 @@ export default function PlayPage() {
         disabled={blocked}
         title={enabled ? t("play.doubleTitle") : hint}
       >
-        {t("common.double")}{isOn ? t("play.doublePoints") : ""}
+        {t("common.double")}
       </button>
     );
   }
@@ -458,11 +458,23 @@ export default function PlayPage() {
           <>
             {t("play.page3MinNote")}
             <br />
+            {t("play.page3DoubleRule")}
+            <br />
             {t("play.page3PenaltyNote")}
+          </>
+        ) : step === 2 ? (
+          <>
+            {t("play.phase12MinNote")}
+            <br />
+            {t("play.page2DoubleRule")}
+            <br />
+            {t("play.phase12PenaltyNote")}
           </>
         ) : (
           <>
             {t("play.phase12MinNote")}
+            <br />
+            {t("play.page1DoubleRule")}
             <br />
             {t("play.phase12PenaltyNote")}
           </>

@@ -1,5 +1,68 @@
 import type { GameConfig, PlayPage } from "@/types";
 
+/** 各页答题总览默认自动开放时间（UTC ISO），较竞猜截止晚 1 分钟。 */
+export const DEFAULT_ANSWERS_PAGE_OPENS_AT: Record<PlayPage, string> = {
+  1: "2026-06-28T19:01:00.000Z",
+  2: "2026-07-04T17:01:00.000Z",
+  3: "2026-07-09T20:01:00.000Z"
+};
+
+export function defaultAnswersPageSchedule(): Pick<
+  GameConfig,
+  | "answersPage1Public"
+  | "answersPage2Public"
+  | "answersPage3Public"
+  | "answersPage1OpensAt"
+  | "answersPage2OpensAt"
+  | "answersPage3OpensAt"
+> {
+  return {
+    answersPage1Public: true,
+    answersPage2Public: true,
+    answersPage3Public: true,
+    answersPage1OpensAt: DEFAULT_ANSWERS_PAGE_OPENS_AT[1],
+    answersPage2OpensAt: DEFAULT_ANSWERS_PAGE_OPENS_AT[2],
+    answersPage3OpensAt: DEFAULT_ANSWERS_PAGE_OPENS_AT[3]
+  };
+}
+
+function answersOpensAtField(page: PlayPage) {
+  if (page === 1) return "answersPage1OpensAt" as const;
+  if (page === 2) return "answersPage2OpensAt" as const;
+  return "answersPage3OpensAt" as const;
+}
+
+function answersPublicField(page: PlayPage) {
+  if (page === 1) return "answersPage1Public" as const;
+  if (page === 2) return "answersPage2Public" as const;
+  return "answersPage3Public" as const;
+}
+
+/** 未设置开放时间时写入默认计划，并启用对应答题总览。 */
+export function migrateAnswersPageSchedule(config: GameConfig): {
+  config: GameConfig;
+  changed: boolean;
+} {
+  let changed = false;
+  let next = config;
+
+  (([1, 2, 3] as const) satisfies PlayPage[]).forEach((page) => {
+    const opensAtKey = answersOpensAtField(page);
+    const publicKey = answersPublicField(page);
+    if (config[opensAtKey] !== null) return;
+
+    if (!changed) next = { ...config };
+    next = {
+      ...next,
+      [opensAtKey]: DEFAULT_ANSWERS_PAGE_OPENS_AT[page],
+      [publicKey]: true
+    };
+    changed = true;
+  });
+
+  return { config: next, changed };
+}
+
 export type AnswersPageFeature = "answersPage1" | "answersPage2" | "answersPage3";
 
 const FEATURE_LABELS: Record<AnswersPageFeature, string> = {

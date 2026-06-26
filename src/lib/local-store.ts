@@ -1,5 +1,6 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
+import { defaultAnswersPageSchedule, migrateAnswersPageSchedule } from "@/lib/public-features";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { isPlayerPromoted, migratePromotionSnapshotTiming, removePlayerFromPromotionSnapshot } from "@/lib/promotion";
@@ -71,12 +72,7 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
     page2Locked: false,
     page3Locked: false,
     ...defaultPageLockSchedule(),
-    answersPage1Public: false,
-    answersPage2Public: false,
-    answersPage3Public: false,
-    answersPage1OpensAt: null,
-    answersPage2OpensAt: null,
-    answersPage3OpensAt: null,
+    ...defaultAnswersPageSchedule(),
     phase12EarningsDeductionsApplied: false,
     page3EarningsDeductionsApplied: false,
     promotionLockedAt: null,
@@ -97,29 +93,34 @@ function normalizeConfig(raw: unknown): GameConfig {
   } | null;
   const legacyAnswersPublic = config?.answersPublic ?? false;
   const legacyAnswersOpensAt = config?.answersOpensAt ?? null;
-  return migratePageLockSchedule(
-    defaultGameConfig({
-      page1Locked: config?.page1Locked ?? false,
-      page2Locked: config?.page2Locked ?? false,
-      page3Locked: config?.page3Locked ?? false,
-      page1LocksAt: config?.page1LocksAt ?? defaultPageLockSchedule().page1LocksAt,
-      page2LocksAt: config?.page2LocksAt ?? defaultPageLockSchedule().page2LocksAt,
-      page3LocksAt: config?.page3LocksAt ?? defaultPageLockSchedule().page3LocksAt,
-      page1LockOverridden: config?.page1LockOverridden ?? false,
-      page2LockOverridden: config?.page2LockOverridden ?? false,
-      page3LockOverridden: config?.page3LockOverridden ?? false,
-      answersPage1Public: config?.answersPage1Public ?? legacyAnswersPublic,
-      answersPage2Public: config?.answersPage2Public ?? legacyAnswersPublic,
-      answersPage3Public: config?.answersPage3Public ?? false,
-      answersPage1OpensAt: config?.answersPage1OpensAt ?? legacyAnswersOpensAt,
-      answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt,
-      answersPage3OpensAt: config?.answersPage3OpensAt ?? null,
-      phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
-      page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false,
-      promotionLockedAt: config?.promotionLockedAt ?? null,
-      promotedPlayerIds: config?.promotedPlayerIds ?? null,
-      eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null
-    })
+  const answersDefaults = defaultAnswersPageSchedule();
+  return migrateAnswersPageSchedule(
+    migratePageLockSchedule(
+      defaultGameConfig({
+        page1Locked: config?.page1Locked ?? false,
+        page2Locked: config?.page2Locked ?? false,
+        page3Locked: config?.page3Locked ?? false,
+        page1LocksAt: config?.page1LocksAt ?? defaultPageLockSchedule().page1LocksAt,
+        page2LocksAt: config?.page2LocksAt ?? defaultPageLockSchedule().page2LocksAt,
+        page3LocksAt: config?.page3LocksAt ?? defaultPageLockSchedule().page3LocksAt,
+        page1LockOverridden: config?.page1LockOverridden ?? false,
+        page2LockOverridden: config?.page2LockOverridden ?? false,
+        page3LockOverridden: config?.page3LockOverridden ?? false,
+        answersPage1Public: config?.answersPage1Public ?? legacyAnswersPublic ?? answersDefaults.answersPage1Public,
+        answersPage2Public: config?.answersPage2Public ?? legacyAnswersPublic ?? answersDefaults.answersPage2Public,
+        answersPage3Public: config?.answersPage3Public ?? answersDefaults.answersPage3Public,
+        answersPage1OpensAt:
+          config?.answersPage1OpensAt ?? legacyAnswersOpensAt ?? answersDefaults.answersPage1OpensAt,
+        answersPage2OpensAt:
+          config?.answersPage2OpensAt ?? legacyAnswersOpensAt ?? answersDefaults.answersPage2OpensAt,
+        answersPage3OpensAt: config?.answersPage3OpensAt ?? answersDefaults.answersPage3OpensAt,
+        phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
+        page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false,
+        promotionLockedAt: config?.promotionLockedAt ?? null,
+        promotedPlayerIds: config?.promotedPlayerIds ?? null,
+        eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null
+      })
+    ).config
   ).config;
 }
 

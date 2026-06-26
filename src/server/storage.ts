@@ -3,6 +3,7 @@ import path from "path";
 import { getStore } from "@netlify/blobs";
 import type { GameSnapshot } from "@/lib/local-store";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
+import { defaultAnswersPageSchedule } from "@/lib/public-features";
 
 export class VersionConflictError extends Error {
   constructor() {
@@ -33,12 +34,7 @@ function emptyPayload(): GameSnapshot {
       page2Locked: false,
       page3Locked: false,
       ...defaultPageLockSchedule(),
-      answersPage1Public: false,
-      answersPage2Public: false,
-      answersPage3Public: false,
-      answersPage1OpensAt: null,
-      answersPage2OpensAt: null,
-      answersPage3OpensAt: null,
+      ...defaultAnswersPageSchedule(),
       phase12EarningsDeductionsApplied: false,
       page3EarningsDeductionsApplied: false,
       promotionLockedAt: null,

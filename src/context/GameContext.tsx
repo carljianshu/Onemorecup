@@ -24,6 +24,7 @@ import {
 import { getAdminToken } from "@/lib/admin-auth";
 import { maybeSaveAdminBackup } from "@/lib/admin-backup";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
+import { defaultAnswersPageSchedule } from "@/lib/public-features";
 import { isPageLocked } from "@/data/markets";
 import {
   getCurrentPlayerId,
@@ -118,12 +119,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     page2Locked: false,
     page3Locked: false,
     ...defaultPageLockSchedule(),
-    answersPage1Public: false,
-    answersPage2Public: false,
-    answersPage3Public: false,
-    answersPage1OpensAt: null,
-    answersPage2OpensAt: null,
-    answersPage3OpensAt: null,
+    ...defaultAnswersPageSchedule(),
     phase12EarningsDeductionsApplied: false,
     page3EarningsDeductionsApplied: false,
     promotionLockedAt: null,

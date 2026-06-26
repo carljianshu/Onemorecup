@@ -18,7 +18,7 @@ import { removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, readStoredVersion, getStorageBackend } from "@/server/storage";
-import type { AnswersPageFeature } from "@/lib/public-features";
+import { migrateAnswersPageSchedule, type AnswersPageFeature } from "@/lib/public-features";
 import type { GameConfig, LeaderboardEntry, PlayerPickInput, PlayPage } from "@/types";
 
 export interface LeaderboardResponse {
@@ -48,13 +48,20 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
   let stored = await readStoredGame();
   const migratedAnswers = migrateStoredAnswers(stored.payload);
   const migratedLocks = migratePageLockSchedule(stored.payload.config);
-  if (migratedAnswers.changed || migratedLocks.changed) {
+  const migratedAnswersSchedule = migrateAnswersPageSchedule(
+    migratedLocks.changed ? migratedLocks.config : stored.payload.config
+  );
+  if (migratedAnswers.changed || migratedLocks.changed || migratedAnswersSchedule.changed) {
     stored = await mutateStoredGame(
       (current) => ({
         ...current.payload,
         markets: migratedAnswers.changed ? migratedAnswers.markets : current.payload.markets,
         picks: migratedAnswers.changed ? migratedAnswers.picks : current.payload.picks,
-        config: migratedLocks.changed ? migratedLocks.config : current.payload.config
+        config: migratedAnswersSchedule.changed
+          ? migratedAnswersSchedule.config
+          : migratedLocks.changed
+            ? migratedLocks.config
+            : current.payload.config
       }),
       stored.version
     );
