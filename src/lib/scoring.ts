@@ -1,5 +1,5 @@
 import { roundScore } from "@/lib/score-format";
-import { DOUBLE_STAKE, marketStakePerPick, marketUsesDistributionAdjustment, STAKE_PER_PICK } from "@/data/markets";
+import { DOUBLE_STAKE, marketStakePerPick, marketUsesDistributionAdjustment, PAGE3_STAKE_PER_PICK, STAKE_PER_PICK } from "@/data/markets";
 import { computePickStats } from "@/lib/pick-stats";
 import { countPlayerGuessedItems } from "@/lib/market-helpers";
 import type { LeaderboardEntry, Market, Pick, Player } from "@/types";
@@ -68,7 +68,7 @@ function buildFixedStakeSlotScores(
 }
 
 /**
- * 第一遍探测用得分序列：猜对计分位多于猜错时，对调两者数量再构造序列（如 2 对 1 错 → 按 1 对 2 错得 [20,-10,-10]）。
+ * 第一遍探测用得分序列：猜对计分位多于猜错时，对调两者数量再构造序列（如 2 对 1 错 → 按 1 对 2 错得 [40,-20,-20] 当探测单位为 20）。
  */
 function slotScoresForAdjustment(
   slots: ScoringSlot[],
@@ -148,7 +148,7 @@ export function buildStandardAdjustmentTableRows(
 
 /**
  * M3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
- * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10；实际本金见 marketStakePerPick。
+ * 参考序列 M 个 −20、N 个 20×M/N → σ，调整系数 = σ ÷ 20；实际本金 = 20÷调整系数。
  */
 function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
   scoreStd: number;
@@ -174,15 +174,15 @@ function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
   }
   if (M === 0 || N === 0) return null;
 
-  const positive = (STAKE_PER_PICK * M) / N;
+  const positive = (PAGE3_STAKE_PER_PICK * M) / N;
   const sequence = [
-    ...Array.from({ length: M }, () => -STAKE_PER_PICK),
+    ...Array.from({ length: M }, () => -PAGE3_STAKE_PER_PICK),
     ...Array.from({ length: N }, () => positive)
   ];
   const scoreStd = populationStd(sequence);
   if (scoreStd === 0) return null;
 
-  return { scoreStd, adjustment: scoreStd / STAKE_PER_PICK };
+  return { scoreStd, adjustment: scoreStd / PAGE3_STAKE_PER_PICK };
 }
 
 interface FixedStakeSettlement {
@@ -255,7 +255,8 @@ export interface ParimutuelBreakdown {
 }
 
 /**
- * 两阶段对赌：先按 10 分本金结算得探测序列（猜对位多于猜错位时对调数量）→ σ ÷ 10 = 调整值 → 新本金 = 基准本金 ÷ 调整值 → 再结算。
+ * 两阶段对赌：先按探测本金结算得参考序列（1/4+ 为 20，前两阶段为 10；猜对位多于猜错位时对调数量）
+ * → σ ÷ 探测本金 = 调整值 → 实际本金 = 基准本金 ÷ 调整值 → 再结算。
  * 1/4 决赛及以后基准本金为 20，前两阶段为 10。Double 视为两个计分位，得失在计分位层面累加。
  */
 function settleParimutuel(
@@ -266,6 +267,7 @@ function settleParimutuel(
   if (groupPicks.length === 0) return null;
 
   const settlementStake = marketId ? marketStakePerPick(marketId) : STAKE_PER_PICK;
+  const probeStake = settlementStake;
 
   if (isAllCorrectOrAllWrong(winner, groupPicks)) {
     return {
@@ -278,7 +280,7 @@ function settleParimutuel(
     };
   }
 
-  const pass1 = settleAtFixedStake(winner, groupPicks, STAKE_PER_PICK);
+  const pass1 = settleAtFixedStake(winner, groupPicks, probeStake);
   if (!pass1) {
     return {
       scores: zeroScoresForParticipants(groupPicks),
@@ -312,7 +314,7 @@ function settleParimutuel(
     const adjustmentSlotScores = slotScoresForAdjustment(
       slots,
       pass1.slotScores,
-      STAKE_PER_PICK
+      probeStake
     );
     scoreStd = populationStd(adjustmentSlotScores);
     if (scoreStd === 0) {
@@ -325,7 +327,7 @@ function settleParimutuel(
         isVoid: true
       };
     }
-    adjustment = scoreStd / STAKE_PER_PICK;
+    adjustment = scoreStd / probeStake;
   }
 
   const adjustedStake = settlementStake / adjustment;

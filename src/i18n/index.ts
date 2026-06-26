@@ -93,7 +93,12 @@ export function translateMarketCandidate(locale: Locale, candidate: string) {
     .replaceAll("墨西哥", "Mexico")
     .replaceAll("南非", "South Africa")
     .replaceAll("美国", "USA")
+    .replaceAll("澳大利亚", "Australia")
     .replaceAll("德国", "Germany")
+    .replaceAll("科特迪瓦", "Ivory Coast")
+    .replaceAll("荷兰", "Netherlands")
+    .replaceAll("日本", "Japan")
+    .replaceAll("波黑", "Bosnia")
     .replaceAll("阿根廷", "Argentina")
     .replaceAll("法国", "France")
     .replaceAll("挪威", "Norway")
@@ -115,9 +120,14 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
     墨西哥: "🇲🇽",
     南非: "🇿🇦",
     德国: "🇩🇪",
+    科特迪瓦: "🇨🇮",
+    荷兰: "🇳🇱",
+    日本: "🇯🇵",
+    波黑: "🇧🇦",
     法国: "🇫🇷",
     挪威: "🇳🇴",
     美国: "🇺🇸",
+    澳大利亚: "🇦🇺",
     瑞士: "🇨🇭",
     加拿大: "🇨🇦",
     巴西: "🇧🇷",
@@ -130,9 +140,14 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
     Mexico: "🇲🇽",
     "South Africa": "🇿🇦",
     Germany: "🇩🇪",
+    "Ivory Coast": "🇨🇮",
+    Netherlands: "🇳🇱",
+    Japan: "🇯🇵",
+    Bosnia: "🇧🇦",
     France: "🇫🇷",
     Norway: "🇳🇴",
     USA: "🇺🇸",
+    Australia: "🇦🇺",
     Switzerland: "🇨🇭",
     Canada: "🇨🇦",
     Brazil: "🇧🇷",

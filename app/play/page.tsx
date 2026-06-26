@@ -94,7 +94,7 @@ export default function PlayPage() {
   const pageLocked = isPageLocked(config, step);
   const pageDeadline = formatPageDeadlineDisplay(pageLocksAt(config, step), locale);
   const activePlayerId = editingPlayerId ?? currentPlayerId;
-  const page3Promoted = isPlayerPromoted(leaderboard, activePlayerId);
+  const page3Promoted = isPlayerPromoted(leaderboard, activePlayerId, config);
   const pageInputBlocked = pageLocked || (step === 3 && !page3Promoted);
   const promotionCutoff = promotionCutoffCount(leaderboard.length);
 
@@ -346,7 +346,7 @@ export default function PlayPage() {
                 ? pickStats.page2Count
                 : pickStats.page3Count;
           const total = minPicksForPage(page);
-          const page3Denied = page === 3 && !isPlayerPromoted(leaderboard, activePlayerId);
+          const page3Denied = page === 3 && !isPlayerPromoted(leaderboard, activePlayerId, config);
           return (
             <button
               key={page}
@@ -458,7 +458,7 @@ export default function PlayPage() {
           <>
             {t("play.page3MinNote")}
             <br />
-            {t("play.pickMinPenaltyNote")}
+            {t("play.page3PenaltyNote")}
           </>
         ) : (
           <>

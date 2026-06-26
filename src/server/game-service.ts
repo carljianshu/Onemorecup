@@ -5,6 +5,7 @@ import {
   migrateStoredAnswers,
   savePlayerPicks,
   setPageLocked,
+  setPlayerInGroup,
   snapshotFromState,
   updateMarketWinner,
   updatePublicFeature,
@@ -13,6 +14,7 @@ import {
 import { migratePickInputsForMarkets } from "@/data/markets";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
+import { removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, readStoredVersion, getStorageBackend } from "@/server/storage";
@@ -57,6 +59,20 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
       stored.version
     );
   }
+
+  const hydrated = hydrateGameState(stored.payload, { persist: false });
+  if (hydrated.configChanged) {
+    stored = await mutateStoredGame(
+      () => ({
+        players: hydrated.players,
+        markets: hydrated.markets,
+        picks: hydrated.picks,
+        config: hydrated.config
+      }),
+      stored.version
+    );
+  }
+
   return toResponse(stored);
 }
 
@@ -105,7 +121,8 @@ export async function registerPlayer(
         state.markets,
         state.leaderboard,
         body.playerId ?? null,
-        body.page
+        body.page,
+        state.config
       ),
       state.markets
     );
@@ -120,7 +137,7 @@ export async function registerPlayer(
     saveResult = savePlayerPicks(
       body.name,
       pickInputs,
-      { players: state.players, markets: state.markets, picks: state.picks },
+      { players: state.players, markets: state.markets, picks: state.picks, config: state.config },
       body.playerId || null,
       body.page,
       state.leaderboard,
@@ -136,7 +153,7 @@ export async function registerPlayer(
         ...state.picks.filter((pick) => pick.playerId !== saveResult!.player.id),
         ...saveResult.picks
       ],
-      config: state.config
+      config: saveResult.config ?? state.config
     });
   }, expectedVersion);
 
@@ -169,7 +186,8 @@ export function patchMarketWinner(
     const result = updateMarketWinner(marketId, winner, {
       players: state.players,
       markets: state.markets,
-      picks: state.picks
+      picks: state.picks,
+      config: state.config
     });
     return snapshotFromState({
       players: state.players,
@@ -198,8 +216,7 @@ export function patchGameConfig(
         players: state.players,
         markets: state.markets,
         picks: state.picks,
-        config: state.config,
-        leaderboard: state.leaderboard
+        config: state.config
       });
       config = result.config;
     } else {
@@ -260,7 +277,28 @@ export function removePlayer(playerId: string, expectedVersion?: number) {
       players,
       markets: state.markets,
       picks,
+      config: removePlayerFromPromotionSnapshot(state.config, playerId)
+    });
+  }, expectedVersion);
+}
+
+export function patchPlayerInGroup(
+  playerId: string,
+  inGroupPlayer: boolean,
+  expectedVersion?: number
+) {
+  return mutateAdmin((state) => {
+    const result = setPlayerInGroup(playerId, inGroupPlayer, {
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks,
       config: state.config
+    });
+    return snapshotFromState({
+      players: result.players,
+      markets: state.markets,
+      picks: result.picks,
+      config: result.config
     });
   }, expectedVersion);
 }

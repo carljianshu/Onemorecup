@@ -40,7 +40,10 @@ function emptyPayload(): GameSnapshot {
       answersPage2OpensAt: null,
       answersPage3OpensAt: null,
       phase12EarningsDeductionsApplied: false,
-      page3EarningsDeductionsApplied: false
+      page3EarningsDeductionsApplied: false,
+      promotionLockedAt: null,
+      promotedPlayerIds: null,
+      eliminatedPlayerIds: null
     }
   };
 }

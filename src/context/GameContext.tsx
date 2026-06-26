@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   deletePlayerApi,
+  patchPlayerInGroupApi,
   fetchLeaderboard,
   setPhase12EarningsDeductionsApi,
   setPage3EarningsDeductionsApi,
@@ -28,7 +29,7 @@ import {
   getCurrentPlayerId,
   hydrateGameState,
   loadGameState,
-  recalculateLeaderboard,
+  recalculateLeaderboardWithConfig,
   setCurrentPlayerId
 } from "@/lib/local-store";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
@@ -47,6 +48,7 @@ interface GameContextValue {
   ) => Promise<{ isUpdate: boolean; playerId: string; pickStats: PickStats }>;
   setMarketWinner: (marketId: string, winner: string | null) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
+  setPlayerInGroup: (playerId: string, inGroupPlayer: boolean) => Promise<void>;
   togglePageLocked: (page: PlayPage) => Promise<void>;
   setPublicFeature: (
     feature: AnswersPageFeature,
@@ -123,7 +125,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     answersPage2OpensAt: null,
     answersPage3OpensAt: null,
     phase12EarningsDeductionsApplied: false,
-    page3EarningsDeductionsApplied: false
+    page3EarningsDeductionsApplied: false,
+    promotionLockedAt: null,
+    promotedPlayerIds: null,
+    eliminatedPlayerIds: null
   });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
@@ -175,7 +180,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready || apiSync) return;
-    setLeaderboard(recalculateLeaderboard({ players, markets, picks, config }));
+    const rebuilt = recalculateLeaderboardWithConfig({ players, markets, picks, config });
+    setLeaderboard(rebuilt.leaderboard);
+    if (rebuilt.configChanged) setConfig(rebuilt.config);
   }, [lockTick, ready, apiSync, players, markets, picks, config]);
 
   const submitPicks = useCallback(
@@ -210,7 +217,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const result = savePlayerPicks(
         name,
         pickInputs,
-        { players, markets, picks },
+        { players, markets, picks, config },
         playerId,
         page,
         leaderboard,
@@ -225,10 +232,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         ...result.picks
       ]);
       setLeaderboard(result.leaderboard);
+      if (result.config) setConfig(result.config);
       setCurrentPlayerIdState(result.player.id);
       return { isUpdate: result.isUpdate, playerId: result.player.id, pickStats: result.player.pickStats };
     },
-    [apiSync, players, markets, picks, leaderboard, applyResponse]
+    [apiSync, players, markets, picks, config, leaderboard, applyResponse]
   );
 
   const requireAdminToken = () => {
@@ -244,11 +252,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return;
       }
       const { updateMarketWinner } = await import("@/lib/local-store");
-      const result = updateMarketWinner(marketId, winner, { players, markets, picks });
+      const result = updateMarketWinner(marketId, winner, { players, markets, picks, config });
       setMarkets(result.markets);
       setLeaderboard(result.leaderboard);
     },
-    [apiSync, players, markets, picks, applyResponse]
+    [apiSync, players, markets, picks, config, applyResponse]
   );
 
   const deletePlayer = useCallback(
@@ -261,6 +269,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const result = deletePlayerLocal(playerId, { players, markets, picks, config });
       setPlayers(result.players);
       setPicks(result.picks);
+      setConfig(result.config);
+      setLeaderboard(result.leaderboard);
+    },
+    [apiSync, players, markets, picks, config, applyResponse]
+  );
+
+  const setPlayerInGroup = useCallback(
+    async (playerId: string, inGroupPlayer: boolean) => {
+      if (apiSync) {
+        applyResponse(await patchPlayerInGroupApi(requireAdminToken(), playerId, inGroupPlayer));
+        return;
+      }
+      const { setPlayerInGroup: setLocal } = await import("@/lib/local-store");
+      const result = setLocal(playerId, inGroupPlayer, { players, markets, picks, config });
+      setPlayers(result.players);
       setLeaderboard(result.leaderboard);
     },
     [apiSync, players, markets, picks, config, applyResponse]
@@ -279,11 +302,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return;
       }
       const { setPageLocked } = await import("@/lib/local-store");
-      const result = setPageLocked(page, !currentlyLocked, { players, markets, picks, config, leaderboard });
+      const result = setPageLocked(page, !currentlyLocked, { players, markets, picks, config });
       setConfig(result.config);
       setLeaderboard(result.leaderboard);
     },
-    [apiSync, config, players, markets, picks, leaderboard, applyResponse]
+    [apiSync, config, players, markets, picks, applyResponse]
   );
 
   const setPublicFeature = useCallback(
@@ -306,8 +329,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
 
   const refreshScores = useCallback(() => {
-    const lb = recalculateLeaderboard({ players, markets, picks, config });
-    setLeaderboard(lb);
+    const rebuilt = recalculateLeaderboardWithConfig({ players, markets, picks, config });
+    setLeaderboard(rebuilt.leaderboard);
+    if (rebuilt.configChanged) setConfig(rebuilt.config);
   }, [players, markets, picks, config]);
 
   const refreshFromCloud = useCallback(async () => {
@@ -358,6 +382,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       submitPicks,
       setMarketWinner,
       deletePlayer,
+      setPlayerInGroup,
       togglePageLocked,
       setPublicFeature,
       refreshScores,
@@ -377,6 +402,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       submitPicks,
       setMarketWinner,
       deletePlayer,
+      setPlayerInGroup,
       togglePageLocked,
       setPublicFeature,
       refreshScores,

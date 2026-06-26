@@ -6,7 +6,8 @@ import {
 } from "@/data/markets";
 import type { PickStats } from "@/types";
 
-export const PENALTY_PER_MISSING_PICK = 10; // $10 per missing required pick
+export const PENALTY_PER_MISSING_PICK = 10; // $10 per missing required pick (1/16 + 1/8)
+export const PENALTY_PAGE3_PER_MISSING_PICK = 20; // $20 per missing required pick (1/4+)
 
 /**
  * 1/16 + 1/8：再猜多少题才能同时满足各页下限与合计 16 题（取最小值，不重复罚分）。
@@ -36,5 +37,5 @@ export function countMissingPage3Picks(stats: PickStats, promoted: boolean): num
 }
 
 export function calculatePage3PickPenalty(stats: PickStats, promoted: boolean): number {
-  return countMissingPage3Picks(stats, promoted) * PENALTY_PER_MISSING_PICK;
+  return countMissingPage3Picks(stats, promoted) * PENALTY_PAGE3_PER_MISSING_PICK;
 }

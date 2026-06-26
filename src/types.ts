@@ -12,6 +12,8 @@ export interface Player {
   name: string;
   createdAt: string;
   pickStats: PickStats;
+  /** 管理员标注：群内玩家（不影响规则与计分） */
+  inGroupPlayer?: boolean;
   /** 管理员生成：1/16、1/8 未答满扣收益（美元） */
   pickPenalty?: number;
   /** 管理员生成：1/4 决赛及以后未答满扣收益（美元，仅晋级区） */
@@ -61,6 +63,12 @@ export interface GameConfig {
   phase12EarningsDeductionsApplied: boolean;
   /** 管理员已开启 1/4+ 扣收益 */
   page3EarningsDeductionsApplied: boolean;
+  /** 1/4 决赛及以后页面锁定后定格晋级名单的时间（UTC ISO） */
+  promotionLockedAt: string | null;
+  /** 定格时晋级玩家 id（前 2/3，按当时 netEarnings 降序） */
+  promotedPlayerIds: string[] | null;
+  /** 定格时淘汰玩家 id（后 1/3，按当时 netEarnings 降序，名次不再与晋级区交叉） */
+  eliminatedPlayerIds: string[] | null;
 }
 
 export interface LeaderboardEntry {

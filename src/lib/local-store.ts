@@ -2,9 +2,10 @@ import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicks
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
+import { isPlayerPromoted, migratePromotionSnapshotTiming, removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
 import { calculatePhase12PickPenalty, calculatePage3PickPenalty } from "@/lib/pick-penalty";
-import { isPlayerPromoted } from "@/lib/promotion";
+import { rebuildLeaderboard } from "@/lib/leaderboard-build";
 import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, LeaderboardEntry, Market, Pick, Player, PlayerPickInput, PlayPage } from "@/types";
 import type { AnswersPageFeature } from "@/lib/public-features";
@@ -38,11 +39,27 @@ function write<T>(key: string, value: T) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function refreshLeaderboardWithConfig(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): { leaderboard: LeaderboardEntry[]; config: GameConfig; configChanged: boolean } {
+  const rebuilt = rebuildLeaderboard(players, markets, picks, config);
+  write(KEYS.leaderboard, rebuilt.leaderboard);
+  if (rebuilt.configChanged) saveConfig(rebuilt.config);
+  return rebuilt;
+}
+
 function refreshLeaderboard(
   players: Player[],
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig
 ): LeaderboardEntry[] {
+  if (config) {
+    return refreshLeaderboardWithConfig(players, markets, picks, config).leaderboard;
+  }
   const leaderboard = buildLeaderboard(players, markets, picks);
   write(KEYS.leaderboard, leaderboard);
   return leaderboard;
@@ -62,6 +79,9 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
     answersPage3OpensAt: null,
     phase12EarningsDeductionsApplied: false,
     page3EarningsDeductionsApplied: false,
+    promotionLockedAt: null,
+    promotedPlayerIds: null,
+    eliminatedPlayerIds: null,
     ...overrides
   };
 }
@@ -95,7 +115,10 @@ function normalizeConfig(raw: unknown): GameConfig {
       answersPage2OpensAt: config?.answersPage2OpensAt ?? legacyAnswersOpensAt,
       answersPage3OpensAt: config?.answersPage3OpensAt ?? null,
       phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
-      page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false
+      page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false,
+      promotionLockedAt: config?.promotionLockedAt ?? null,
+      promotedPlayerIds: config?.promotedPlayerIds ?? null,
+      eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null
     })
   ).config;
 }
@@ -174,12 +197,22 @@ export function hydrateGameState(
   }
 
   const config = normalizeConfig(snapshot.config);
-  if (persist) saveConfig(config);
+  const migratedPromotion = migratePromotionSnapshotTiming(config);
+  const rebuilt = rebuildLeaderboard(players, markets, picks, migratedPromotion.config);
+  const configChanged = migratedPromotion.changed || rebuilt.configChanged;
+  if (persist) {
+    if (configChanged) saveConfig(rebuilt.config);
+    write(KEYS.leaderboard, rebuilt.leaderboard);
+  }
 
-  const leaderboard = refreshLeaderboard(players, markets, picks);
-  if (persist) write(KEYS.leaderboard, leaderboard);
-
-  return { players, markets, picks, config, leaderboard };
+  return {
+    players,
+    markets,
+    picks,
+    config: rebuilt.config,
+    leaderboard: rebuilt.leaderboard,
+    configChanged
+  };
 }
 
 export function snapshotFromState(state: {
@@ -188,11 +221,20 @@ export function snapshotFromState(state: {
   picks: Pick[];
   config: GameConfig;
 }): GameSnapshot {
+  const hydrated = hydrateGameState(
+    {
+      players: state.players,
+      markets: state.markets,
+      picks: state.picks,
+      config: state.config
+    },
+    { persist: false }
+  );
   return {
-    players: state.players,
-    markets: state.markets,
-    picks: state.picks,
-    config: state.config
+    players: hydrated.players,
+    markets: hydrated.markets,
+    picks: hydrated.picks,
+    config: hydrated.config
   };
 }
 
@@ -273,12 +315,18 @@ function buildPicksForPlayer(playerId: string, pickInputs: PlayerPickInput[]): P
 export function savePlayerPicks(
   name: string,
   pickInputs: PlayerPickInput[],
-  state: { players: Player[]; markets: Market[]; picks: Pick[] },
+  state: { players: Player[]; markets: Market[]; picks: Pick[]; config?: GameConfig },
   playerId?: string | null,
   page?: PlayPage,
   leaderboardForPromotion?: LeaderboardEntry[],
   inviteCode?: string
-): { player: Player; picks: Pick[]; leaderboard: LeaderboardEntry[]; isUpdate: boolean } {
+): {
+  player: Player;
+  picks: Pick[];
+  leaderboard: LeaderboardEntry[];
+  config?: GameConfig;
+  isUpdate: boolean;
+} {
   const trimmedName = name.trim();
   let existing =
     (playerId ? state.players.find((p) => p.id === playerId) : undefined) ??
@@ -288,7 +336,7 @@ export function savePlayerPicks(
 
   const promotionLeaderboard =
     leaderboardForPromotion ??
-    refreshLeaderboard(state.players, state.markets, state.picks);
+    refreshLeaderboard(state.players, state.markets, state.picks, state.config);
   const effectivePlayerId = playerId ?? existing?.id ?? null;
   const finalPickInputs =
     page !== undefined
@@ -297,7 +345,8 @@ export function savePlayerPicks(
           state.markets,
           promotionLeaderboard,
           effectivePlayerId,
-          page
+          page,
+          state.config
         )
       : pickInputs;
 
@@ -324,6 +373,10 @@ export function savePlayerPicks(
     savePlayers(players);
     savePicks(picks);
     setCurrentPlayerId(player.id);
+    if (state.config) {
+      const rebuilt = refreshLeaderboardWithConfig(players, state.markets, picks, state.config);
+      return { player, picks: newPicks, leaderboard: rebuilt.leaderboard, config: rebuilt.config, isUpdate: true };
+    }
     const leaderboard = refreshLeaderboard(players, state.markets, picks);
 
     return { player, picks: newPicks, leaderboard, isUpdate: true };
@@ -348,6 +401,10 @@ export function savePlayerPicks(
   savePlayers(players);
   savePicks(picks);
   setCurrentPlayerId(player.id);
+  if (state.config) {
+    const rebuilt = refreshLeaderboardWithConfig(players, state.markets, picks, state.config);
+    return { player, picks: newPicks, leaderboard: rebuilt.leaderboard, config: rebuilt.config, isUpdate: false };
+  }
   const leaderboard = refreshLeaderboard(players, state.markets, picks);
 
   return { player, picks: newPicks, leaderboard, isUpdate: false };
@@ -370,8 +427,26 @@ export function deletePlayer(
   const picks = state.picks.filter((p) => p.playerId !== playerId);
   savePlayers(players);
   savePicks(picks);
-  const leaderboard = refreshLeaderboard(players, state.markets, picks);
-  return { players, picks, leaderboard };
+  const config = removePlayerFromPromotionSnapshot(state.config ?? defaultGameConfig(), playerId);
+  if (state.config) saveConfig(config);
+  const rebuilt = refreshLeaderboardWithConfig(players, state.markets, picks, config);
+  return { players, picks, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
+}
+
+export function setPlayerInGroup(
+  playerId: string,
+  inGroupPlayer: boolean,
+  state: { players: Player[]; markets: Market[]; picks: Pick[]; config: GameConfig }
+) {
+  if (!state.players.some((p) => p.id === playerId)) {
+    throw new Error("PLAYER_NOT_FOUND");
+  }
+  const players = state.players.map((p) =>
+    p.id === playerId ? { ...p, inGroupPlayer } : p
+  );
+  savePlayers(players);
+  const rebuilt = refreshLeaderboardWithConfig(players, state.markets, state.picks, state.config);
+  return { players, picks: state.picks, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
 }
 
 export function setPhase12EarningsDeductions(
@@ -397,8 +472,8 @@ export function setPhase12EarningsDeductions(
   const config = { ...state.config, phase12EarningsDeductionsApplied: enabled };
   savePlayers(players);
   saveConfig(config);
-  const leaderboard = refreshLeaderboard(players, state.markets, state.picks);
-  return { players, config, leaderboard };
+  const rebuilt = refreshLeaderboardWithConfig(players, state.markets, state.picks, config);
+  return { players, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
 }
 
 export function setPage3EarningsDeductions(
@@ -410,7 +485,7 @@ export function setPage3EarningsDeductions(
   },
   enabled: boolean
 ) {
-  const leaderboard = refreshLeaderboard(state.players, state.markets, state.picks);
+  const rebuilt = refreshLeaderboardWithConfig(state.players, state.markets, state.picks, state.config);
   const players = enabled
     ? state.players.map((player) => {
         const pickStats =
@@ -423,7 +498,7 @@ export function setPage3EarningsDeductions(
           ...player,
           pickPenaltyPage3: calculatePage3PickPenalty(
             pickStats,
-            isPlayerPromoted(leaderboard, player.id)
+            isPlayerPromoted(rebuilt.leaderboard, player.id, state.config)
           )
         };
       })
@@ -431,8 +506,8 @@ export function setPage3EarningsDeductions(
   const config = { ...state.config, page3EarningsDeductionsApplied: enabled };
   savePlayers(players);
   saveConfig(config);
-  const nextLeaderboard = refreshLeaderboard(players, state.markets, state.picks);
-  return { players, config, leaderboard: nextLeaderboard };
+  const next = refreshLeaderboardWithConfig(players, state.markets, state.picks, config);
+  return { players, config: next.config, leaderboard: next.leaderboard };
 }
 
 /** @deprecated Use setPhase12EarningsDeductions */
@@ -464,25 +539,29 @@ export function applyPickPenaltiesPage3(state: {
 export function updateMarketWinner(
   marketId: string,
   winner: string | null,
-  state: { players: Player[]; markets: Market[]; picks: Pick[] }
+  state: { players: Player[]; markets: Market[]; picks: Pick[]; config?: GameConfig }
 ) {
   const markets = state.markets.map((m) =>
     m.id === marketId ? { ...m, winner: winner || null } : m
   );
   saveMarkets(markets);
-  const leaderboard = refreshLeaderboard(state.players, markets, state.picks);
+  const leaderboard = refreshLeaderboard(state.players, markets, state.picks, state.config);
   return { markets, leaderboard };
 }
 
 export function setPageLocked(
   page: PlayPage,
   locked: boolean,
-  state: ReturnType<typeof loadGameState>
+  state: {
+    players: Player[];
+    markets: Market[];
+    picks: Pick[];
+    config: GameConfig;
+  }
 ) {
   const config = applyManualPageLock(state.config, page, locked);
-  saveConfig(config);
-  const leaderboard = refreshLeaderboard(state.players, state.markets, state.picks);
-  return { config, leaderboard };
+  const rebuilt = refreshLeaderboardWithConfig(state.players, state.markets, state.picks, config);
+  return { config: rebuilt.config, leaderboard: rebuilt.leaderboard };
 }
 
 export function updatePublicFeature(
@@ -513,5 +592,14 @@ export function recalculateLeaderboard(state: {
   picks: Pick[];
   config?: GameConfig;
 }) {
-  return refreshLeaderboard(state.players, state.markets, state.picks);
+  return refreshLeaderboard(state.players, state.markets, state.picks, state.config);
+}
+
+export function recalculateLeaderboardWithConfig(state: {
+  players: Player[];
+  markets: Market[];
+  picks: Pick[];
+  config: GameConfig;
+}) {
+  return refreshLeaderboardWithConfig(state.players, state.markets, state.picks, state.config);
 }

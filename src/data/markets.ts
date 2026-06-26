@@ -42,20 +42,20 @@ export const LEGACY_PAGE1_MARKET_ID_MAP: Record<string, string> = Object.fromEnt
 
 /** 原 1/16 题号 1–16 的选项（调序前）。 */
 const PAGE1_LEGACY_CANDIDATES: readonly (readonly [string, string])[] = [
-  ["德国", "A/B/C/D/F3"],
-  ["I1", "C/D/F/G/H3"],
+  ["德国", "A/C/D/F3"],
+  ["I1", "D/F/G/H3"],
   ["南非", "加拿大"],
-  ["F1", "摩洛哥"],
+  ["荷兰", "摩洛哥"],
   ["K2", "L2"],
   ["H1", "奥地利/阿尔及利亚"],
-  ["美国", "B/E/F/I/J3"],
-  ["G1", "A/E/H/I/J3"],
-  ["巴西", "F2"],
-  ["E2", "I2"],
-  ["墨西哥", "C/E/F/H/I3"],
-  ["L1", "E/H/I/J/K3"],
+  ["美国", "波黑"],
+  ["G1", "A/H/I/J3"],
+  ["巴西", "日本"],
+  ["科特迪瓦", "I2"],
+  ["墨西哥", "C/E/H3"],
+  ["L1", "E/I/J/K3"],
   ["阿根廷", "H2"],
-  ["D2", "G2"],
+  ["澳大利亚", "G2"],
   ["瑞士", "E/F/G/I/J3"],
   ["K1", "D/E/I/J/L3"]
 ] as const;
@@ -183,15 +183,13 @@ export function playMarketSectionIcon(marketId: string): PlaySectionTheme | null
   return page1SectionIcon(marketId) ?? page2SectionIcon(marketId) ?? page3SectionIcon(marketId);
 }
 export const MARKET_INLINE_HINT_KEYS: Record<string, string[]> = {
-  "m1-3": ["play.p1_3UsaBosniaNote"],
+  "m1-4": ["play.p1_4GermanyParaguayNote"],
   "m1-5": ["play.p1_8GroupStandingsG"],
-  "m1-6": ["play.p1_2GroupStandings"],
-  "m1-9": ["play.p1_9GroupStandingsF"],
-  "m1-10": ["play.p1_4GroupStandingsF"],
+  "m1-6": ["play.p1_2GroupStandings", "play.p1_6I1SwedenNote"],
   "m1-11": ["play.p1_6GroupStandingsH", "play.p1_6GroupStandingsJ"],
   "m1-12": ["play.p1_6GroupStandingsH"],
-  "m1-14": ["play.p1_14GroupStandingsD", "play.p1_8GroupStandingsG"],
-  "m1-15": ["play.p1_10GroupStandingsE", "play.p1_10GroupStandingsI"],
+  "m1-14": ["play.p1_8GroupStandingsG"],
+  "m1-15": ["play.p1_10GroupStandingsI"],
   "m1-8": ["play.p1_8GroupStandingsL", "play.p1_8L1K3Note"],
   "m1-7": ["play.p1_7GroupStandingsK", "play.p1_7K1L3Note"],
   "m1-16": ["play.p1_7GroupStandingsK", "play.p1_8GroupStandingsL"]
@@ -202,17 +200,24 @@ export const MARKET_INLINE_HINT_KEYS: Record<string, string[]> = {
  * 按题号索引对应：待填 1 = candidates[0]，以此类推。
  */
 const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
-  "m1-6": { "法国/挪威": "I1" },
+  "m1-4": { "A/B/C/D/F3": "A/C/D/F3" },
+  "m1-8": { "E/H/I/J/K3": "E/I/J/K3" },
+  "m1-1": { "C/E/F/H/I3": "C/E/H3" },
+  "m1-3": { "B/E/F/I/J3": "波黑", "B/I3": "波黑" },
+  "m1-6": { "法国/挪威": "I1", "C/D/F/G/H3": "D/F/G/H3" },
   "m1-15": { "法国/挪威": "I2" },
-  "m1-14": { "澳大利亚/巴拉圭": "D2" },
-  "m2-1": { "(法国/挪威)/CDFGH3": "I1/CDFGH3" },
-  "m2-5": { "E2/(法国/挪威)": "E2/I2" },
-  "m2-7": { "(澳大利亚/巴拉圭)/G2": "D2/G2" },
+  "m1-14": { "澳大利亚/巴拉圭": "澳大利亚", "D2": "澳大利亚" },
+  "m2-1": { "(法国/挪威)/CDFGH3": "I1/DFGH3", "I1/CDFGH3": "I1/DFGH3", "德国/ABCDF3": "德国/ACDF3" },
+  "m2-4": { "美国/BEFIJ3": "美国/波黑", "美国/BI3": "美国/波黑" },
+  "m2-6": { "墨西哥/CEFHI3": "墨西哥/CEH3", "L1/EHIJK3": "L1/EIJK3" },
+  "m2-2": { "F1/摩洛哥": "荷兰/摩洛哥" },
+  "m2-5": { "E2/(法国/挪威)": "科特迪瓦/I2", "E2/I2": "科特迪瓦/I2", "巴西/F2": "巴西/日本" },
+  "m2-7": { "(澳大利亚/巴拉圭)/G2": "澳大利亚/G2", "D2/G2": "澳大利亚/G2" },
   "m3-1": { "德国/(法国/挪威)区": "德国/I1区" },
   "m3-5": {
     "待填 1": "德国/I1区",
     "德国/(法国/挪威)区": "德国/I1区",
-    "待填 2": "F1区",
+    "待填 2": "荷兰区",
     "待填 3": "H1区",
     "待填 4": "美国/G1区"
   },
@@ -225,7 +230,7 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
   "m3-7": {
     "待填 1": "德国/I1区",
     "德国/(法国/挪威)区": "德国/I1区",
-    "待填 2": "F1区",
+    "待填 2": "荷兰区",
     "待填 3": "H1区",
     "待填 4": "美国/G1区",
     "待填 5": "巴西区",
@@ -249,10 +254,43 @@ export function renameD1InTeamName(team: string): string {
   return team;
 }
 
+/** 将旧选项名 D2、D2/… 迁移为澳大利亚/… */
+export function renameD2InTeamName(team: string): string {
+  if (team === "D2") return "澳大利亚";
+  if (team.startsWith("D2/")) return `澳大利亚/${team.slice(3)}`;
+  if (team.endsWith("/D2")) return `${team.slice(0, -3)}/澳大利亚`;
+  return team;
+}
+
 /** 将旧选项名 E1、E1/… 迁移为德国/… */
 export function renameE1InTeamName(team: string): string {
   if (team === "E1") return "德国";
   if (team.startsWith("E1/")) return `德国/${team.slice(3)}`;
+  return team;
+}
+
+/** 将旧选项名 E2、E2/… 迁移为科特迪瓦/… */
+export function renameE2InTeamName(team: string): string {
+  if (team === "E2") return "科特迪瓦";
+  if (team.startsWith("E2/")) return `科特迪瓦/${team.slice(3)}`;
+  if (team.endsWith("/E2")) return `${team.slice(0, -3)}/科特迪瓦`;
+  return team;
+}
+
+/** 将旧选项名 F1、F1/…、F1区 迁移为荷兰/… */
+export function renameF1InTeamName(team: string): string {
+  if (team === "F1") return "荷兰";
+  if (team === "F1区") return "荷兰区";
+  if (team.startsWith("F1/")) return `荷兰/${team.slice(3)}`;
+  if (team.endsWith("/F1")) return `${team.slice(0, -3)}/荷兰`;
+  return team;
+}
+
+/** 将旧选项名 F2、F2/… 迁移为日本/… */
+export function renameF2InTeamName(team: string): string {
+  if (team === "F2") return "日本";
+  if (team.startsWith("F2/")) return `日本/${team.slice(3)}`;
+  if (team.endsWith("/F2")) return `${team.slice(0, -3)}/日本`;
   return team;
 }
 
@@ -312,18 +350,76 @@ export function renameJ2InTeamName(team: string): string {
   return team;
 }
 
+/** L1 1/16 对手：E/H/I/J/K3 → E/I/J/K3；1/8 联动选项同步。 */
+export function renameL1Round1OpponentInTeamName(team: string): string {
+  return team
+    .replaceAll("E/H/I/J/K3", "E/I/J/K3")
+    .replaceAll("L1/EHIJK3", "L1/EIJK3")
+    .replaceAll("EHIJK3", "EIJK3");
+}
+
+/** I1 1/16 对手：C/D/F/G/H3 → D/F/G/H3；1/8 联动选项同步。 */
+export function renameI1Round1OpponentInTeamName(team: string): string {
+  return team
+    .replaceAll("C/D/F/G/H3", "D/F/G/H3")
+    .replaceAll("I1/CDFGH3", "I1/DFGH3")
+    .replaceAll("CDFGH3", "DFGH3");
+}
+
+/** 德国 1/16 对手：A/B/C/D/F3 → A/C/D/F3；1/8 联动选项同步。 */
+export function renameGermanyRound1OpponentInTeamName(team: string): string {
+  return team
+    .replaceAll("A/B/C/D/F3", "A/C/D/F3")
+    .replaceAll("德国/ABCDF3", "德国/ACDF3")
+    .replaceAll("ABCDF3", "ACDF3");
+}
+
+/** 墨西哥 1/16 对手：C/E/F/H/I3 → C/E/H3；1/8 联动选项同步。 */
+export function renameMexicoRound1OpponentInTeamName(team: string): string {
+  return team
+    .replaceAll("C/E/F/H/I3", "C/E/H3")
+    .replaceAll("墨西哥/CEFHI3", "墨西哥/CEH3")
+    .replaceAll("CEFHI3", "CEH3");
+}
+
+/** 美国 1/16 对手槽位 → 波黑；1/8 联动选项同步。 */
+export function renameUsaRound1OpponentInTeamName(team: string): string {
+  return team
+    .replaceAll("B/E/F/I/J3", "波黑")
+    .replaceAll("B/I3", "波黑")
+    .replaceAll("美国/BEFIJ3", "美国/波黑")
+    .replaceAll("美国/BI3", "美国/波黑")
+    .replaceAll("BEFIJ3", "波黑")
+    .replaceAll("BI3", "波黑");
+}
+
+/** 移除 E 组三号位：A/E/H/I/J3 → A/H/I/J3，AEHIJ3 → AHIJ3。 */
+export function renameAhiij3InTeamName(team: string): string {
+  return team.replaceAll("A/E/H/I/J3", "A/H/I/J3").replaceAll("AEHIJ3", "AHIJ3");
+}
+
 export function migratePickTeam(marketId: string, team: string, candidates: string[]): string {
   let mapped = LEGACY_CANDIDATE_ALIASES[marketId]?.[team] ?? team;
   mapped = renameA1InTeamName(mapped);
   mapped = renameA2InTeamName(mapped);
   mapped = renameD1InTeamName(mapped);
+  mapped = renameD2InTeamName(mapped);
   mapped = renameE1InTeamName(mapped);
+  mapped = renameE2InTeamName(mapped);
+  mapped = renameF1InTeamName(mapped);
+  mapped = renameF2InTeamName(mapped);
   mapped = renameJ1InTeamName(mapped);
   mapped = renameB1InTeamName(mapped);
   mapped = renameB2InTeamName(mapped);
   mapped = renameC1InTeamName(mapped);
   mapped = renameC2InTeamName(mapped);
   mapped = renameJ2InTeamName(mapped);
+  mapped = renameL1Round1OpponentInTeamName(mapped);
+  mapped = renameGermanyRound1OpponentInTeamName(mapped);
+  mapped = renameI1Round1OpponentInTeamName(mapped);
+  mapped = renameMexicoRound1OpponentInTeamName(mapped);
+  mapped = renameUsaRound1OpponentInTeamName(mapped);
+  mapped = renameAhiij3InTeamName(mapped);
   if (candidates.includes(mapped)) return mapped;
   if (candidates.includes(team)) return team;
   return mapped;
@@ -403,7 +499,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-1",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["德国/ABCDF3", "I1/CDFGH3"],
+    candidates: ["德国/ACDF3", "I1/DFGH3"],
     winner: null,
     page: 2
   },
@@ -411,7 +507,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-2",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["南非/加拿大", "F1/摩洛哥"],
+    candidates: ["南非/加拿大", "荷兰/摩洛哥"],
     winner: null,
     page: 2
   },
@@ -427,7 +523,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-4",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["美国/BEFIJ3", "G1/AEHIJ3"],
+    candidates: ["美国/波黑", "G1/AHIJ3"],
     winner: null,
     page: 2
   },
@@ -435,7 +531,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-5",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["巴西/F2", "E2/I2"],
+    candidates: ["巴西/日本", "科特迪瓦/I2"],
     winner: null,
     page: 2
   },
@@ -443,7 +539,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-6",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["墨西哥/CEFHI3", "L1/EHIJK3"],
+    candidates: ["墨西哥/CEH3", "L1/EIJK3"],
     winner: null,
     page: 2
   },
@@ -451,7 +547,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-7",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["阿根廷/H2", "D2/G2"],
+    candidates: ["阿根廷/H2", "澳大利亚/G2"],
     winner: null,
     page: 2
   },
@@ -469,7 +565,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-1",
     round: "M3",
     name: "第一场1/4决赛谁会晋级？",
-    candidates: ["德国/I1区", "F1区"],
+    candidates: ["德国/I1区", "荷兰区"],
     winner: null,
     page: 3
   },
@@ -501,7 +597,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-5",
     round: "M3",
     name: "第一场半决赛谁会晋级？",
-    candidates: ["德国/I1区", "F1区", "H1区", "美国/G1区"],
+    candidates: ["德国/I1区", "荷兰区", "H1区", "美国/G1区"],
     winner: null,
     page: 3
   },
@@ -519,7 +615,7 @@ export const DEFAULT_MARKETS: Market[] = [
     name: "谁能夺冠？",
     candidates: [
       "德国/I1区",
-      "F1区",
+      "荷兰区",
       "H1区",
       "美国/G1区",
       "巴西区",

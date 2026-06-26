@@ -145,6 +145,19 @@ export async function deletePlayerApi(token: string, playerId: string) {
   return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
 
+export async function patchPlayerInGroupApi(
+  token: string,
+  playerId: string,
+  inGroupPlayer: boolean
+) {
+  const response = await fetch(`/api/admin/players/${encodeURIComponent(playerId)}`, {
+    method: "PATCH",
+    headers: adminHeaders(token),
+    body: JSON.stringify({ inGroupPlayer })
+  });
+  return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
+
 export async function setPhase12EarningsDeductionsApi(token: string, enabled: boolean) {
   const response = await fetch("/api/admin/penalties", {
     method: "POST",
