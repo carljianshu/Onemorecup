@@ -53,8 +53,8 @@ export const zh = {
     rule5: "总收益排名前2/3的玩家将有机会参加1/4决赛及以后的对赌游戏，并把此前收益带入该阶段竞猜；后1/3玩家被淘汰。世界杯决赛后，总收益最高的玩家获胜。"
   },
   scoringRules: {
-    linkLabel: "投注积分计算",
-    title: "投注积分计算",
+    linkLabel: "投注本金计算",
+    title: "投注本金计算",
     suffix: "。",
     s1Title: "1. 对赌规则",
     s1Body:

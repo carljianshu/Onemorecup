@@ -55,8 +55,8 @@ export const en: Messages = {
     rule5: "The top two-thirds by total earnings advance to quarter-finals and later parimutuel rounds and carry those earnings into that stage; the bottom third are eliminated. After the World Cup final, the player with the highest total earnings wins."
   },
   scoringRules: {
-    linkLabel: "stake scoring",
-    title: "Stake scoring",
+    linkLabel: "stake calculation",
+    title: "Stake calculation",
     suffix: ".",
     s1Title: "1. Parimutuel rules",
     s1Body:

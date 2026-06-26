@@ -17,6 +17,8 @@ import {
   type Locale,
   type TranslationValues
 } from "@/i18n";
+import { writeLocaleCookies } from "@/lib/locale-cookies";
+import { isLocale } from "@/lib/locale-detect";
 import type { PlayPage } from "@/types";
 
 const STORAGE_KEY = "onemorecup:locale";
@@ -32,26 +34,33 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-function readStoredLocale(): Locale {
-  if (typeof window === "undefined") return "zh";
+function readStoredLocale(): Locale | null {
+  if (typeof window === "undefined") return null;
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === "en" ? "en" : "zh";
+  return isLocale(stored) ? stored : null;
 }
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  // 首屏固定 zh，与 SSR 一致；挂载后再读 localStorage，避免 hydration mismatch。
-  const [locale, setLocaleState] = useState<Locale>("zh");
+export function LocaleProvider({
+  children,
+  initialLocale = "zh"
+}: {
+  children: ReactNode;
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
     const stored = readStoredLocale();
-    setLocaleState(stored);
-    document.documentElement.lang = stored === "zh" ? "zh-CN" : "en";
-  }, []);
+    const next = stored ?? initialLocale;
+    setLocaleState(next);
+    document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
+  }, [initialLocale]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
     window.localStorage.setItem(STORAGE_KEY, next);
+    writeLocaleCookies(next, true);
   }, []);
 
   const t = useCallback(

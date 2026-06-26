@@ -4,10 +4,17 @@ import { GameProvider } from "@/context/GameContext";
 import { LocaleProvider } from "@/context/LocaleContext";
 import { DocumentTitle } from "@/components/DocumentTitle";
 import { SiteHeader } from "@/components/SiteHeader";
+import type { Locale } from "@/i18n";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  initialLocale
+}: {
+  children: React.ReactNode;
+  initialLocale: Locale;
+}) {
   return (
-    <LocaleProvider>
+    <LocaleProvider initialLocale={initialLocale}>
       <GameProvider>
         <DocumentTitle />
         <SiteHeader />
