@@ -1,6 +1,6 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
-import { defaultAnswersPageSchedule, migrateAnswersPageSchedule } from "@/lib/public-features";
+import { defaultAnswersPageSchedule, migrateAnswersPageSchedule, migrateAnswersScheduleOpenApplied, patchAnswersPageSchedule } from "@/lib/public-features";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { isPlayerPromoted, migratePromotionSnapshotTiming, removePlayerFromPromotionSnapshot } from "@/lib/promotion";
@@ -94,9 +94,10 @@ function normalizeConfig(raw: unknown): GameConfig {
   const legacyAnswersPublic = config?.answersPublic ?? false;
   const legacyAnswersOpensAt = config?.answersOpensAt ?? null;
   const answersDefaults = defaultAnswersPageSchedule();
-  return migrateAnswersPageSchedule(
-    migratePageLockSchedule(
-      defaultGameConfig({
+  return migrateAnswersScheduleOpenApplied(
+    migrateAnswersPageSchedule(
+      migratePageLockSchedule(
+        defaultGameConfig({
         page1Locked: config?.page1Locked ?? false,
         page2Locked: config?.page2Locked ?? false,
         page3Locked: config?.page3Locked ?? false,
@@ -114,6 +115,12 @@ function normalizeConfig(raw: unknown): GameConfig {
         answersPage2OpensAt:
           config?.answersPage2OpensAt ?? legacyAnswersOpensAt ?? answersDefaults.answersPage2OpensAt,
         answersPage3OpensAt: config?.answersPage3OpensAt ?? answersDefaults.answersPage3OpensAt,
+        answersPage1ScheduleOpenApplied:
+          config?.answersPage1ScheduleOpenApplied ?? answersDefaults.answersPage1ScheduleOpenApplied,
+        answersPage2ScheduleOpenApplied:
+          config?.answersPage2ScheduleOpenApplied ?? answersDefaults.answersPage2ScheduleOpenApplied,
+        answersPage3ScheduleOpenApplied:
+          config?.answersPage3ScheduleOpenApplied ?? answersDefaults.answersPage3ScheduleOpenApplied,
         phase12EarningsDeductionsApplied: config?.phase12EarningsDeductionsApplied ?? false,
         page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false,
         promotionLockedAt: config?.promotionLockedAt ?? null,
@@ -121,6 +128,7 @@ function normalizeConfig(raw: unknown): GameConfig {
         eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null
       })
     ).config
+  ).config
   ).config;
 }
 
@@ -164,10 +172,18 @@ export function migrateStoredAnswers(snapshot: GameSnapshot): {
 
 export function loadGameState() {
   const rawPlayers = read<Player[]>(KEYS.players, []);
-  let markets = read<Market[] | null>(KEYS.markets, null);
-  let picks = normalizePicks(read<Pick[]>(KEYS.picks, []));
-  const config = normalizeConfig(read<unknown>(KEYS.config, null));
-  return hydrateGameState({ players: rawPlayers, markets, picks, config }, { persist: true });
+  const markets = read<Market[] | null>(KEYS.markets, null);
+  const picks = normalizePicks(read<Pick[]>(KEYS.picks, []));
+  const storedConfig = read<Partial<GameConfig> | null>(KEYS.config, null);
+  return hydrateGameState(
+    {
+      players: rawPlayers,
+      markets,
+      picks,
+      config: { ...defaultGameConfig(), ...storedConfig }
+    },
+    { persist: true }
+  );
 }
 
 export interface GameSnapshot {
@@ -197,10 +213,24 @@ export function hydrateGameState(
     savePlayers(players);
   }
 
-  const config = normalizeConfig(snapshot.config);
-  const migratedPromotion = migratePromotionSnapshotTiming(config);
+  const normalizedConfig = normalizeConfig(snapshot.config);
+  const migratedPromotion = migratePromotionSnapshotTiming(normalizedConfig);
   const rebuilt = rebuildLeaderboard(players, markets, picks, migratedPromotion.config);
-  const configChanged = migratedPromotion.changed || rebuilt.configChanged;
+  const normalizedScheduleChanged =
+    snapshot.config.page1LocksAt !== normalizedConfig.page1LocksAt ||
+    snapshot.config.page2LocksAt !== normalizedConfig.page2LocksAt ||
+    snapshot.config.page3LocksAt !== normalizedConfig.page3LocksAt ||
+    snapshot.config.answersPage1OpensAt !== normalizedConfig.answersPage1OpensAt ||
+    snapshot.config.answersPage2OpensAt !== normalizedConfig.answersPage2OpensAt ||
+    snapshot.config.answersPage3OpensAt !== normalizedConfig.answersPage3OpensAt ||
+    snapshot.config.answersPage1ScheduleOpenApplied !==
+      normalizedConfig.answersPage1ScheduleOpenApplied ||
+    snapshot.config.answersPage2ScheduleOpenApplied !==
+      normalizedConfig.answersPage2ScheduleOpenApplied ||
+    snapshot.config.answersPage3ScheduleOpenApplied !==
+      normalizedConfig.answersPage3ScheduleOpenApplied;
+  const configChanged =
+    normalizedScheduleChanged || migratedPromotion.changed || rebuilt.configChanged;
   if (persist) {
     if (configChanged) saveConfig(rebuilt.config);
     write(KEYS.leaderboard, rebuilt.leaderboard);
@@ -570,19 +600,7 @@ export function updatePublicFeature(
   patch: { public?: boolean; opensAt?: string | null },
   state: { config: GameConfig }
 ) {
-  const config = { ...state.config };
-
-  if (feature === "answersPage1") {
-    if (patch.public !== undefined) config.answersPage1Public = patch.public;
-    if (patch.opensAt !== undefined) config.answersPage1OpensAt = patch.opensAt;
-  } else if (feature === "answersPage2") {
-    if (patch.public !== undefined) config.answersPage2Public = patch.public;
-    if (patch.opensAt !== undefined) config.answersPage2OpensAt = patch.opensAt;
-  } else {
-    if (patch.public !== undefined) config.answersPage3Public = patch.public;
-    if (patch.opensAt !== undefined) config.answersPage3OpensAt = patch.opensAt;
-  }
-
+  const config = patchAnswersPageSchedule(state.config, feature, patch);
   saveConfig(config);
   return { config };
 }

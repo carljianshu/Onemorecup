@@ -49,16 +49,20 @@ export interface GameConfig {
   page1LockOverridden: boolean;
   page2LockOverridden: boolean;
   page3LockOverridden: boolean;
-  /** 管理员手动开放后，玩家可见答题总览第一页 */
+  /** 管理员可手动开关；到达 opensAt 后若仍关闭会自动打开（每轮计划仅一次） */
   answersPage1Public: boolean;
-  /** 管理员手动开放后，玩家可见答题总览第二页 */
+  /** 管理员可手动开关；到达 opensAt 后若仍关闭会自动打开（每轮计划仅一次） */
   answersPage2Public: boolean;
-  /** 管理员手动开放后，玩家可见答题总览第三页 */
+  /** 管理员可手动开关；到达 opensAt 后若仍关闭会自动打开（每轮计划仅一次） */
   answersPage3Public: boolean;
   /** 可选：第一页最早可开放/展示时间（ISO） */
   answersPage1OpensAt: string | null;
   answersPage2OpensAt: string | null;
   answersPage3OpensAt: string | null;
+  /** 该页预设开放时间已触发过自动开放（避免管理员关闭后再次自动打开） */
+  answersPage1ScheduleOpenApplied: boolean;
+  answersPage2ScheduleOpenApplied: boolean;
+  answersPage3ScheduleOpenApplied: boolean;
   /** 管理员已开启 1/16·1/8 扣收益 */
   phase12EarningsDeductionsApplied: boolean;
   /** 管理员已开启 1/4+ 扣收益 */

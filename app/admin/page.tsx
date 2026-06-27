@@ -16,7 +16,6 @@ import {
 } from "@/lib/page-lock";
 import { answersFeatureLabelKey, translateMarketCandidate, translateMarketName } from "@/i18n";
 import {
-  canAdminEnableFeature,
   fromDatetimeLocalValue,
   isAnswersFeaturePublic,
   toDatetimeLocalValue
@@ -61,7 +60,6 @@ function PublicFeatureControl({
       : feature === "answersPage2"
         ? config.answersPage2OpensAt
         : config.answersPage3OpensAt;
-  const canEnable = canAdminEnableFeature(config, feature);
   const visible = isAnswersFeaturePublic(config, feature);
 
   function handleOpensAtChange(value: string) {
@@ -70,17 +68,6 @@ function PublicFeatureControl({
   }
 
   function handleToggle() {
-    if (!enabled && !canEnable) {
-      const formatted = opensAt ? formatOpensAt(opensAt) : null;
-      onMessage({
-        type: "warning",
-        text: t("admin.cannotOpenYet", {
-          time: formatted ? `（${formatted}）` : "",
-          label
-        })
-      });
-      return;
-    }
     setPublicFeature(feature, { public: !enabled });
     onMessage({
       type: "success",
@@ -108,16 +95,20 @@ function PublicFeatureControl({
           onChange={(e) => handleOpensAtChange(e.target.value)}
         />
       </label>
-      {opensAt && !canEnable && (
+      {opensAt && !visible && enabled && (
         <p className="public-feature-hint">
-          {t("admin.opensAtHint", { time: formatOpensAt(opensAt) ?? "" })}
+          {t("admin.opensAtPlayerHint", { time: formatOpensAt(opensAt) ?? "" })}
+        </p>
+      )}
+      {opensAt && !enabled && (
+        <p className="public-feature-hint">
+          {t("admin.opensAtAutoOpenHint", { time: formatOpensAt(opensAt) ?? "" })}
         </p>
       )}
       <button
         type="button"
         className={`btn btn-sm ${enabled ? "btn-secondary" : "btn-primary"}`}
         onClick={handleToggle}
-        disabled={!enabled && !canEnable}
       >
         {enabled ? t("admin.closeFeature", { label }) : t("admin.openFeature", { label })}
       </button>

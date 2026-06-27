@@ -2,15 +2,15 @@ import type { GameConfig, PlayPage } from "@/types";
 
 /** 各页默认自动锁定时间（UTC ISO）。 */
 export const DEFAULT_PAGE_LOCKS_AT: Record<PlayPage, string> = {
-  1: "2026-06-28T19:00:00.000Z",
+  1: "2026-06-29T17:00:00.000Z",
   2: "2026-07-04T17:00:00.000Z",
   3: "2026-07-09T20:00:00.000Z"
 };
 
 /** 历史默认截止时间；线上 config 若仍为这些值且未被管理员手动解锁，会自动迁移到 {@link DEFAULT_PAGE_LOCKS_AT}。 */
 const STALE_PAGE_LOCKS_AT: Record<PlayPage, readonly string[]> = {
-  1: ["2026-06-18T15:00:00.000Z", "2026-06-28T17:30:00.000Z"],
-  2: ["2026-07-04T15:30:00.000Z"],
+  1: ["2026-06-18T15:00:00.000Z", "2026-06-28T17:30:00.000Z", "2026-06-28T19:00:00.000Z"],
+  2: ["2026-07-04T15:30:00.000Z", "2026-06-19T13:00:00.000Z"],
   3: ["2026-07-09T18:30:00.000Z"]
 };
 
@@ -23,8 +23,6 @@ export function migratePageLockSchedule(config: GameConfig): {
 
   (([1, 2, 3] as const) satisfies PlayPage[]).forEach((page) => {
     const fields = lockFields(page);
-    if (config[fields.overridden]) return;
-
     const current = config[fields.locksAt];
     const target = DEFAULT_PAGE_LOCKS_AT[page];
     if (!current || current === target) return;

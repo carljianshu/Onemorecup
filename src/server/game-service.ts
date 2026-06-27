@@ -11,14 +11,16 @@ import {
   updatePublicFeature,
   type GameSnapshot
 } from "@/lib/local-store";
+import { mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { migratePickInputsForMarkets } from "@/data/markets";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
+import { applyLockedMarketPickPreservation } from "@/lib/market-lock";
 import { validatePageSave } from "@/lib/pick-stats";
 import { mutateStoredGame, readStoredGame, readStoredVersion, getStorageBackend } from "@/server/storage";
-import { migrateAnswersPageSchedule, type AnswersPageFeature } from "@/lib/public-features";
+import { migrateAnswersPageSchedule, migrateAnswersScheduleOpenApplied, type AnswersPageFeature } from "@/lib/public-features";
 import type { GameConfig, LeaderboardEntry, PlayerPickInput, PlayPage } from "@/types";
 
 export interface LeaderboardResponse {
@@ -51,17 +53,30 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
   const migratedAnswersSchedule = migrateAnswersPageSchedule(
     migratedLocks.changed ? migratedLocks.config : stored.payload.config
   );
-  if (migratedAnswers.changed || migratedLocks.changed || migratedAnswersSchedule.changed) {
+  const configBeforeScheduleApplied = migratedAnswersSchedule.changed
+    ? migratedAnswersSchedule.config
+    : migratedLocks.changed
+      ? migratedLocks.config
+      : stored.payload.config;
+  const migratedScheduleApplied = migrateAnswersScheduleOpenApplied(configBeforeScheduleApplied);
+  if (
+    migratedAnswers.changed ||
+    migratedLocks.changed ||
+    migratedAnswersSchedule.changed ||
+    migratedScheduleApplied.changed
+  ) {
     stored = await mutateStoredGame(
       (current) => ({
         ...current.payload,
         markets: migratedAnswers.changed ? migratedAnswers.markets : current.payload.markets,
         picks: migratedAnswers.changed ? migratedAnswers.picks : current.payload.picks,
-        config: migratedAnswersSchedule.changed
-          ? migratedAnswersSchedule.config
-          : migratedLocks.changed
-            ? migratedLocks.config
-            : current.payload.config
+        config: migratedScheduleApplied.changed
+          ? migratedScheduleApplied.config
+          : migratedAnswersSchedule.changed
+            ? migratedAnswersSchedule.config
+            : migratedLocks.changed
+              ? migratedLocks.config
+              : current.payload.config
       }),
       stored.version
     );
@@ -122,9 +137,22 @@ export async function registerPlayer(
     const state = hydrateGameState(current.payload, { persist: false });
     assertPageUnlocked(state.config, body.page);
 
+    const pagePickInputs = applyLockedMarketPickPreservation(
+      body.page,
+      body.pagePickInputs,
+      state.markets,
+      body.playerId ?? null,
+      state.picks
+    );
     const pickInputs = migratePickInputsForMarkets(
       applyPromotionToSave(
-        body.pickInputs,
+        mergePickInputsForPageSave(
+          body.page,
+          pagePickInputs,
+          state.markets,
+          body.playerId ?? null,
+          state.picks
+        ),
         state.markets,
         state.leaderboard,
         body.playerId ?? null,
@@ -133,7 +161,7 @@ export async function registerPlayer(
       ),
       state.markets
     );
-    validatePlayerSave(body.page, pickInputs, body.pagePickInputs, state.markets);
+    validatePlayerSave(body.page, pickInputs, pagePickInputs, state.markets);
     assertInviteCodeForRegistration(
       body.name,
       body.playerId ?? null,

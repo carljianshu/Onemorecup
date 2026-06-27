@@ -20,6 +20,9 @@ import {
   MIN_PAGE3_SEQUOIA_PICKS,
   MIN_TOTAL_PICKS,
   isPageLocked,
+  isMarketLocked,
+  marketLocksAt,
+  applyLockedMarketPickPreservation,
   marketsForPage,
   minPicksForPage,
   pageLocksAt,
@@ -49,7 +52,8 @@ function buildPickInputsForPage(
   for (const market of markets) {
     if (market.page !== page) continue;
 
-    if (locked && editingPlayerId) {
+    const marketLocked = isMarketLocked(market.id);
+    if ((locked || marketLocked) && editingPlayerId) {
       const existing = picks.find(
         (p) => p.playerId === editingPlayerId && p.marketId === market.id
       );
@@ -85,6 +89,7 @@ export default function PlayPage() {
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success" | "warning"; text: string } | null>(null);
+  const [scheduleTick, setScheduleTick] = useState(0);
   const bottomMessageRef = useRef<HTMLDivElement>(null);
   const selectionsDirtyRef = useRef(false);
   const prevPlayerIdRef = useRef<string | null>(null);
@@ -97,6 +102,12 @@ export default function PlayPage() {
   const page3Promoted = isPlayerPromoted(leaderboard, activePlayerId, config);
   const pageInputBlocked = pageLocked || (step === 3 && !page3Promoted);
   const promotionCutoff = promotionCutoffCount(leaderboard.length);
+  void scheduleTick;
+
+  useEffect(() => {
+    const id = window.setInterval(() => setScheduleTick((tick) => tick + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!ready || markets.length === 0) return;
@@ -173,16 +184,16 @@ export default function PlayPage() {
     setMessage(null);
   }
 
-  function renderDoubleButton(doubleId: string, enabled: boolean, hint: string) {
+  function renderDoubleButton(doubleId: string, enabled: boolean, hint: string, blocked = false) {
     const isOn = doubles[doubleId] ?? false;
-    const blocked = pageInputBlocked || !enabled;
+    const disabled = blocked || pageInputBlocked || !enabled;
 
     return (
       <button
         type="button"
         className={`team-btn double ${isOn ? "selected" : ""}`}
         onClick={() => toggleDouble(doubleId)}
-        disabled={blocked}
+        disabled={disabled}
         title={enabled ? t("play.doubleTitle") : hint}
       >
         {t("common.double")}
@@ -226,12 +237,18 @@ export default function PlayPage() {
       return;
     }
 
-    const pageInputs = buildPickInputsForPage(
+    const pageInputs = applyLockedMarketPickPreservation(
       step,
+      buildPickInputsForPage(
+        step,
+        markets,
+        selections,
+        doubles,
+        config,
+        editingPlayerId,
+        picks
+      ),
       markets,
-      selections,
-      doubles,
-      config,
       editingPlayerId,
       picks
     );
@@ -484,6 +501,9 @@ export default function PlayPage() {
       {pageMarkets.map((market) => {
         const sectionIcon = playMarketSectionIcon(market.id);
         const sectionTheme = playSectionTheme(market.id);
+        const marketLocked = isMarketLocked(market.id);
+        const marketInputBlocked = pageInputBlocked || marketLocked;
+        const hasEarlyLock = Boolean(marketLocksAt(market.id));
         return (
         <Fragment key={market.id}>
           {PLAY_SECTION_LABEL_KEYS[market.id] && sectionTheme ? (
@@ -523,7 +543,21 @@ export default function PlayPage() {
                 )}
               </span>
             ) : null}
-            {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
+            <span className="item-card-heading-text">
+              {market.id.toUpperCase()}：{translateMarketName(locale, market.name)}
+            </span>
+            {hasEarlyLock ? (
+              <span
+                className={`page-deadline-banner page-deadline-banner--inline${marketLocked ? " page-deadline-banner--locked" : ""}`}
+                role="note"
+              >
+                {t(
+                  marketLocked
+                    ? "play.m1_9SouthAfricaCanadaLockedNote"
+                    : "play.m1_9SouthAfricaCanadaLockNote"
+                )}
+              </span>
+            ) : null}
           </h3>
           <p className="prompt">{t("play.pleaseChoose")}</p>
           <div className="team-options">
@@ -533,7 +567,7 @@ export default function PlayPage() {
                 type="button"
                 className={`team-btn ${selections[market.id] === team ? "selected" : ""}`}
                 onClick={() => selectAnswer(market.id, team)}
-                disabled={pageInputBlocked}
+                disabled={marketInputBlocked}
               >
                 {formatPlayMarketCandidate(locale, team)}
               </button>
@@ -542,7 +576,7 @@ export default function PlayPage() {
               type="button"
               className={`team-btn skip ${selections[market.id] === null ? "selected" : ""}`}
               onClick={() => selectAnswer(market.id, null)}
-              disabled={pageInputBlocked}
+              disabled={marketInputBlocked}
             >
               {t("common.skip")}
             </button>
@@ -550,7 +584,8 @@ export default function PlayPage() {
               {renderDoubleButton(
                 market.id,
                 selections[market.id] !== null,
-                t("play.doubleNeedAnswer")
+                t("play.doubleNeedAnswer"),
+                marketInputBlocked
               )}
               {MARKET_INLINE_HINT_KEYS[market.id] ? (
                 <span className="market-inline-hints">

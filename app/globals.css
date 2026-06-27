@@ -313,8 +313,13 @@ a {
   margin: 0 0 0.25rem;
   font-size: 1.1rem;
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+}
+
+.item-card-heading-text {
+  flex: 0 1 auto;
 }
 
 .page1-market-icon {
@@ -1050,6 +1055,22 @@ th {
   letter-spacing: 0.02em;
   box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15) inset;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.page-deadline-banner--inline {
+  display: inline-block;
+  margin: 0;
+  padding: 0.3rem 0.7rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.page-deadline-banner--inline.page-deadline-banner--locked {
+  border-color: rgba(239, 68, 68, 0.55);
+  color: #fecaca;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15) inset;
 }
 
 .play-distribution-note {

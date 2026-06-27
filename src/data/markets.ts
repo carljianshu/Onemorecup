@@ -889,6 +889,13 @@ export function marketsForPage(markets: Market[], page: PlayPage) {
 }
 
 export { isPageLocked, pageLocksAt, formatPageLockUtc, formatPageDeadlineDisplay } from "@/lib/page-lock";
+export {
+  isMarketLocked,
+  marketLocksAt,
+  formatMarketLockDeadlineDisplay,
+  applyLockedMarketPickPreservation,
+  MARKET_LOCKS_AT
+} from "@/lib/market-lock";
 
 function defaultMarketById(id: string) {
   return DEFAULT_MARKETS.find((m) => m.id === id);
