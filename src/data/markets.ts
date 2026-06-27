@@ -51,22 +51,22 @@ export const LEGACY_PAGE1_MARKET_ID_MAP: Record<string, string> = Object.fromEnt
 
 /** 原 1/16 题号 1–16 的选项（调序前）。 */
 const PAGE1_LEGACY_CANDIDATES: readonly (readonly [string, string])[] = [
-  ["德国", "C/D/F3"],
-  ["法国", "F/G3"],
+  ["德国", "巴拉圭"],
+  ["法国", "瑞典"],
   ["南非", "加拿大"],
   ["荷兰", "摩洛哥"],
   ["K2", "L2"],
-  ["H1", "奥地利/阿尔及利亚"],
+  ["西班牙", "奥地利/阿尔及利亚"],
   ["美国", "波黑"],
-  ["G1", "A/H/I/J3"],
+  ["比利时", "韩国/塞内加尔/J3"],
   ["巴西", "日本"],
   ["科特迪瓦", "挪威"],
-  ["墨西哥", "C/E/H3"],
-  ["L1", "E/I/J/K3"],
-  ["阿根廷", "H2"],
-  ["澳大利亚", "G2"],
-  ["瑞士", "E/G/I/J3"],
-  ["K1", "D/E/I/L3"]
+  ["墨西哥", "苏格兰/厄瓜多尔"],
+  ["L1", "塞内加尔/J3/K3"],
+  ["阿根廷", "佛得角"],
+  ["澳大利亚", "埃及"],
+  ["瑞士", "伊朗/J3"],
+  ["K1", "厄瓜多尔/塞内加尔/L3"]
 ] as const;
 
 function buildPage1Markets(): Market[] {
@@ -193,14 +193,11 @@ export function playMarketSectionIcon(marketId: string): PlaySectionTheme | null
 }
 export const MARKET_INLINE_HINT_KEYS: Record<string, string[]> = {
   "m1-1": ["play.p1_1MexicoEcuadorNote"],
-  "m1-4": ["play.p1_4GermanyParaguayNote"],
-  "m1-5": ["play.p1_8GroupStandingsG", "play.p1_5G1KoreaNote"],
-  "m1-6": ["play.p1_6I1SwedenNote"],
-  "m1-12": ["play.p1_6GroupStandingsH", "play.p1_6GroupStandingsJ"],
-  "m1-13": ["play.p1_6GroupStandingsH"],
-  "m1-14": ["play.p1_8GroupStandingsG"],
-  "m1-8": ["play.p1_8GroupStandingsL", "play.p1_8L1K3Note"],
-  "m1-7": ["play.p1_7GroupStandingsK", "play.p1_7K1L3Note"],
+  "m1-2": ["play.p1_6GroupStandingsJ", "play.p1_2SwitzerlandIranNote"],
+  "m1-5": ["play.p1_6GroupStandingsJ", "play.p1_5G1KoreaNote"],
+  "m1-12": ["play.p1_6GroupStandingsJ"],
+  "m1-8": ["play.p1_6GroupStandingsJ", "play.p1_8GroupStandingsL", "play.p1_8L1K3Note"],
+  "m1-7": ["play.p1_7GroupStandingsK", "play.p1_8GroupStandingsL", "play.p1_7K1L3Note"],
   "m1-16": ["play.p1_7GroupStandingsK", "play.p1_8GroupStandingsL"]
 };
 
@@ -209,38 +206,101 @@ export const MARKET_INLINE_HINT_KEYS: Record<string, string[]> = {
  * 按题号索引对应：待填 1 = candidates[0]，以此类推。
  */
 const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
-  "m1-2": { "E/F/G/I/J3": "E/G/I/J3" },
-  "m1-4": { "A/B/C/D/F3": "C/D/F3", "A/C/D/F3": "C/D/F3", "D/F3": "C/D/F3" },
-  "m1-7": { "D/E/I/J/L3": "D/E/I/L3" },
-  "m1-8": { "E/H/I/J/K3": "E/I/J/K3" },
-  "m1-1": { "C/E/F/H/I3": "C/E/H3" },
-  "m1-3": { "B/E/F/I/J3": "波黑", "B/I3": "波黑" },
-  "m1-6": { "法国/挪威": "法国", "I1": "法国", "C/D/F/G/H3": "F/G3", "D/F/G/H3": "F/G3", "D/F/G3": "F/G3" },
-  "m1-15": { "法国/挪威": "挪威", "I2": "挪威" },
-  "m1-14": { "澳大利亚/巴拉圭": "澳大利亚", "D2": "澳大利亚" },
-  "m2-1": {
-    "(法国/挪威)/CDFGH3": "法国/FG3",
-    "I1/CDFGH3": "法国/FG3",
-    "I1/DFGH3": "法国/FG3",
-    "法国/DFG3": "法国/FG3",
-    "德国/ABCDF3": "德国/CDF3",
-    "德国/ACDF3": "德国/CDF3",
-    "德国/DF3": "德国/CDF3"
+  "m1-2": { "E/F/G/I/J3": "伊朗/J3", "E/G/I/J3": "伊朗/J3" },
+  "m1-4": {
+    "A/B/C/D/F3": "巴拉圭",
+    "A/C/D/F3": "巴拉圭",
+    "C/D/F3": "巴拉圭",
+    "D/F3": "巴拉圭"
   },
-  "m2-4": { "美国/BEFIJ3": "美国/波黑", "美国/BI3": "美国/波黑" },
-  "m2-6": { "墨西哥/CEFHI3": "墨西哥/CEH3", "L1/EHIJK3": "L1/EIJK3" },
+  "m1-12": { "H1": "西班牙" },
+  "m1-13": { "H2": "佛得角" },
+  "m1-7": {
+    "D/E/I/J/L3": "厄瓜多尔/塞内加尔/L3",
+    "D/E/I/L3": "厄瓜多尔/塞内加尔/L3",
+    "E/I/L3": "厄瓜多尔/塞内加尔/L3"
+  },
+  "m1-5": {
+    "G1": "比利时",
+    "A/E/H/I/J3": "韩国/塞内加尔/J3",
+    "A/H/I/J3": "韩国/塞内加尔/J3",
+    "A/I/J3": "韩国/塞内加尔/J3",
+    "韩国/I3/J3": "韩国/塞内加尔/J3"
+  },
+  "m1-8": {
+    "E/H/I/J/K3": "塞内加尔/J3/K3",
+    "E/I/J/K3": "塞内加尔/J3/K3",
+    "I/J/K3": "塞内加尔/J3/K3"
+  },
+  "m1-1": { "C/E/F/H/I3": "苏格兰/厄瓜多尔", "C/E/H3": "苏格兰/厄瓜多尔" },
+  "m1-3": { "B/E/F/I/J3": "波黑", "B/I3": "波黑" },
+  "m1-6": {
+    "法国/挪威": "法国",
+    "I1": "法国",
+    "C/D/F/G/H3": "瑞典",
+    "D/F/G/H3": "瑞典",
+    "D/F/G3": "瑞典",
+    "F/G3": "瑞典"
+  },
+  "m1-15": { "法国/挪威": "挪威", "I2": "挪威" },
+  "m1-14": { "G2": "埃及", "澳大利亚/巴拉圭": "澳大利亚", "D2": "澳大利亚" },
+  "m2-1": {
+    "(法国/挪威)/CDFGH3": "法国/瑞典",
+    "I1/CDFGH3": "法国/瑞典",
+    "I1/DFGH3": "法国/瑞典",
+    "法国/DFG3": "法国/瑞典",
+    "法国/FG3": "法国/瑞典",
+    "德国/ABCDF3": "德国/巴拉圭",
+    "德国/ACDF3": "德国/巴拉圭",
+    "德国/CDF3": "德国/巴拉圭",
+    "德国/DF3": "德国/巴拉圭"
+  },
+  "m2-3": { "H1/(奥地利/阿尔及利亚)": "西班牙/(奥地利/阿尔及利亚)" },
+  "m2-4": {
+    "美国/BEFIJ3": "美国/波黑",
+    "美国/BI3": "美国/波黑",
+    "G1/AEHIJ3": "比利时/(韩国/塞内加尔/J3)",
+    "G1/AHIJ3": "比利时/(韩国/塞内加尔/J3)",
+    "G1/AIJ3": "比利时/(韩国/塞内加尔/J3)",
+    "比利时/AIJ3": "比利时/(韩国/塞内加尔/J3)",
+    "比利时/(韩国/I3/J3)": "比利时/(韩国/塞内加尔/J3)"
+  },
+  "m2-6": {
+    "墨西哥/CEFHI3": "墨西哥/(苏格兰/厄瓜多尔)",
+    "墨西哥/CEH3": "墨西哥/(苏格兰/厄瓜多尔)",
+    "L1/EHIJK3": "L1/(塞内加尔/J3/K3)",
+    "L1/EIJK3": "L1/(塞内加尔/J3/K3)",
+    "L1/IJK3": "L1/(塞内加尔/J3/K3)"
+  },
   "m2-2": { "F1/摩洛哥": "荷兰/摩洛哥" },
   "m2-5": { "E2/(法国/挪威)": "科特迪瓦/挪威", "E2/I2": "科特迪瓦/挪威", "科特迪瓦/I2": "科特迪瓦/挪威", "巴西/F2": "巴西/日本" },
-  "m2-7": { "(澳大利亚/巴拉圭)/G2": "澳大利亚/G2", "D2/G2": "澳大利亚/G2" },
-  "m2-8": { "瑞士/EFGIJ3": "瑞士/EGIJ3", "E/F/G/I/J3": "E/G/I/J3", "K1/DEIJL3": "K1/DEIL3", "D/E/I/J/L3": "D/E/I/L3" },
-  "m3-1": { "德国/(法国/挪威)区": "德国/法国区", "德国/I1区": "德国/法国区" },
+  "m2-7": {
+    "(澳大利亚/巴拉圭)/G2": "澳大利亚/埃及",
+    "D2/G2": "澳大利亚/埃及",
+    "澳大利亚/G2": "澳大利亚/埃及",
+    "阿根廷/H2": "阿根廷/佛得角"
+  },
+  "m2-8": {
+    "瑞士/EFGIJ3": "瑞士/(伊朗/J3)",
+    "瑞士/EGIJ3": "瑞士/(伊朗/J3)",
+    "E/F/G/I/J3": "伊朗/J3",
+    "E/G/I/J3": "伊朗/J3",
+    "K1/DEIJL3": "K1/(厄瓜多尔/塞内加尔/L3)",
+    "K1/DEIL3": "K1/(厄瓜多尔/塞内加尔/L3)",
+    "K1/EIL3": "K1/(厄瓜多尔/塞内加尔/L3)",
+    "D/E/I/J/L3": "厄瓜多尔/塞内加尔/L3",
+    "D/E/I/L3": "厄瓜多尔/塞内加尔/L3",
+    "E/I/L3": "厄瓜多尔/塞内加尔/L3"
+  },
+  "m3-1": { "德国/(法国/挪威)区": "德国/法国区", "德国/I1区": "德国/法国区", "H1区": "西班牙区" },
   "m3-5": {
     "待填 1": "德国/法国区",
     "德国/(法国/挪威)区": "德国/法国区",
     "德国/I1区": "德国/法国区",
+    "H1区": "西班牙区",
     "待填 2": "荷兰区",
-    "待填 3": "H1区",
-    "待填 4": "美国/G1区"
+    "待填 3": "西班牙区",
+    "待填 4": "美国/比利时区"
   },
   "m3-6": {
     "待填 1": "巴西区",
@@ -252,9 +312,10 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "待填 1": "德国/法国区",
     "德国/(法国/挪威)区": "德国/法国区",
     "德国/I1区": "德国/法国区",
+    "H1区": "西班牙区",
     "待填 2": "荷兰区",
-    "待填 3": "H1区",
-    "待填 4": "美国/G1区",
+    "待填 3": "西班牙区",
+    "待填 4": "美国/比利时区",
     "待填 5": "巴西区",
     "待填 6": "墨西哥/L1区",
     "待填 7": "阿根廷区",
@@ -324,12 +385,15 @@ export function renameJ1InTeamName(team: string): string {
   return team;
 }
 
-/** 瑞士 1/16 对手：E/F/G/I/J3 → E/G/I/J3；1/8 联动选项同步。 */
+/** 瑞士 1/16 对手：E/F/G/I/J3、E/G/I/J3 → 伊朗/J3；1/8 联动选项同步。 */
 export function renameSwitzerlandRound1OpponentInTeamName(team: string): string {
   return team
-    .replaceAll("E/F/G/I/J3", "E/G/I/J3")
-    .replaceAll("瑞士/EFGIJ3", "瑞士/EGIJ3")
-    .replaceAll("EFGIJ3", "EGIJ3");
+    .replaceAll("E/F/G/I/J3", "伊朗/J3")
+    .replaceAll("E/G/I/J3", "伊朗/J3")
+    .replaceAll("瑞士/EFGIJ3", "瑞士/(伊朗/J3)")
+    .replaceAll("瑞士/EGIJ3", "瑞士/(伊朗/J3)")
+    .replaceAll("EFGIJ3", "伊朗J3")
+    .replaceAll("EGIJ3", "伊朗J3");
 }
 
 /** 将旧选项名 B1、B1/…、B1区 迁移为瑞士/… */
@@ -380,39 +444,72 @@ export function renameJ2InTeamName(team: string): string {
   return team;
 }
 
-/** L1 1/16 对手：E/H/I/J/K3 → E/I/J/K3；1/8 联动选项同步。 */
+/** L1 1/16 对手 → 塞内加尔/J3/K3；1/8 联动选项加括号。 */
 export function renameL1Round1OpponentInTeamName(team: string): string {
   return team
-    .replaceAll("E/H/I/J/K3", "E/I/J/K3")
-    .replaceAll("L1/EHIJK3", "L1/EIJK3")
-    .replaceAll("EHIJK3", "EIJK3");
+    .replaceAll("E/H/I/J/K3", "塞内加尔/J3/K3")
+    .replaceAll("E/I/J/K3", "塞内加尔/J3/K3")
+    .replaceAll("I/J/K3", "塞内加尔/J3/K3")
+    .replaceAll("L1/EHIJK3", "L1/(塞内加尔/J3/K3)")
+    .replaceAll("L1/EIJK3", "L1/(塞内加尔/J3/K3)")
+    .replaceAll("L1/IJK3", "L1/(塞内加尔/J3/K3)")
+    .replaceAll("EHIJK3", "塞内加尔J3K3")
+    .replaceAll("EIJK3", "塞内加尔J3K3")
+    .replaceAll("IJK3", "塞内加尔J3K3");
 }
 
-/** K1 1/16 对手：D/E/I/J/L3 → D/E/I/L3；1/8 联动选项同步。 */
+/** K1 1/16 对手 → 厄瓜多尔/塞内加尔/L3；1/8 联动选项加括号。 */
 export function renameK1Round1OpponentInTeamName(team: string): string {
   return team
-    .replaceAll("D/E/I/J/L3", "D/E/I/L3")
-    .replaceAll("K1/DEIJL3", "K1/DEIL3")
-    .replaceAll("DEIJL3", "DEIL3");
+    .replaceAll("D/E/I/J/L3", "厄瓜多尔/塞内加尔/L3")
+    .replaceAll("D/E/I/L3", "厄瓜多尔/塞内加尔/L3")
+    .replaceAll("E/I/L3", "厄瓜多尔/塞内加尔/L3")
+    .replaceAll("K1/DEIJL3", "K1/(厄瓜多尔/塞内加尔/L3)")
+    .replaceAll("K1/DEIL3", "K1/(厄瓜多尔/塞内加尔/L3)")
+    .replaceAll("K1/EIL3", "K1/(厄瓜多尔/塞内加尔/L3)")
+    .replaceAll("DEIJL3", "厄瓜多尔塞内加尔L3")
+    .replaceAll("DEIL3", "厄瓜多尔塞内加尔L3")
+    .replaceAll("EIL3", "厄瓜多尔塞内加尔L3");
 }
 
-/** 法国 1/16 对手：C/D/F/G/H3、D/F/G/H3、D/F/G3 → F/G3；1/8 联动选项同步。 */
+/** 将旧选项名 H1、H1/…、H1区 迁移为西班牙/… */
+export function renameH1InTeamName(team: string): string {
+  if (team === "H1") return "西班牙";
+  if (team === "H1区") return "西班牙区";
+  if (team.includes("H1区")) return team.replaceAll("H1区", "西班牙区");
+  if (team.startsWith("H1/")) return `西班牙/${team.slice(3)}`;
+  if (team.endsWith("/H1")) return `${team.slice(0, -3)}/西班牙`;
+  return team;
+}
+
+/** 将旧选项名 H2、H2/… 迁移为佛得角/… */
+export function renameH2InTeamName(team: string): string {
+  if (team === "H2") return "佛得角";
+  if (team.startsWith("H2/")) return `佛得角/${team.slice(3)}`;
+  if (team.endsWith("/H2")) return `${team.slice(0, -3)}/佛得角`;
+  return team;
+}
+
+/** 法国 1/16 对手：C/D/F/G/H3、D/F/G/H3、D/F/G3、F/G3 → 瑞典；1/8 联动选项同步。 */
 export function renameI1Round1OpponentInTeamName(team: string): string {
-  const placeholder = "\u0000FG\u0000";
+  const placeholder = "\u0000SE\u0000";
   return team
-    .replaceAll("C/D/F/G/H3", "F/G3")
-    .replaceAll("D/F/G/H3", "F/G3")
-    .replaceAll("F/G3", placeholder)
-    .replaceAll("D/F/G3", "F/G3")
-    .replaceAll(placeholder, "F/G3")
-    .replaceAll("法国/CDFGH3", "法国/FG3")
-    .replaceAll("法国/DFGH3", "法国/FG3")
-    .replaceAll("法国/DFG3", "法国/FG3")
-    .replaceAll("I1/CDFGH3", "法国/FG3")
-    .replaceAll("I1/DFGH3", "法国/FG3")
-    .replaceAll("CDFGH3", "FG3")
-    .replaceAll("DFGH3", "FG3")
-    .replaceAll("DFG3", "FG3");
+    .replaceAll("瑞典", placeholder)
+    .replaceAll("C/D/F/G/H3", "瑞典")
+    .replaceAll("D/F/G/H3", "瑞典")
+    .replaceAll("D/F/G3", "瑞典")
+    .replaceAll("F/G3", "瑞典")
+    .replaceAll(placeholder, "瑞典")
+    .replaceAll("法国/CDFGH3", "法国/瑞典")
+    .replaceAll("法国/DFGH3", "法国/瑞典")
+    .replaceAll("法国/DFG3", "法国/瑞典")
+    .replaceAll("法国/FG3", "法国/瑞典")
+    .replaceAll("I1/CDFGH3", "法国/瑞典")
+    .replaceAll("I1/DFGH3", "法国/瑞典")
+    .replaceAll("CDFGH3", "瑞典")
+    .replaceAll("DFGH3", "瑞典")
+    .replaceAll("DFG3", "瑞典")
+    .replaceAll("FG3", "瑞典");
 }
 
 /** 将旧选项名 I1、I1/…、I1区 迁移为法国/… */
@@ -433,28 +530,35 @@ export function renameI2InTeamName(team: string): string {
   return team;
 }
 
-/** 德国 1/16 对手：A/B/C/D/F3、A/C/D/F3、D/F3 → C/D/F3；1/8 联动选项同步。 */
+/** 德国 1/16 对手：A/B/C/D/F3、A/C/D/F3、C/D/F3、D/F3 → 巴拉圭；1/8 联动选项同步。 */
 export function renameGermanyRound1OpponentInTeamName(team: string): string {
-  const placeholder = "\u0000CDF\u0000";
+  const placeholder = "\u0000PY\u0000";
   return team
-    .replaceAll("A/B/C/D/F3", "C/D/F3")
-    .replaceAll("A/C/D/F3", "C/D/F3")
-    .replaceAll("C/D/F3", placeholder)
-    .replaceAll("D/F3", "C/D/F3")
-    .replaceAll(placeholder, "C/D/F3")
-    .replaceAll("德国/ABCDF3", "德国/CDF3")
-    .replaceAll("德国/ACDF3", "德国/CDF3")
-    .replaceAll("德国/DF3", "德国/CDF3")
-    .replaceAll("ABCDF3", "CDF3")
-    .replaceAll("ACDF3", "CDF3");
+    .replaceAll("巴拉圭", placeholder)
+    .replaceAll("A/B/C/D/F3", "巴拉圭")
+    .replaceAll("A/C/D/F3", "巴拉圭")
+    .replaceAll("C/D/F3", "巴拉圭")
+    .replaceAll("D/F3", "巴拉圭")
+    .replaceAll(placeholder, "巴拉圭")
+    .replaceAll("德国/ABCDF3", "德国/巴拉圭")
+    .replaceAll("德国/ACDF3", "德国/巴拉圭")
+    .replaceAll("德国/CDF3", "德国/巴拉圭")
+    .replaceAll("德国/DF3", "德国/巴拉圭")
+    .replaceAll("ABCDF3", "巴拉圭")
+    .replaceAll("ACDF3", "巴拉圭")
+    .replaceAll("CDF3", "巴拉圭")
+    .replaceAll("DF3", "巴拉圭");
 }
 
-/** 墨西哥 1/16 对手：C/E/F/H/I3 → C/E/H3；1/8 联动选项同步。 */
+/** 墨西哥 1/16 对手：C/E/F/H/I3、C/E/H3 → 苏格兰/厄瓜多尔；1/8 联动选项加括号便于阅读。 */
 export function renameMexicoRound1OpponentInTeamName(team: string): string {
   return team
-    .replaceAll("C/E/F/H/I3", "C/E/H3")
-    .replaceAll("墨西哥/CEFHI3", "墨西哥/CEH3")
-    .replaceAll("CEFHI3", "CEH3");
+    .replaceAll("C/E/F/H/I3", "苏格兰/厄瓜多尔")
+    .replaceAll("C/E/H3", "苏格兰/厄瓜多尔")
+    .replaceAll("墨西哥/CEFHI3", "墨西哥/(苏格兰/厄瓜多尔)")
+    .replaceAll("墨西哥/CEH3", "墨西哥/(苏格兰/厄瓜多尔)")
+    .replaceAll("CEFHI3", "苏格兰/厄瓜多尔")
+    .replaceAll("CEH3", "苏格兰/厄瓜多尔");
 }
 
 /** 美国 1/16 对手槽位 → 波黑；1/8 联动选项同步。 */
@@ -468,9 +572,40 @@ export function renameUsaRound1OpponentInTeamName(team: string): string {
     .replaceAll("BI3", "波黑");
 }
 
-/** 移除 E 组三号位：A/E/H/I/J3 → A/H/I/J3，AEHIJ3 → AHIJ3。 */
-export function renameAhiij3InTeamName(team: string): string {
-  return team.replaceAll("A/E/H/I/J3", "A/H/I/J3").replaceAll("AEHIJ3", "AHIJ3");
+/** 比利时 1/16 对手 → 韩国/塞内加尔/J3；1/8 联动选项加括号。 */
+export function renameG1Round1OpponentInTeamName(team: string): string {
+  return team
+    .replaceAll("A/E/H/I/J3", "韩国/塞内加尔/J3")
+    .replaceAll("A/H/I/J3", "韩国/塞内加尔/J3")
+    .replaceAll("A/I/J3", "韩国/塞内加尔/J3")
+    .replaceAll("韩国/I3/J3", "韩国/塞内加尔/J3")
+    .replaceAll("G1/AEHIJ3", "比利时/(韩国/塞内加尔/J3)")
+    .replaceAll("G1/AHIJ3", "比利时/(韩国/塞内加尔/J3)")
+    .replaceAll("G1/AIJ3", "比利时/(韩国/塞内加尔/J3)")
+    .replaceAll("比利时/AIJ3", "比利时/(韩国/塞内加尔/J3)")
+    .replaceAll("比利时/(韩国/I3/J3)", "比利时/(韩国/塞内加尔/J3)")
+    .replaceAll("AEHIJ3", "韩国塞内加尔J3")
+    .replaceAll("AHIJ3", "韩国塞内加尔J3")
+    .replaceAll("AIJ3", "韩国塞内加尔J3")
+    .replaceAll("韩国I3J3", "韩国塞内加尔J3");
+}
+
+/** 将旧选项名 G1、G1/…、G1区 迁移为比利时/… */
+export function renameG1InTeamName(team: string): string {
+  if (team === "G1") return "比利时";
+  if (team === "G1区") return "比利时区";
+  if (team.includes("G1区")) return team.replaceAll("G1区", "比利时区");
+  if (team.startsWith("G1/")) return `比利时/${team.slice(3)}`;
+  if (team.endsWith("/G1")) return `${team.slice(0, -3)}/比利时`;
+  return team;
+}
+
+/** 将旧选项名 G2、G2/… 迁移为埃及/… */
+export function renameG2InTeamName(team: string): string {
+  if (team === "G2") return "埃及";
+  if (team.startsWith("G2/")) return `埃及/${team.slice(3)}`;
+  if (team.endsWith("/G2")) return `${team.slice(0, -3)}/埃及`;
+  return team;
 }
 
 export function migratePickTeam(marketId: string, team: string, candidates: string[]): string {
@@ -490,6 +625,8 @@ export function migratePickTeam(marketId: string, team: string, candidates: stri
   mapped = renameC1InTeamName(mapped);
   mapped = renameC2InTeamName(mapped);
   mapped = renameJ2InTeamName(mapped);
+  mapped = renameH1InTeamName(mapped);
+  mapped = renameH2InTeamName(mapped);
   mapped = renameL1Round1OpponentInTeamName(mapped);
   mapped = renameK1Round1OpponentInTeamName(mapped);
   mapped = renameGermanyRound1OpponentInTeamName(mapped);
@@ -498,7 +635,9 @@ export function migratePickTeam(marketId: string, team: string, candidates: stri
   mapped = renameI2InTeamName(mapped);
   mapped = renameMexicoRound1OpponentInTeamName(mapped);
   mapped = renameUsaRound1OpponentInTeamName(mapped);
-  mapped = renameAhiij3InTeamName(mapped);
+  mapped = renameG1Round1OpponentInTeamName(mapped);
+  mapped = renameG1InTeamName(mapped);
+  mapped = renameG2InTeamName(mapped);
   if (candidates.includes(mapped)) return mapped;
   if (candidates.includes(team)) return team;
   return mapped;
@@ -591,7 +730,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-1",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["德国/CDF3", "法国/FG3"],
+    candidates: ["德国/巴拉圭", "法国/瑞典"],
     winner: null,
     page: 2
   },
@@ -607,7 +746,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-3",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["K2/L2", "H1/(奥地利/阿尔及利亚)"],
+    candidates: ["K2/L2", "西班牙/(奥地利/阿尔及利亚)"],
     winner: null,
     page: 2
   },
@@ -615,7 +754,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-4",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["美国/波黑", "G1/AHIJ3"],
+    candidates: ["美国/波黑", "比利时/(韩国/塞内加尔/J3)"],
     winner: null,
     page: 2
   },
@@ -631,7 +770,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-6",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["墨西哥/CEH3", "L1/EIJK3"],
+    candidates: ["墨西哥/(苏格兰/厄瓜多尔)", "L1/(塞内加尔/J3/K3)"],
     winner: null,
     page: 2
   },
@@ -639,7 +778,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-7",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["阿根廷/H2", "澳大利亚/G2"],
+    candidates: ["阿根廷/佛得角", "澳大利亚/埃及"],
     winner: null,
     page: 2
   },
@@ -647,7 +786,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m2-8",
     round: "M2",
     name: "谁会晋级？",
-    candidates: ["瑞士/EGIJ3", "K1/DEIL3"],
+    candidates: ["瑞士/(伊朗/J3)", "K1/(厄瓜多尔/塞内加尔/L3)"],
     winner: null,
     page: 2
   },
@@ -665,7 +804,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-2",
     round: "M3",
     name: "第二场1/4决赛谁会晋级？",
-    candidates: ["H1区", "美国/G1区"],
+    candidates: ["西班牙区", "美国/比利时区"],
     winner: null,
     page: 3
   },
@@ -689,7 +828,7 @@ export const DEFAULT_MARKETS: Market[] = [
     id: "m3-5",
     round: "M3",
     name: "第一场半决赛谁会晋级？",
-    candidates: ["德国/法国区", "荷兰区", "H1区", "美国/G1区"],
+    candidates: ["德国/法国区", "荷兰区", "西班牙区", "美国/比利时区"],
     winner: null,
     page: 3
   },
@@ -708,8 +847,8 @@ export const DEFAULT_MARKETS: Market[] = [
     candidates: [
       "德国/法国区",
       "荷兰区",
-      "H1区",
-      "美国/G1区",
+      "西班牙区",
+      "美国/比利时区",
       "巴西区",
       "墨西哥/L1区",
       "阿根廷区",

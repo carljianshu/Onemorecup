@@ -102,12 +102,23 @@ export function translateMarketCandidate(locale: Locale, candidate: string) {
     .replaceAll("阿根廷", "Argentina")
     .replaceAll("法国", "France")
     .replaceAll("挪威", "Norway")
+    .replaceAll("西班牙", "Spain")
+    .replaceAll("佛得角", "Cape Verde")
+    .replaceAll("巴拉圭", "Paraguay")
+    .replaceAll("瑞典", "Sweden")
     .replaceAll("瑞士", "Switzerland")
     .replaceAll("加拿大", "Canada")
     .replaceAll("巴西", "Brazil")
     .replaceAll("摩洛哥", "Morocco")
     .replaceAll("奥地利", "Austria")
-    .replaceAll("阿尔及利亚", "Algeria");
+    .replaceAll("阿尔及利亚", "Algeria")
+    .replaceAll("苏格兰", "Scotland")
+    .replaceAll("厄瓜多尔", "Ecuador")
+    .replaceAll("比利时", "Belgium")
+    .replaceAll("埃及", "Egypt")
+    .replaceAll("伊朗", "Iran")
+    .replaceAll("韩国", "South Korea")
+    .replaceAll("塞内加尔", "Senegal");
   const tbd = translated.match(/^待填\s*(\d+)$/);
   if (tbd) return `TBD ${tbd[1]}`;
   if (translated.endsWith("区")) return `${translated.slice(0, -1)} bracket`;
@@ -126,6 +137,10 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
     波黑: "🇧🇦",
     法国: "🇫🇷",
     挪威: "🇳🇴",
+    西班牙: "🇪🇸",
+    佛得角: "🇨🇻",
+    巴拉圭: "🇵🇾",
+    瑞典: "🇸🇪",
     美国: "🇺🇸",
     澳大利亚: "🇦🇺",
     瑞士: "🇨🇭",
@@ -133,7 +148,14 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
     巴西: "🇧🇷",
     摩洛哥: "🇲🇦",
     奥地利: "🇦🇹",
-    阿尔及利亚: "🇩🇿"
+    阿尔及利亚: "🇩🇿",
+    苏格兰: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    厄瓜多尔: "🇪🇨",
+    比利时: "🇧🇪",
+    埃及: "🇪🇬",
+    伊朗: "🇮🇷",
+    韩国: "🇰🇷",
+    塞内加尔: "🇸🇳"
   },
   en: {
     Argentina: "🇦🇷",
@@ -146,6 +168,10 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
     Bosnia: "🇧🇦",
     France: "🇫🇷",
     Norway: "🇳🇴",
+    Spain: "🇪🇸",
+    "Cape Verde": "🇨🇻",
+    Paraguay: "🇵🇾",
+    Sweden: "🇸🇪",
     USA: "🇺🇸",
     Australia: "🇦🇺",
     Switzerland: "🇨🇭",
@@ -153,7 +179,14 @@ const PLAY_CANDIDATE_COUNTRY_FLAGS: Record<Locale, Record<string, string>> = {
     Brazil: "🇧🇷",
     Morocco: "🇲🇦",
     Austria: "🇦🇹",
-    Algeria: "🇩🇿"
+    Algeria: "🇩🇿",
+    Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    Ecuador: "🇪🇨",
+    Belgium: "🇧🇪",
+    Egypt: "🇪🇬",
+    Iran: "🇮🇷",
+    "South Korea": "🇰🇷",
+    Senegal: "🇸🇳"
   }
 };
 
