@@ -129,6 +129,14 @@ export function GameProvider({ children }: {
     useEffect(() => {
         if (!ready)
             return;
+        if (currentPlayerId && !players.some((player) => player.id === currentPlayerId)) {
+            setCurrentPlayerId(null);
+            setCurrentPlayerIdState(null);
+        }
+    }, [ready, players, currentPlayerId]);
+    useEffect(() => {
+        if (!ready)
+            return;
         const id = window.setInterval(() => setLockTick((tick) => tick + 1), 30000);
         return () => clearInterval(id);
     }, [ready]);

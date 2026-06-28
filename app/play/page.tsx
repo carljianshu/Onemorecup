@@ -10,7 +10,7 @@ import { translateMarketName, formatPlayMarketCandidate } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, findPlayerPick, initSelectionMap, isPickTeamValidForMarket, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
-import { isValidInviteCode } from "@/lib/invite-code";
+import { isValidInviteCode, findKnownPlayer } from "@/lib/invite-code";
 import { isPlayerPromoted, promotionCutoffCount } from "@/lib/promotion";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
 function buildPickInputsForPage(page: PlayPage, markets: Market[], selections: Record<string, string | null>, doubles: Record<string, boolean>, config: GameConfig, editingPlayerId: string | null, picks: Pick[]): PlayerPickInput[] {
@@ -61,11 +61,12 @@ export default function PlayPage() {
     const bottomMessageRef = useRef<HTMLDivElement>(null);
     const selectionsDirtyRef = useRef(false);
     const prevPlayerIdRef = useRef<string | null>(null);
-    const isEditing = Boolean(editingPlayerId);
+    const activePlayer = findKnownPlayer(players, editingPlayerId ?? currentPlayerId, name);
+    const activePlayerId = activePlayer?.id ?? null;
+    const isEditing = Boolean(activePlayer);
     const pageMarkets = useMemo(() => marketsForPage(markets, step), [markets, step]);
     const pageLocked = isPageLocked(config, step);
     const pageDeadline = formatDeadline(pageLocksAt(config, step));
-    const activePlayerId = editingPlayerId ?? currentPlayerId;
     const page3Promoted = isPlayerPromoted(leaderboard, activePlayerId, config);
     const pageInputBlocked = pageLocked || (step === 3 && !page3Promoted);
     const promotionCutoff = promotionCutoffCount(leaderboard.length);
@@ -87,17 +88,19 @@ export default function PlayPage() {
         const initialDoubles: Record<string, boolean> = {};
         if (currentPlayerId) {
             const player = players.find((p) => p.id === currentPlayerId);
-            const playerPicks = picks.filter((pick) => pick.playerId === currentPlayerId);
             if (player) {
                 setName(player.name);
                 setEditingPlayerId(currentPlayerId);
-                for (const pick of playerPicks) {
+                for (const pick of picks.filter((pick) => pick.playerId === currentPlayerId)) {
                     if (pick.marketId in initial) {
                         initial[pick.marketId] = pick.team;
                         if (pick.stake === DOUBLE_STAKE)
                             initialDoubles[pick.marketId] = true;
                     }
                 }
+            }
+            else {
+                setEditingPlayerId(null);
             }
         }
         setSelections(initial);
@@ -148,7 +151,7 @@ export default function PlayPage() {
       </button>);
     }
     function needsInviteCode() {
-        if (activePlayerId)
+        if (activePlayer)
             return false;
         const trimmed = name.trim();
         if (!trimmed)
@@ -181,8 +184,8 @@ export default function PlayPage() {
             });
             return;
         }
-        const pageInputs = applyLockedMarketPickPreservation(step, buildPickInputsForPage(step, markets, selections, doubles, config, editingPlayerId, picks), markets, editingPlayerId, picks);
-        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(step, pageInputs, markets, editingPlayerId, picks), markets);
+        const pageInputs = applyLockedMarketPickPreservation(step, buildPickInputsForPage(step, markets, selections, doubles, config, activePlayerId, picks), markets, activePlayerId, picks);
+        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(step, pageInputs, markets, activePlayerId, picks), markets);
         const validationError = validatePageSave(step, pickInputs, markets, pageInputs);
         if (validationError) {
             setMessage({ type: "error", text: translatePageSaveError(t, validationError) });
@@ -191,7 +194,7 @@ export default function PlayPage() {
         setSubmitting(true);
         setMessage(null);
         try {
-            const { playerId, pickStats: savedStats } = await submitPicks(name.trim(), pickInputs, editingPlayerId, step, pageInputs, needsInviteCode() ? inviteCode : undefined);
+            const { playerId, pickStats: savedStats } = await submitPicks(name.trim(), pickInputs, activePlayerId, step, pageInputs, needsInviteCode() ? inviteCode : undefined);
             setEditingPlayerId(playerId);
             selectionsDirtyRef.current = false;
             const successText = step === 1

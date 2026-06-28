@@ -1,7 +1,7 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { defaultAnswersPageSchedule, migrateAnswersPageSchedule, migrateAnswersScheduleOpenApplied, patchAnswersPageSchedule } from "@/lib/public-features";
-import { assertInviteCodeForRegistration } from "@/lib/invite-code";
+import { assertInviteCodeForRegistration, findKnownPlayer } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { isPlayerPromoted, migratePromotionSnapshotTiming, removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
@@ -323,12 +323,11 @@ export function savePlayerPicks(name: string, pickInputs: PlayerPickInput[], sta
     isUpdate: boolean;
 } {
     const trimmedName = name.trim();
-    let existing = (playerId ? state.players.find((p) => p.id === playerId) : undefined) ??
-        state.players.find((p) => p.name.toLowerCase() === trimmedName.toLowerCase());
+    const existing = findKnownPlayer(state.players, playerId ?? null, trimmedName);
     assertInviteCodeForRegistration(trimmedName, playerId, state.players, inviteCode);
     const promotionLeaderboard = leaderboardForPromotion ??
         refreshLeaderboard(state.players, state.markets, state.picks, state.config);
-    const effectivePlayerId = playerId ?? existing?.id ?? null;
+    const effectivePlayerId = existing?.id ?? null;
     const finalPickInputs = page !== undefined
         ? applyPromotionToSave(pickInputs, state.markets, promotionLeaderboard, effectivePlayerId, page, state.config)
         : pickInputs;
