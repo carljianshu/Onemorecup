@@ -24,7 +24,7 @@ export function localeFromAcceptLanguage(header: string | null | undefined): Loc
   return "en";
 }
 
-function readCountryHeader(headers: Headers): string | null {
+export function readCountryHeader(headers: Headers): string | null {
   return (
     headers.get("x-nf-country") ||
     headers.get("x-country") ||

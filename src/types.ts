@@ -63,6 +63,8 @@ export interface GameConfig {
   answersPage1ScheduleOpenApplied: boolean;
   answersPage2ScheduleOpenApplied: boolean;
   answersPage3ScheduleOpenApplied: boolean;
+  /** 管理员提前公布 M1-1 答题总览与单场竞猜结果（不受 1/16 总览开放时间限制） */
+  answersM1_1Public: boolean;
   /** 管理员已开启 1/16·1/8 扣收益 */
   phase12EarningsDeductionsApplied: boolean;
   /** 管理员已开启 1/4+ 扣收益 */

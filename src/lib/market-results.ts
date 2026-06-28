@@ -62,12 +62,12 @@ export function buildMarketResultSections(
   markets: Market[],
   picks: Pick[],
   players: Player[],
-  visiblePages: PlayPage[],
+  publicMarketIds: Set<string>,
   locale: Locale = "zh"
 ): MarketResultSection[] {
   const playerById = new Map(players.map((p) => [p.id, p]));
   const unknownPlayer = translate(locale, "common.unknownPlayer");
-  const columns = allPickColumns(markets).filter((col) => visiblePages.includes(col.page));
+  const columns = allPickColumns(markets).filter((col) => publicMarketIds.has(col.id));
 
   return columns.map((col) => {
     const candidates = candidatesForColumn(markets, col);

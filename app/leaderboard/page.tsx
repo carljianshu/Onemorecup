@@ -7,6 +7,7 @@ import { formatEarningsDeduction, formatScore } from "@/lib/score-format";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_TOTAL_PICKS } from "@/data/markets";
+import { displayM1MarketColumnLabel } from "@/lib/fifa-codes";
 import { promotionCutoffCount, showPromotionCutoffLine } from "@/lib/promotion";
 
 function scoreClass(score: number) {
@@ -17,7 +18,7 @@ function scoreClass(score: number) {
 
 export default function LeaderboardPage() {
   const { ready, markets, leaderboard } = useGame();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (!ready) {
@@ -103,9 +104,15 @@ export default function LeaderboardPage() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 1rem" }}>
                           {markets.map((market) => {
                             const score = entry.marketScores[market.id];
+                            const label = displayM1MarketColumnLabel(
+                              market.id,
+                              market.candidates,
+                              locale,
+                              market.id
+                            );
                             return (
                               <span key={market.id} className={scoreClass(score ?? 0)}>
-                                {market.id}: {formatScore(score)}
+                                {label}: {formatScore(score)}
                               </span>
                             );
                           })}

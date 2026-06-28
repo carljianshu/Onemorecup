@@ -8,13 +8,15 @@ import type { Locale } from "@/i18n";
 
 export function Providers({
   children,
-  initialLocale
+  initialLocale,
+  initialInferredTimezone = null
 }: {
   children: React.ReactNode;
   initialLocale: Locale;
+  initialInferredTimezone?: string | null;
 }) {
   return (
-    <LocaleProvider initialLocale={initialLocale}>
+    <LocaleProvider initialLocale={initialLocale} initialInferredTimezone={initialInferredTimezone}>
       <GameProvider>
         <DocumentTitle />
         <SiteHeader />
