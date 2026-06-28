@@ -136,6 +136,12 @@ function normalizePicks(picks: Pick[]): Pick[] {
     })
         .filter((p): p is Pick => p !== null);
 }
+function pickSnapshotKey(picks: Pick[]): string {
+    return [...picks]
+        .sort((a, b) => `${a.playerId}:${a.marketId}`.localeCompare(`${b.playerId}:${b.marketId}`))
+        .map((pick) => `${pick.playerId}|${pick.marketId}|${pick.team}|${pick.stake}`)
+        .join(";");
+}
 export function migrateStoredAnswers(snapshot: GameSnapshot): {
     markets: Market[];
     picks: Pick[];
@@ -144,7 +150,7 @@ export function migrateStoredAnswers(snapshot: GameSnapshot): {
     const markets = syncMarkets(snapshot.markets);
     const normalizedPicks = normalizePicks(snapshot.picks);
     const picks = migratePicksForMarkets(normalizedPicks, markets);
-    const picksChanged = picks.some((pick, index) => pick.team !== normalizedPicks[index]?.team);
+    const picksChanged = pickSnapshotKey(normalizedPicks) !== pickSnapshotKey(picks);
     const marketsChanged = markets.some((market) => {
         const previous = snapshot.markets?.find((item) => item.id === market.id);
         return (previous?.winner ?? null) !== (market.winner ?? null);

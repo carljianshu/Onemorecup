@@ -5,10 +5,10 @@ import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID, MARKET_INLINE_HINT_KEYS, PLAY_SECTION_LABEL_KEYS, PLAY_SECTION_NOTE_KEYS, playMarketSectionIcon, playSectionTheme, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_PAGE3_SEQUOIA_PICKS, MIN_TOTAL_PICKS, isPageLocked, isMarketLocked, marketLocksAt, applyLockedMarketPickPreservation, marketsForPage, minPicksForPage, pageLocksAt, PLAY_PAGES } from "@/data/markets";
+import { DOUBLE_STAKE, DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID, MARKET_INLINE_HINT_KEYS, PLAY_SECTION_LABEL_KEYS, PLAY_SECTION_NOTE_KEYS, playMarketSectionIcon, playSectionTheme, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_PAGE3_SEQUOIA_PICKS, MIN_TOTAL_PICKS, isPageLocked, isMarketLocked, isMarketPickFrozen, marketLocksAt, applyLockedMarketPickPreservation, marketsForPage, migratePickInputsForMarkets, minPicksForPage, pageLocksAt, PLAY_PAGES } from "@/data/markets";
 import { translateMarketName, formatPlayMarketCandidate } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
-import { doubleIdsForPage, initSelectionMap, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
+import { doubleIdsForPage, findPlayerPick, initSelectionMap, isPickTeamValidForMarket, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
 import { isValidInviteCode } from "@/lib/invite-code";
 import { isPlayerPromoted, promotionCutoffCount } from "@/lib/promotion";
@@ -19,10 +19,12 @@ function buildPickInputsForPage(page: PlayPage, markets: Market[], selections: R
     for (const market of markets) {
         if (market.page !== page)
             continue;
-        const marketLocked = isMarketLocked(market.id);
-        if ((locked || marketLocked) && editingPlayerId) {
-            const existing = picks.find((p) => p.playerId === editingPlayerId && p.marketId === market.id);
-            if (existing) {
+        const existing = editingPlayerId
+            ? picks.find((p) => p.playerId === editingPlayerId && p.marketId === market.id)
+            : undefined;
+        const marketPickFrozen = isMarketPickFrozen(market, existing);
+        if ((locked || marketPickFrozen) && editingPlayerId) {
+            if (existing && isPickTeamValidForMarket(market, existing.team)) {
                 result.push({
                     marketId: market.id,
                     team: existing.team,
@@ -180,7 +182,7 @@ export default function PlayPage() {
             return;
         }
         const pageInputs = applyLockedMarketPickPreservation(step, buildPickInputsForPage(step, markets, selections, doubles, config, editingPlayerId, picks), markets, editingPlayerId, picks);
-        const pickInputs = mergePickInputsForPageSave(step, pageInputs, markets, editingPlayerId, picks);
+        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(step, pageInputs, markets, editingPlayerId, picks), markets);
         const validationError = validatePageSave(step, pickInputs, markets, pageInputs);
         if (validationError) {
             setMessage({ type: "error", text: translatePageSaveError(t, validationError) });
@@ -359,8 +361,12 @@ export default function PlayPage() {
       {pageMarkets.map((market) => {
             const sectionIcon = playMarketSectionIcon(market.id);
             const sectionTheme = playSectionTheme(market.id);
+            const existingPick = activePlayerId
+                ? findPlayerPick(picks, activePlayerId, market.id)
+                : undefined;
             const marketLocked = isMarketLocked(market.id);
-            const marketInputBlocked = pageInputBlocked || marketLocked;
+            const marketPickFrozen = isMarketPickFrozen(market, existingPick);
+            const marketInputBlocked = pageInputBlocked || marketPickFrozen;
             const hasEarlyLock = Boolean(marketLocksAt(market.id));
             return (<Fragment key={market.id}>
           {PLAY_SECTION_LABEL_KEYS[market.id] && sectionTheme ? (<div className={`play-page1-section-label play-page1-section-label--${sectionTheme}`} role="note">

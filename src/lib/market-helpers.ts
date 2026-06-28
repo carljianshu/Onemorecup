@@ -35,6 +35,11 @@ export function findPlayerPick(picks: Pick[], playerId: string, marketId: string
   return picks.find((p) => p.playerId === playerId && p.marketId === marketId);
 }
 
+export function isPickTeamValidForMarket(market: Market | undefined, team: string): boolean {
+  if (!market) return false;
+  return (market.candidates ?? []).includes(team);
+}
+
 export function countPlayerGuessedItems(playerId: string, picks: Pick[], markets: Market[]): number {
   const marketIds = new Set(markets.map((m) => m.id));
   return picks.filter((p) => p.playerId === playerId && marketIds.has(p.marketId)).length;

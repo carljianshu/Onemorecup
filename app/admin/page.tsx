@@ -338,6 +338,8 @@ function AdminPageContent() {
         {players.length === 0 ? (<p style={{ color: "var(--muted)" }}>{t("admin.noSubmissions")}</p>) : (<table>
             <thead>
               <tr>
+                <th>{t("admin.inGroupPlayerLabel")}</th>
+                <th>{t("admin.action")}</th>
                 <th>{t("common.player")}</th>
                 <th>{t("common.page1Short")}</th>
                 <th>{t("common.page2Short")}</th>
@@ -345,12 +347,21 @@ function AdminPageContent() {
                 <th>{t("common.total")}</th>
                 {markets.map((market) => (<th key={market.id}>{market.id}</th>))}
                 <th>{t("common.score")}</th>
-                <th>{t("admin.inGroupPlayerLabel")}</th>
-                <th>{t("admin.action")}</th>
               </tr>
             </thead>
             <tbody>
               {players.map((player) => (<tr key={player.id}>
+                  <td>
+                    <label className="admin-in-group-toggle">
+                      <input type="checkbox" checked={Boolean(player.inGroupPlayer)} onChange={(e) => handleToggleInGroup(player.id, player.name, e.target.checked)}/>
+                      <span>{t("admin.inGroupPlayer")}</span>
+                    </label>
+                  </td>
+                  <td>
+                    <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeletePlayer(player.id, player.name)}>
+                      {t("common.delete")}
+                    </button>
+                  </td>
                   <td>{player.name}</td>
                   <td>
                     {player.pickStats.page1Count} / {MIN_PAGE1_PICKS}
@@ -366,17 +377,6 @@ function AdminPageContent() {
                   </td>
                   {markets.map((market) => (<td key={market.id}>{cellForMarket(market, player.id, picks, t)}</td>))}
                   <td>{scoreFor(player.id)}</td>
-                  <td>
-                    <label className="admin-in-group-toggle">
-                      <input type="checkbox" checked={Boolean(player.inGroupPlayer)} onChange={(e) => handleToggleInGroup(player.id, player.name, e.target.checked)}/>
-                      <span>{t("admin.inGroupPlayer")}</span>
-                    </label>
-                  </td>
-                  <td>
-                    <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeletePlayer(player.id, player.name)}>
-                      {t("common.delete")}
-                    </button>
-                  </td>
                 </tr>))}
             </tbody>
           </table>)}

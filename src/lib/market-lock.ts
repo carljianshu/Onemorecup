@@ -1,6 +1,16 @@
 import { DOUBLE_STAKE } from "@/data/markets";
+import { isPickTeamValidForMarket } from "@/lib/market-helpers";
 import { formatPageDeadlineDisplay } from "@/lib/page-lock";
 import type { Market, Pick, PlayerPickInput, PlayPage } from "@/types";
+
+/** 单题已锁且已有合法答案时，禁止修改；无法迁移的旧答案允许重选。 */
+export function isMarketPickFrozen(market: Market, existingPick: Pick | undefined): boolean {
+    if (!isMarketLocked(market.id))
+        return false;
+    if (!existingPick)
+        return true;
+    return isPickTeamValidForMarket(market, existingPick.team);
+}
 
 /** 单题竞猜截止时间（UTC ISO）。 */
 
@@ -30,8 +40,9 @@ export function applyLockedMarketPickPreservation(page: PlayPage, pagePickInputs
     for (const marketId of lockedIds) {
         if (!playerId)
             continue;
+        const market = markets.find((m) => m.id === marketId);
         const existing = picks.find((p) => p.playerId === playerId && p.marketId === marketId);
-        if (existing) {
+        if (existing && market && isPickTeamValidForMarket(market, existing.team)) {
             preserved.push({
                 marketId,
                 team: existing.team,

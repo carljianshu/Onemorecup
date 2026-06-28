@@ -1,3 +1,4 @@
+import { isPickTeamValidForMarket } from "@/lib/market-helpers";
 import type { Market, PlayPage, Pick, PlayerPickInput } from "@/types";
 export const PAGE1_COUNT = 16;
 export const PAGE2_COUNT = 8;
@@ -949,9 +950,23 @@ function remapLegacyPage1Pick(pick: Pick, marketById: Map<string, Market>): Pick
     }
     return normalizedPick;
 }
+function dedupePickInputsByMarket(pickInputs: PlayerPickInput[]): PlayerPickInput[] {
+    const byMarket = new Map<string, PlayerPickInput>();
+    for (const input of pickInputs) {
+        byMarket.set(input.marketId, input);
+    }
+    return [...byMarket.values()];
+}
+function dedupePicksByPlayerMarket(picks: Pick[]): Pick[] {
+    const byKey = new Map<string, Pick>();
+    for (const pick of picks) {
+        byKey.set(`${pick.playerId}:${pick.marketId}`, pick);
+    }
+    return [...byKey.values()];
+}
 export function migratePicksForMarkets(picks: Pick[], markets: Market[]): Pick[] {
     const marketById = new Map(markets.map((market) => [market.id, market]));
-    return picks.map((pick) => {
+    const migrated = picks.map((pick) => {
         const remapped = remapLegacyPage1Pick(pick, marketById);
         const market = marketById.get(remapped.marketId);
         if (!market)
@@ -961,22 +976,26 @@ export function migratePicksForMarkets(picks: Pick[], markets: Market[]): Pick[]
             return pick;
         return { ...remapped, team };
     });
+    return dedupePicksByPlayerMarket(migrated.filter((pick) => isPickTeamValidForMarket(marketById.get(pick.marketId), pick.team)));
 }
 export function migratePickInputsForMarkets(pickInputs: PlayerPickInput[], markets: Market[]): PlayerPickInput[] {
     const marketById = new Map(markets.map((market) => [market.id, market]));
-    return pickInputs.map((input) => {
+    const migrated: PlayerPickInput[] = [];
+    for (const input of pickInputs) {
         const remapped = remapLegacyPage1Pick({ playerId: "", marketId: input.marketId, team: input.team, stake: STAKE_PER_PICK }, marketById);
         const market = marketById.get(remapped.marketId);
-        if (!market) {
-            if (remapped.marketId === input.marketId)
-                return input;
-            return { ...input, marketId: remapped.marketId };
-        }
+        if (!market)
+            continue;
         const team = migratePickTeam(remapped.marketId, remapped.team, market.candidates ?? []);
-        if (team === input.team && remapped.marketId === input.marketId)
-            return input;
-        return { marketId: remapped.marketId, team };
-    });
+        if (!isPickTeamValidForMarket(market, team))
+            continue;
+        migrated.push({
+            marketId: remapped.marketId,
+            team,
+            double: input.double
+        });
+    }
+    return dedupePickInputsByMarket(migrated);
 }
 export function marketUsesDistributionAdjustment(marketId: string): boolean {
     return MULTI_OPTION_FINAL_MARKET_IDS.has(marketId);
@@ -1160,7 +1179,7 @@ export function marketsForPage(markets: Market[], page: PlayPage) {
     return markets.filter((m) => m.page === page);
 }
 export { isPageLocked, pageLocksAt, formatPageLockUtc, formatPageDeadlineDisplay } from "@/lib/page-lock";
-export { isMarketLocked, marketLocksAt, formatMarketLockDeadlineDisplay, applyLockedMarketPickPreservation, MARKET_LOCKS_AT } from "@/lib/market-lock";
+export { isMarketLocked, isMarketPickFrozen, marketLocksAt, formatMarketLockDeadlineDisplay, applyLockedMarketPickPreservation, MARKET_LOCKS_AT } from "@/lib/market-lock";
 function defaultMarketById(id: string) {
     return DEFAULT_MARKETS.find((m) => m.id === id);
 }
