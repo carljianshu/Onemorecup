@@ -44,6 +44,11 @@ export default function ScoringRulesPage() {
           body={t("scoringRules.s2Body")}
           example={t("scoringRules.s2Example")}
         />
+        <RuleBlock
+          title={t("scoringRules.s3Title")}
+          body={t("scoringRules.s3Body")}
+          example={t("scoringRules.s3Example")}
+        />
       </div>
 
       <ScoringAdjustmentTable />

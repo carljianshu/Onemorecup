@@ -147,7 +147,7 @@ export function buildStandardAdjustmentTableRows(
 }
 
 /**
- * M3-5/6/7：在被选中的选项中取人数最少者为 N，其余选项玩家数为 M；
+ * M3-5/6/7：各选项按计分位计数（Double 视为 2）；人数最少者为 N，其余合计 M；
  * 参考序列 M 个 −20、N 个 20×M/N → σ，调整系数 = σ ÷ 20；实际本金 = 20÷调整系数。
  */
 function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
@@ -156,7 +156,8 @@ function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
 } | null {
   const counts = new Map<string, number>();
   for (const pick of groupPicks) {
-    counts.set(pick.team, (counts.get(pick.team) ?? 0) + 1);
+    const weight = pick.stake === DOUBLE_STAKE ? 2 : 1;
+    counts.set(pick.team, (counts.get(pick.team) ?? 0) + weight);
   }
   if (counts.size < 2) return null;
 

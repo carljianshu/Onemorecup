@@ -21,7 +21,7 @@ export default function HomePage() {
         <ul className="rules-list">
           <li>
             {t("home.rule3")}{" "}
-            <Link className="btn btn-secondary btn-sm rules-inline-link" href="/scoring-rules">
+            <Link className="btn btn-sm rules-tab-link rules-inline-link" href="/scoring-rules">
               {t("scoringRules.linkLabel")}
             </Link>
             {t("scoringRules.suffix")}

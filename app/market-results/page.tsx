@@ -117,10 +117,8 @@ export default function MarketResultsPage() {
               {section.settled && (<div className="market-result-settled-banner">
                   {section.isVoid ? (<p className="market-result-void">{t("marketResults.voidSettled")}</p>) : (<p className="market-result-settled-meta">
                       {t("marketResults.settledMeta", {
-                                std: formatScorePlain(section.stdDev ?? 0),
                                 adjustment: formatScorePlain(section.adjustment ?? 0),
-                                stake: formatScorePlain(section.stakePerSlot ?? 0),
-                                doubleStake: formatScorePlain((section.stakePerSlot ?? 0) * 2)
+                                stake: formatScorePlain(section.stakePerSlot ?? 0)
                             })}
                     </p>)}
                 </div>)}
