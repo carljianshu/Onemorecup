@@ -7,7 +7,7 @@ import { formatScore } from "@/lib/score-format";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS } from "@/data/markets";
 import { allPickColumns, findPlayerPick } from "@/lib/market-helpers";
-import { displayM1MarketColumnLabel } from "@/lib/fifa-codes";
+import { displayM1MarketColumnLabel, formatPickTeamAsFifaCodes } from "@/lib/fifa-codes";
 import { isAnswersAnyPublic, isAnswersPagePublic, isMarketAnswersPublic } from "@/lib/public-features";
 import { translateMarketCandidate } from "@/i18n";
 import type { PlayPage } from "@/types";
@@ -172,10 +172,13 @@ export default function AnswersPage() {
                           </td>);
                         }
                         const isDouble = pick.stake === DOUBLE_STAKE;
-                        const teamLabel = translateMarketCandidate(locale, pick.team);
+                        const teamTitle = translateMarketCandidate(locale, pick.team);
+                        const teamLabel = locale === "en"
+                            ? formatPickTeamAsFifaCodes(pick.team)
+                            : teamTitle;
                         return (<td key={col.id} className={isDouble ? "pick-double" : undefined} title={isDouble
-                                ? t("answers.doubleTitle", { team: teamLabel })
-                                : teamLabel}>
+                                ? t("answers.doubleTitle", { team: teamTitle })
+                                : teamTitle}>
                           {teamLabel}
                           {isDouble && <span className="pick-double-badge">×2</span>}
                         </td>);

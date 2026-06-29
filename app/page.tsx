@@ -21,10 +21,12 @@ export default function HomePage() {
         <ul className="rules-list">
           <li>
             {t("home.rule3")}{" "}
-            <Link className="btn btn-sm rules-tab-link rules-inline-link" href="/scoring-rules">
-              {t("scoringRules.linkLabel")}
-            </Link>
-            {t("scoringRules.suffix")}
+            <span className="rules-tab-inline-wrap">
+              <Link className="btn btn-sm rules-tab-link rules-inline-link" href="/scoring-rules">
+                {t("scoringRules.linkLabel")}
+              </Link>
+              {t("scoringRules.suffix")}
+            </span>
           </li>
           <li>{t("home.rule2", rules)}</li>
           <li>{t("home.rule4")}</li>

@@ -146,9 +146,24 @@ a {
   content: " →";
 }
 
+.rules-inline-link.rules-tab-link {
+  padding: 0.35rem 0.58rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.rules-inline-link.rules-tab-link::after {
+  content: " ›";
+  font-size: 0.9em;
+}
+
+.rules-tab-inline-wrap {
+  white-space: nowrap;
+}
+
 .rules-inline-link {
   vertical-align: middle;
-  margin: 0 0.15rem;
+  margin: 0 0.1rem;
 }
 
 .scoring-rules-page {
