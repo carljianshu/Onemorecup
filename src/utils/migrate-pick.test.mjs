@@ -50,6 +50,33 @@ assert(migratedInputs.length === 1, "deduped to one m1-16");
 assert(migratedInputs[0].team === "民主刚果", "later page input wins");
 assert(migratedInputs[0].double === true, "double flag preserved");
 
+// 5) M2-2 legacy composite migrates to 加拿大.
+const m22Legacy = [{ playerId, marketId: "m2-2", team: "南非/加拿大", stake: 1 }];
+const migratedM22 = migratePicksForMarkets(m22Legacy, markets);
+assert(migratedM22.length === 1, "m2-2 legacy pick should migrate");
+assert(migratedM22[0].team === "加拿大", "m2-2 南非/加拿大 should become 加拿大");
+
+const m22Current = [{ playerId, marketId: "m2-2", team: "加拿大", stake: 1 }];
+const migratedM22Current = migratePicksForMarkets(m22Current, markets);
+assert(migratedM22Current.length === 1 && migratedM22Current[0].team === "加拿大", "m2-2 加拿大 unchanged");
+
+// 6) M3 bracket renames (zone labels and old composites).
+const m3Legacy = [
+  { playerId: "p-m3a", marketId: "m3-1", team: "荷兰/摩洛哥/南非/加拿大", stake: 1 },
+  { playerId: "p-m3b", marketId: "m3-2", team: "西班牙区", stake: 1 },
+  { playerId: "p-m3c", marketId: "m3-2", team: "H1区", stake: 1 },
+  { playerId: "p-m3d", marketId: "m3-3", team: "墨西哥/英格兰区", stake: 1 },
+  { playerId: "p-m3e", marketId: "m3-4", team: "瑞士/哥伦比亚区", stake: 1 },
+  { playerId: "p-m3f", marketId: "m3-5", team: "美国/比利时区", stake: 1 },
+];
+const migratedM3 = migratePicksForMarkets(m3Legacy, markets);
+assert(migratedM3.length === 6, "all m3 legacy picks should migrate");
+assert(migratedM3.find((p) => p.marketId === "m3-1")?.team === "荷兰/摩洛哥/加拿大");
+assert(migratedM3.filter((p) => p.marketId === "m3-2").every((p) => p.team === "西班牙/奥地利/葡萄牙/克罗地亚"));
+assert(migratedM3.find((p) => p.marketId === "m3-3")?.team === "墨西哥/厄瓜多尔/英格兰/民主刚果");
+assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士/阿尔及利亚/哥伦比亚/加纳");
+assert(migratedM3.find((p) => p.marketId === "m3-5")?.team === "美国/波黑/比利时/塞内加尔");
+
 console.log("migrate-pick smoke tests passed");
 `;
 

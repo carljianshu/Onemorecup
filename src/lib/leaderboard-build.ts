@@ -1,4 +1,4 @@
-import { applyPromotionTierRanking, maybeLockPromotion } from "@/lib/promotion";
+import { maybeLockPromotion } from "@/lib/promotion";
 import { applyScheduledAnswersPageOpen } from "@/lib/public-features";
 import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, LeaderboardEntry, Market, Pick, Player } from "@/types";
@@ -10,9 +10,8 @@ export function rebuildLeaderboard(
   config: GameConfig
 ): { leaderboard: LeaderboardEntry[]; config: GameConfig; configChanged: boolean } {
   const scheduled = applyScheduledAnswersPageOpen(config);
-  const dynamic = buildLeaderboard(players, markets, picks);
-  const locked = maybeLockPromotion(scheduled.config, dynamic);
-  const leaderboard = applyPromotionTierRanking(dynamic, locked.config);
+  const leaderboard = buildLeaderboard(players, markets, picks);
+  const locked = maybeLockPromotion(scheduled.config, leaderboard);
   return {
     leaderboard,
     config: locked.config,

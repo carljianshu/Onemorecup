@@ -61,46 +61,6 @@ export function maybeLockPromotion(
   };
 }
 
-function compareLeaderboardEntries(a: LeaderboardEntry, b: LeaderboardEntry): number {
-  return b.netEarnings - a.netEarnings || a.playerId.localeCompare(b.playerId);
-}
-
-/** 定格后：晋级区按当前 netEarnings 排序；淘汰区保持定格时顺序。 */
-export function applyPromotionTierRanking(
-  entries: LeaderboardEntry[],
-  config: GameConfig
-): LeaderboardEntry[] {
-  if (!isPromotionLocked(config)) return entries;
-
-  const byId = new Map(entries.map((entry) => [entry.playerId, entry]));
-  const promotedIds = config.promotedPlayerIds ?? [];
-  const eliminatedIds = config.eliminatedPlayerIds ?? [];
-
-  const promoted = promotedIds
-    .map((id) => byId.get(id))
-    .filter((entry): entry is LeaderboardEntry => entry !== undefined)
-    .sort(compareLeaderboardEntries);
-
-  const eliminated = eliminatedIds
-    .map((id) => byId.get(id))
-    .filter((entry): entry is LeaderboardEntry => entry !== undefined);
-
-  const placed = new Set([...promotedIds, ...eliminatedIds]);
-  const extras = entries.filter((entry) => !placed.has(entry.playerId)).sort(compareLeaderboardEntries);
-
-  const ordered = [...promoted, ...eliminated, ...extras];
-
-  let lastScore: number | null = null;
-  let lastRank = 0;
-
-  return ordered.map((entry, index) => {
-    const rank = entry.netEarnings === lastScore ? lastRank : index + 1;
-    lastScore = entry.netEarnings;
-    lastRank = rank;
-    return { ...entry, rank };
-  });
-}
-
 export function removePlayerFromPromotionSnapshot(
   config: GameConfig,
   playerId: string

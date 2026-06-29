@@ -71,9 +71,9 @@ export interface GameConfig {
   page3EarningsDeductionsApplied: boolean;
   /** 1/4 决赛及以后页面锁定后定格晋级名单的时间（UTC ISO） */
   promotionLockedAt: string | null;
-  /** 定格时晋级玩家 id（前 2/3，按当时 netEarnings 降序） */
+  /** 定格时晋级玩家 id（前 2/3，按当时 netEarnings 降序；仅用于第三页答题权限） */
   promotedPlayerIds: string[] | null;
-  /** 定格时淘汰玩家 id（后 1/3，按当时 netEarnings 降序，名次不再与晋级区交叉） */
+  /** 定格时淘汰玩家 id（后 1/3；仅存档，不影响排行榜排序） */
   eliminatedPlayerIds: string[] | null;
 }
 
