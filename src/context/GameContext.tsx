@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { deletePlayerApi, patchPlayerInGroupApi, fetchLeaderboard, setPhase12EarningsDeductionsApi, setPage3EarningsDeductionsApi, patchAdminConfigApi, patchMarketWinnerApi, registerPlayer, type LeaderboardResponse } from "@/lib/api-client";
+import { deletePlayerApi, patchPlayerHuApi, patchPlayerInGroupApi, fetchLeaderboard, setPhase12EarningsDeductionsApi, setPage3EarningsDeductionsApi, patchAdminConfigApi, patchMarketWinnerApi, registerPlayer, type LeaderboardResponse } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
 import { maybeSaveAdminBackup } from "@/lib/admin-backup";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
@@ -20,6 +20,7 @@ interface GameContextValue {
     setMarketWinner: (marketId: string, winner: string | null) => Promise<void>;
     deletePlayer: (playerId: string) => Promise<void>;
     setPlayerInGroup: (playerId: string, inGroupPlayer: boolean) => Promise<void>;
+    setPlayerHu: (playerId: string, huPlayer: boolean) => Promise<void>;
     togglePageLocked: (page: PlayPage) => Promise<void>;
     setPublicFeature: (feature: AnswersPageFeature, patch: {
         public?: boolean;
@@ -221,6 +222,16 @@ export function GameProvider({ children }: {
         setPlayers(result.players);
         setLeaderboard(result.leaderboard);
     }, [apiSync, players, markets, picks, config, applyResponse]);
+    const setPlayerHu = useCallback(async (playerId: string, huPlayer: boolean) => {
+        if (apiSync) {
+            applyResponse(await patchPlayerHuApi(requireAdminToken(), playerId, huPlayer));
+            return;
+        }
+        const { setPlayerHu: setLocal } = await import("@/lib/local-store");
+        const result = setLocal(playerId, huPlayer, { players, markets, picks, config });
+        setPlayers(result.players);
+        setLeaderboard(result.leaderboard);
+    }, [apiSync, players, markets, picks, config, applyResponse]);
     const togglePageLocked = useCallback(async (page: PlayPage) => {
         const currentlyLocked = isPageLocked(config, page);
         if (apiSync) {
@@ -306,6 +317,7 @@ export function GameProvider({ children }: {
         setMarketWinner,
         deletePlayer,
         setPlayerInGroup,
+        setPlayerHu,
         togglePageLocked,
         setPublicFeature,
         setEarlyMarketAnswersPublic,
@@ -326,6 +338,7 @@ export function GameProvider({ children }: {
         setMarketWinner,
         deletePlayer,
         setPlayerInGroup,
+        setPlayerHu,
         togglePageLocked,
         setPublicFeature,
         setEarlyMarketAnswersPublic,

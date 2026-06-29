@@ -421,6 +421,20 @@ export function setPlayerInGroup(playerId: string, inGroupPlayer: boolean, state
     const rebuilt = refreshLeaderboardWithConfig(players, state.markets, state.picks, state.config);
     return { players, picks: state.picks, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
 }
+export function setPlayerHu(playerId: string, huPlayer: boolean, state: {
+    players: Player[];
+    markets: Market[];
+    picks: Pick[];
+    config: GameConfig;
+}) {
+    if (!state.players.some((p) => p.id === playerId)) {
+        throw new Error("PLAYER_NOT_FOUND");
+    }
+    const players = state.players.map((p) => p.id === playerId ? { ...p, huPlayer } : p);
+    savePlayers(players);
+    const rebuilt = refreshLeaderboardWithConfig(players, state.markets, state.picks, state.config);
+    return { players, picks: state.picks, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
+}
 export function setPhase12EarningsDeductions(state: {
     players: Player[];
     markets: Market[];

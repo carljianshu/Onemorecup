@@ -14,6 +14,8 @@ export interface Player {
   pickStats: PickStats;
   /** 管理员标注：群内玩家（不影响规则与计分） */
   inGroupPlayer?: boolean;
+  /** 管理员标注：胡（不影响规则与计分，可与群内玩家同时勾选） */
+  huPlayer?: boolean;
   /** 管理员生成：1/16、1/8 未答满扣收益（美元） */
   pickPenalty?: number;
   /** 管理员生成：1/4 决赛及以后未答满扣收益（美元，仅晋级区） */

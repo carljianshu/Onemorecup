@@ -140,6 +140,14 @@ export async function patchPlayerInGroupApi(token: string, playerId: string, inG
     });
     return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
+export async function patchPlayerHuApi(token: string, playerId: string, huPlayer: boolean) {
+    const response = await fetch(`/api/admin/players/${encodeURIComponent(playerId)}`, {
+        method: "PATCH",
+        headers: adminHeaders(token),
+        body: JSON.stringify({ huPlayer })
+    });
+    return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}
 export async function setPhase12EarningsDeductionsApi(token: string, enabled: boolean) {
     const response = await fetch("/api/admin/penalties", {
         method: "POST",

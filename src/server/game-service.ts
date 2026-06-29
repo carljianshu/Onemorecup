@@ -1,4 +1,4 @@
-import { setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore, setPage3EarningsDeductions as setPage3EarningsDeductionsInStore, hydrateGameState, migrateStoredAnswers, savePlayerPicks, setPageLocked, setPlayerInGroup, snapshotFromState, updateMarketWinner, updatePublicFeature, type GameSnapshot } from "@/lib/local-store";
+import { setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore, setPage3EarningsDeductions as setPage3EarningsDeductionsInStore, hydrateGameState, migrateStoredAnswers, savePlayerPicks, setPageLocked, setPlayerHu, setPlayerInGroup, snapshotFromState, updateMarketWinner, updatePublicFeature, type GameSnapshot } from "@/lib/local-store";
 import { mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { migratePickInputsForMarkets } from "@/data/markets";
 import { assertInviteCodeForRegistration } from "@/lib/invite-code";
@@ -234,6 +234,22 @@ export function removePlayer(playerId: string, expectedVersion?: number) {
 export function patchPlayerInGroup(playerId: string, inGroupPlayer: boolean, expectedVersion?: number) {
     return mutateAdmin((state) => {
         const result = setPlayerInGroup(playerId, inGroupPlayer, {
+            players: state.players,
+            markets: state.markets,
+            picks: state.picks,
+            config: state.config
+        });
+        return snapshotFromState({
+            players: result.players,
+            markets: state.markets,
+            picks: result.picks,
+            config: result.config
+        });
+    }, expectedVersion);
+}
+export function patchPlayerHu(playerId: string, huPlayer: boolean, expectedVersion?: number) {
+    return mutateAdmin((state) => {
+        const result = setPlayerHu(playerId, huPlayer, {
             players: state.players,
             markets: state.markets,
             picks: state.picks,

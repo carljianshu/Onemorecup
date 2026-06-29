@@ -117,7 +117,7 @@ export default function AdminPage() {
     </AdminGate>);
 }
 function AdminPageContent() {
-    const { ready, players, markets, picks, config, leaderboard, setMarketWinner, togglePageLocked, deletePlayer, setPlayerInGroup, setPhase12EarningsDeductions, setPage3EarningsDeductions, refreshScores } = useGame();
+    const { ready, players, markets, picks, config, leaderboard, setMarketWinner, togglePageLocked, deletePlayer, setPlayerInGroup, setPlayerHu, setPhase12EarningsDeductions, setPage3EarningsDeductions, refreshScores } = useGame();
     const { t, locale, pageLabel } = useLocale();
     const [message, setMessage] = useState<{
         type: "error" | "success" | "warning";
@@ -195,6 +195,20 @@ function AdminPageContent() {
         }
         catch {
             setMessage({ type: "error", text: t("admin.inGroupPlayerUpdateFailed") });
+        }
+    }
+    async function handleToggleHu(playerId: string, playerName: string, next: boolean) {
+        try {
+            await setPlayerHu(playerId, next);
+            setMessage({
+                type: "success",
+                text: t(next ? "admin.huPlayerMarked" : "admin.huPlayerUnmarked", {
+                    name: playerName
+                })
+            });
+        }
+        catch {
+            setMessage({ type: "error", text: t("admin.huPlayerUpdateFailed") });
         }
     }
     if (!ready) {
@@ -339,6 +353,7 @@ function AdminPageContent() {
             <thead>
               <tr>
                 <th>{t("admin.inGroupPlayerLabel")}</th>
+                <th>{t("admin.huPlayerLabel")}</th>
                 <th>{t("admin.action")}</th>
                 <th>{t("common.player")}</th>
                 <th>{t("common.page1Short")}</th>
@@ -355,6 +370,12 @@ function AdminPageContent() {
                     <label className="admin-in-group-toggle">
                       <input type="checkbox" checked={Boolean(player.inGroupPlayer)} onChange={(e) => handleToggleInGroup(player.id, player.name, e.target.checked)}/>
                       <span>{t("admin.inGroupPlayer")}</span>
+                    </label>
+                  </td>
+                  <td>
+                    <label className="admin-in-group-toggle">
+                      <input type="checkbox" checked={Boolean(player.huPlayer)} onChange={(e) => handleToggleHu(player.id, player.name, e.target.checked)}/>
+                      <span>{t("admin.huPlayer")}</span>
                     </label>
                   </td>
                   <td>
