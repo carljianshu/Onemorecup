@@ -16,6 +16,7 @@ export async function PATCH(request: NextRequest) {
             public?: boolean;
             opensAt?: string | null;
             answersM1_1Public?: boolean;
+            registrationClosed?: boolean;
         };
         const state = await patchGameConfig({
             page: body.page,
@@ -23,7 +24,8 @@ export async function PATCH(request: NextRequest) {
             feature: body.feature,
             public: body.public,
             opensAt: body.opensAt,
-            answersM1_1Public: body.answersM1_1Public
+            answersM1_1Public: body.answersM1_1Public,
+            registrationClosed: body.registrationClosed
         }, parseVersionHeader(request));
         return jsonOk(state);
     }

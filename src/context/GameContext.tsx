@@ -27,6 +27,7 @@ interface GameContextValue {
         opensAt?: string | null;
     }) => Promise<void>;
     setEarlyMarketAnswersPublic: (enabled: boolean) => Promise<void>;
+    setRegistrationClosed: (closed: boolean) => Promise<void>;
     refreshScores: () => void;
     refreshFromCloud: () => Promise<void>;
     setPhase12EarningsDeductions: (enabled: boolean) => Promise<void>;
@@ -88,7 +89,8 @@ export function GameProvider({ children }: {
         page3EarningsDeductionsApplied: false,
         promotionLockedAt: null,
         promotedPlayerIds: null,
-        eliminatedPlayerIds: null
+        eliminatedPlayerIds: null,
+        registrationClosed: false
     });
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [currentPlayerId, setCurrentPlayerIdState] = useState<string | null>(null);
@@ -271,6 +273,15 @@ export function GameProvider({ children }: {
         const result = setLocal(enabled, { config });
         setConfig(result.config);
     }, [apiSync, config, applyResponse]);
+    const setRegistrationClosed = useCallback(async (closed: boolean) => {
+        if (apiSync) {
+            applyResponse(await patchAdminConfigApi(requireAdminToken(), { registrationClosed: closed }));
+            return;
+        }
+        const { setRegistrationClosed: setLocal } = await import("@/lib/local-store");
+        const result = setLocal(closed, { config });
+        setConfig(result.config);
+    }, [apiSync, config, applyResponse]);
     const refreshScores = useCallback(() => {
         const rebuilt = recalculateLeaderboardWithConfig({ players, markets, picks, config });
         setLeaderboard(rebuilt.leaderboard);
@@ -321,6 +332,7 @@ export function GameProvider({ children }: {
         togglePageLocked,
         setPublicFeature,
         setEarlyMarketAnswersPublic,
+        setRegistrationClosed,
         refreshScores,
         refreshFromCloud,
         setPhase12EarningsDeductions,
@@ -342,6 +354,7 @@ export function GameProvider({ children }: {
         togglePageLocked,
         setPublicFeature,
         setEarlyMarketAnswersPublic,
+        setRegistrationClosed,
         refreshScores,
         refreshFromCloud,
         setPhase12EarningsDeductions,

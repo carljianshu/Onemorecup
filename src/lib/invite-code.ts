@@ -33,3 +33,26 @@ export function assertInviteCodeForRegistration(
     throw new Error("INVITE_CODE_INVALID");
   }
 }
+
+/** 关闭注册时仅已在册玩家可保存；否则走邀请码逻辑。 */
+export function assertRegistrationAllowed(
+  name: string,
+  playerId: string | null | undefined,
+  players: Player[],
+  registrationClosed: boolean,
+  inviteCode?: string
+): void {
+  if (findKnownPlayer(players, playerId, name))
+    return;
+  if (registrationClosed)
+    throw new Error("REGISTRATION_CLOSED");
+  assertInviteCodeForRegistration(name, playerId, players, inviteCode);
+}
+
+export function isKnownPlayer(
+  players: Player[],
+  playerId: string | null | undefined,
+  name: string
+): boolean {
+  return findKnownPlayer(players, playerId, name) !== undefined;
+}

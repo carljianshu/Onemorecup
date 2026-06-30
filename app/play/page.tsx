@@ -68,7 +68,8 @@ export default function PlayPage() {
     const pageLocked = isPageLocked(config, step);
     const pageDeadline = formatDeadline(pageLocksAt(config, step));
     const page3Promoted = isPlayerPromoted(leaderboard, activePlayerId, config);
-    const pageInputBlocked = pageLocked || (step === 3 && !page3Promoted);
+    const registrationBlocked = config.registrationClosed && !activePlayer;
+    const pageInputBlocked = pageLocked || (step === 3 && !page3Promoted) || registrationBlocked;
     const promotionCutoff = promotionCutoffCount(leaderboard.length);
     void scheduleTick;
     useEffect(() => {
@@ -151,6 +152,8 @@ export default function PlayPage() {
       </button>);
     }
     function needsInviteCode() {
+        if (config.registrationClosed)
+            return false;
         if (activePlayer)
             return false;
         const trimmed = name.trim();
@@ -161,6 +164,10 @@ export default function PlayPage() {
     async function handleSubmit() {
         if (!name.trim()) {
             setMessage({ type: "error", text: t("play.errName") });
+            return;
+        }
+        if (registrationBlocked) {
+            setMessage({ type: "error", text: t("play.registrationClosed") });
             return;
         }
         if (needsInviteCode() && !isValidInviteCode(inviteCode)) {
@@ -212,7 +219,9 @@ export default function PlayPage() {
             if (error instanceof ApiError) {
                 const text = error.code === "DUPLICATE_NAME"
                     ? t("play.errDuplicateName")
-                    : error.code === "INVITE_CODE_INVALID"
+                    : error.code === "REGISTRATION_CLOSED"
+                        ? t("play.registrationClosed")
+                        : error.code === "INVITE_CODE_INVALID"
                         ? t("play.errInviteCode")
                         : error.code === "PAGE3_NOT_PROMOTED"
                             ? t("play.page3NotPromoted", {
@@ -232,7 +241,9 @@ export default function PlayPage() {
             const code = error instanceof Error ? error.message : "";
             const text = code === "DUPLICATE_NAME"
                 ? t("play.errDuplicateName")
-                : code === "INVITE_CODE_INVALID"
+                : code === "REGISTRATION_CLOSED"
+                    ? t("play.registrationClosed")
+                    : code === "INVITE_CODE_INVALID"
                     ? t("play.errInviteCode")
                     : code === "PAGE3_NOT_PROMOTED"
                         ? t("play.page3NotPromoted", {
@@ -286,6 +297,8 @@ export default function PlayPage() {
           {t(step === 1 ? "play.page1Deadline" : step === 2 ? "play.page2Deadline" : "play.page3Deadline", { time: pageDeadline })}
         </div>)}
 
+      {config.registrationClosed && !activePlayer && name.trim() && (<div className="message warning">{t("play.registrationClosed")}</div>)}
+
       {isEditing && !pageInputBlocked && (<div className="message success">{t("play.loadedEdit")}</div>)}
 
       {pageLocked && (<div className="message warning">{t("play.pageLocked", { page: playPageLabel(step) })}</div>)}
@@ -297,12 +310,12 @@ export default function PlayPage() {
             })}
         </div>)}
 
-      {step === 1 && (<>
+      {(step === 1 || config.registrationClosed) && (<>
           <div className="field">
             <label htmlFor="name">{t("play.yourName")}</label>
             <input id="name" type="text" placeholder={t("play.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} disabled={pageLocked}/>
           </div>
-          {needsInviteCode() && (<div className="field">
+          {step === 1 && needsInviteCode() && (<div className="field">
               <label htmlFor="invite-code">{t("play.inviteCode")}</label>
               <input id="invite-code" type="text" placeholder={t("play.inviteCodePlaceholder")} value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} disabled={pageLocked} autoComplete="off"/>
             </div>)}

@@ -119,6 +119,90 @@ export function computeStandardParimutuelAdjustment(
   };
 }
 
+/** 按两边计分位人数（较多 M、较少 N）推算调整系数与实际本金。 */
+export function computeParimutuelStakeFromSlotCounts(
+  largeCount: number,
+  smallCount: number,
+  baseStake: number = STAKE_PER_PICK
+): { scoreStd: number; adjustment: number; stakePerSlot: number } {
+  const M = largeCount;
+  const N = smallCount;
+  if (N === 0) {
+    return { scoreStd: 0, adjustment: 0, stakePerSlot: 0 };
+  }
+
+  const positive = (baseStake * M) / N;
+  const sequence = [
+    ...Array.from({ length: M }, () => -baseStake),
+    ...Array.from({ length: N }, () => positive)
+  ];
+  const scoreStd = populationStd(sequence);
+  if (scoreStd === 0) {
+    return { scoreStd: 0, adjustment: 0, stakePerSlot: 0 };
+  }
+
+  const adjustment = scoreStd / baseStake;
+  return {
+    scoreStd,
+    adjustment,
+    stakePerSlot: roundScore(baseStake / adjustment)
+  };
+}
+
+export interface ProjectedStakeBreakdown {
+  stakePerSlot: number;
+  adjustment: number;
+}
+
+/** 按当前作答分布推算每计分位本金（与竞猜页展示规则一致，不依赖赛果）。 */
+export function computeProjectedStakeBreakdown(
+  groupPicks: Pick[],
+  marketId: string
+): ProjectedStakeBreakdown | null {
+  const answeredPicks = groupPicks.filter((pick) => pick.team !== null);
+  if (answeredPicks.length === 0)
+    return null;
+
+  const baseStake = marketStakePerPick(marketId);
+
+  if (marketUsesDistributionAdjustment(marketId)) {
+    const distribution = computeDistributionAdjustmentStats(answeredPicks);
+    if (!distribution || distribution.adjustment === 0)
+      return null;
+    return {
+      stakePerSlot: roundScore(baseStake / distribution.adjustment),
+      adjustment: roundScore(distribution.adjustment)
+    };
+  }
+
+  const counts = new Map<string, number>();
+  for (const pick of answeredPicks) {
+    const weight = pick.stake === DOUBLE_STAKE ? 2 : 1;
+    counts.set(pick.team!, (counts.get(pick.team!) ?? 0) + weight);
+  }
+  const values = [...counts.values()];
+  if (values.length < 2)
+    return null;
+
+  let largeCount = 0;
+  let smallCount = Number.POSITIVE_INFINITY;
+  for (const count of values) {
+    if (count > largeCount)
+      largeCount = count;
+    if (count < smallCount)
+      smallCount = count;
+  }
+
+  const stats = computeParimutuelStakeFromSlotCounts(largeCount, smallCount, baseStake);
+  if (stats.stakePerSlot <= 0)
+    return null;
+
+  return {
+    stakePerSlot: stats.stakePerSlot,
+    adjustment: roundScore(stats.adjustment)
+  };
+}
+
 export interface StandardAdjustmentTableRow {
   correctCount: number;
   wrongCount: number;
@@ -146,6 +230,13 @@ export function buildStandardAdjustmentTableRows(
   return rows;
 }
 
+export interface AdjustmentSequenceSummary {
+  largeCount: number;
+  smallCount: number;
+  negativePerSlot: number;
+  positivePerSlot: number;
+}
+
 /**
  * M3-5/6/7：各选项按计分位计数（Double 视为 2）；人数最少者为 N，其余合计 M；
  * 参考序列 M 个 −20、N 个 20×M/N → σ，调整系数 = σ ÷ 20；实际本金 = 20÷调整系数。
@@ -153,6 +244,7 @@ export function buildStandardAdjustmentTableRows(
 function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
   scoreStd: number;
   adjustment: number;
+  adjustmentSequence: AdjustmentSequenceSummary;
 } | null {
   const counts = new Map<string, number>();
   for (const pick of groupPicks) {
@@ -183,7 +275,35 @@ function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
   const scoreStd = populationStd(sequence);
   if (scoreStd === 0) return null;
 
-  return { scoreStd, adjustment: scoreStd / PAGE3_STAKE_PER_PICK };
+  return {
+    scoreStd,
+    adjustment: scoreStd / PAGE3_STAKE_PER_PICK,
+    adjustmentSequence: {
+      largeCount: M,
+      smallCount: N,
+      negativePerSlot: -PAGE3_STAKE_PER_PICK,
+      positivePerSlot: positive
+    }
+  };
+}
+
+function computeStandardAdjustmentSequence(
+  winner: string,
+  groupPicks: Pick[],
+  probeStake: number
+): AdjustmentSequenceSummary | null {
+  const slots = slotsForGroup(winner, groupPicks);
+  const { winningSlotCount, losingSlotCount } = countWinningAndLosingSlots(slots);
+  const M = Math.max(winningSlotCount, losingSlotCount);
+  const N = Math.min(winningSlotCount, losingSlotCount);
+  if (N === 0) return null;
+
+  return {
+    largeCount: M,
+    smallCount: N,
+    negativePerSlot: -probeStake,
+    positivePerSlot: (probeStake * M) / N
+  };
 }
 
 interface FixedStakeSettlement {
@@ -242,6 +362,7 @@ interface ParimutuelSettlement {
   stakePerSlot: number;
   scoreStd: number;
   adjustment: number;
+  adjustmentSequence: AdjustmentSequenceSummary | null;
   isVoid: boolean;
 }
 
@@ -253,6 +374,7 @@ export interface ParimutuelBreakdown {
   scores: Record<string, number>;
   isVoid: boolean;
   adjustment: number;
+  adjustmentSequence: AdjustmentSequenceSummary | null;
 }
 
 /**
@@ -277,6 +399,7 @@ function settleParimutuel(
       stakePerSlot: 0,
       scoreStd: 0,
       adjustment: 0,
+      adjustmentSequence: null,
       isVoid: true
     };
   }
@@ -289,12 +412,14 @@ function settleParimutuel(
       stakePerSlot: 0,
       scoreStd: 0,
       adjustment: 0,
+      adjustmentSequence: null,
       isVoid: true
     };
   }
 
   let scoreStd: number;
   let adjustment: number;
+  let adjustmentSequence: AdjustmentSequenceSummary | null;
 
   if (marketId && marketUsesDistributionAdjustment(marketId)) {
     const distribution = computeDistributionAdjustmentStats(groupPicks);
@@ -305,12 +430,15 @@ function settleParimutuel(
         stakePerSlot: 0,
         scoreStd: 0,
         adjustment: 0,
+        adjustmentSequence: null,
         isVoid: true
       };
     }
     scoreStd = distribution.scoreStd;
     adjustment = distribution.adjustment;
+    adjustmentSequence = distribution.adjustmentSequence;
   } else {
+    adjustmentSequence = computeStandardAdjustmentSequence(winner, groupPicks, probeStake);
     const slots = slotsForGroup(winner, groupPicks);
     const adjustmentSlotScores = slotScoresForAdjustment(
       slots,
@@ -325,6 +453,7 @@ function settleParimutuel(
         stakePerSlot: 0,
         scoreStd: 0,
         adjustment: 0,
+        adjustmentSequence: null,
         isVoid: true
       };
     }
@@ -340,6 +469,7 @@ function settleParimutuel(
       stakePerSlot: roundScore(adjustedStake),
       scoreStd: roundScore(scoreStd),
       adjustment: roundScore(adjustment),
+      adjustmentSequence,
       isVoid: true
     };
   }
@@ -350,6 +480,7 @@ function settleParimutuel(
     stakePerSlot: pass2.stakePerSlot,
     scoreStd: roundScore(scoreStd),
     adjustment: roundScore(adjustment),
+    adjustmentSequence,
     isVoid: false
   };
 }
@@ -368,7 +499,8 @@ export function computeParimutuelBreakdown(
     doubleStake: roundScore(result.stakePerSlot * 2),
     gainPerWinningSlot: result.gainPerWinningSlot,
     scores: result.scores,
-    isVoid: result.isVoid
+    isVoid: result.isVoid,
+    adjustmentSequence: result.adjustmentSequence
   };
 }
 

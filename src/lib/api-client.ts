@@ -117,6 +117,7 @@ export async function patchAdminConfigApi(token: string, body: {
     public?: boolean;
     opensAt?: string | null;
     answersM1_1Public?: boolean;
+    registrationClosed?: boolean;
 }) {
     const response = await fetch("/api/admin/config", {
         method: "PATCH",

@@ -1,7 +1,7 @@
 import { setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore, setPage3EarningsDeductions as setPage3EarningsDeductionsInStore, hydrateGameState, migrateStoredAnswers, savePlayerPicks, setPageLocked, setPlayerHu, setPlayerInGroup, snapshotFromState, updateMarketWinner, updatePublicFeature, type GameSnapshot } from "@/lib/local-store";
 import { mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { migratePickInputsForMarkets } from "@/data/markets";
-import { assertInviteCodeForRegistration } from "@/lib/invite-code";
+import { assertRegistrationAllowed } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
@@ -109,7 +109,13 @@ export async function registerPlayer(body: {
         const pagePickInputs = applyLockedMarketPickPreservation(body.page, body.pagePickInputs, state.markets, body.playerId ?? null, state.picks);
         const pickInputs = migratePickInputsForMarkets(applyPromotionToSave(mergePickInputsForPageSave(body.page, pagePickInputs, state.markets, body.playerId ?? null, state.picks), state.markets, state.leaderboard, body.playerId ?? null, body.page, state.config), state.markets);
         validatePlayerSave(body.page, pickInputs, pagePickInputs, state.markets);
-        assertInviteCodeForRegistration(body.name, body.playerId ?? null, state.players, body.inviteCode);
+        assertRegistrationAllowed(
+            body.name,
+            body.playerId ?? null,
+            state.players,
+            state.config.registrationClosed,
+            body.inviteCode
+        );
         saveResult = savePlayerPicks(body.name, pickInputs, { players: state.players, markets: state.markets, picks: state.picks, config: state.config }, body.playerId || null, body.page, state.leaderboard, body.inviteCode);
         return snapshotFromState({
             players: saveResult.isUpdate
@@ -202,6 +208,9 @@ export function patchGameConfig(patch: Partial<GameConfig> & {
             }
             if (patch.answersM1_1Public !== undefined) {
                 config = { ...config, answersM1_1Public: patch.answersM1_1Public };
+            }
+            if (patch.registrationClosed !== undefined) {
+                config = { ...config, registrationClosed: patch.registrationClosed };
             }
             if (patch.feature) {
                 const result = updatePublicFeature(patch.feature, { public: patch.public, opensAt: patch.opensAt }, { config });

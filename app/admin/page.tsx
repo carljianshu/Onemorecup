@@ -117,7 +117,7 @@ export default function AdminPage() {
     </AdminGate>);
 }
 function AdminPageContent() {
-    const { ready, players, markets, picks, config, leaderboard, setMarketWinner, togglePageLocked, deletePlayer, setPlayerInGroup, setPlayerHu, setPhase12EarningsDeductions, setPage3EarningsDeductions, refreshScores } = useGame();
+    const { ready, players, markets, picks, config, leaderboard, setMarketWinner, togglePageLocked, setRegistrationClosed, deletePlayer, setPlayerInGroup, setPlayerHu, setPhase12EarningsDeductions, setPage3EarningsDeductions, refreshScores } = useGame();
     const { t, locale, pageLabel } = useLocale();
     const [message, setMessage] = useState<{
         type: "error" | "success" | "warning";
@@ -165,6 +165,19 @@ function AdminPageContent() {
             setMessage({
                 type: "success",
                 text: t(enabling ? "admin.penaltiesPage3Generated" : "admin.penaltiesPage3Cancelled")
+            });
+        }
+        catch {
+            setMessage({ type: "error", text: t("admin.penaltiesGenerateFailed") });
+        }
+    }
+    async function handleToggleRegistrationClosed() {
+        const closing = !config.registrationClosed;
+        try {
+            await setRegistrationClosed(closing);
+            setMessage({
+                type: "success",
+                text: t(closing ? "admin.registrationClosedOn" : "admin.registrationClosedOff")
             });
         }
         catch {
@@ -258,6 +271,9 @@ function AdminPageContent() {
         </button>
         <button type="button" className={`btn ${page3DeductionsOn ? "btn-danger" : "btn-secondary"}`} onClick={() => void handleTogglePage3Deductions()}>
           {page3DeductionsOn ? t("admin.cancelPenaltiesPage3") : t("admin.generatePenaltiesPage3")}
+        </button>
+        <button type="button" className={`btn ${config.registrationClosed ? "btn-secondary" : "btn-danger"}`} onClick={() => void handleToggleRegistrationClosed()}>
+          {config.registrationClosed ? t("admin.openRegistration") : t("admin.closeRegistration")}
         </button>
         {PLAY_PAGES.map((page) => {
             const locked = isPageLocked(config, page);

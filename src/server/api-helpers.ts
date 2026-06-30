@@ -32,6 +32,10 @@ export function handleRouteError(error: unknown) {
         status: 403
       },
       INVITE_CODE_INVALID: { message: "邀请码不正确。", status: 403 },
+      REGISTRATION_CLOSED: {
+        message: "竞猜已截止，仅已提交过的玩家可继续修改作答。",
+        status: 403
+      },
       PLAYER_NOT_FOUND: { message: "玩家不存在。", status: 404 }
     };
     const mapped = map[error.message];

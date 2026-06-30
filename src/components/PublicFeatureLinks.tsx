@@ -17,11 +17,9 @@ export function PublicFeatureLinks({ className }: { className?: string }) {
       <Link className={className ?? "btn btn-secondary"} href="/leaderboard">
         {t("common.viewLeaderboard")}
       </Link>
-      {isAnswersAnyPublic(config) && (
-        <Link className={className ?? "btn btn-secondary"} href="/answers">
-          {t("common.answers")}
-        </Link>
-      )}
+      <Link className={className ?? "btn btn-secondary"} href="/answers">
+        {t("common.answers")}
+      </Link>
       {isAnswersAnyPublic(config) && (
         <Link className={className ?? "btn btn-secondary"} href="/market-results">
           {t("common.marketResults")}
@@ -40,7 +38,7 @@ export function PublicFeatureNavLinks() {
   return (
     <>
       <Link href="/leaderboard">{t("common.leaderboard")}</Link>
-      {isAnswersAnyPublic(config) && <Link href="/answers">{t("common.answers")}</Link>}
+      <Link href="/answers">{t("common.answers")}</Link>
       {isAnswersAnyPublic(config) && (
         <Link href="/market-results">{t("common.marketResults")}</Link>
       )}

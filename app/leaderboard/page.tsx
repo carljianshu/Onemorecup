@@ -23,7 +23,7 @@ export default function LeaderboardPage() {
 
   if (!ready) {
     return (
-      <main className="container">
+      <main className="container container-wide">
         <p>{t("common.loading")}</p>
       </main>
     );
@@ -33,7 +33,7 @@ export default function LeaderboardPage() {
   const showPromotionCutoff = showPromotionCutoffLine(leaderboard.length);
 
   return (
-    <main className="container">
+    <main className="container container-wide">
       <nav className="nav-bar">
         <Link href="/">{t("common.backHome")}</Link>
         <PublicFeatureNavLinks />
@@ -48,7 +48,7 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <div className="card table-wrap">
-          <table>
+          <table className="leaderboard-table">
             <thead>
               <tr>
                 <th>{t("common.rank")}</th>

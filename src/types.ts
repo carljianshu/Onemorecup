@@ -77,6 +77,8 @@ export interface GameConfig {
   promotedPlayerIds: string[] | null;
   /** 定格时淘汰玩家 id（后 1/3；仅存档，不影响排行榜排序） */
   eliminatedPlayerIds: string[] | null;
+  /** 为 true 时仅已在册玩家（playerId 或同名）可提交/修改，禁止新玩家注册 */
+  registrationClosed: boolean;
 }
 
 export interface LeaderboardEntry {

@@ -39,7 +39,8 @@ function emptyPayload(): GameSnapshot {
       page3EarningsDeductionsApplied: false,
       promotionLockedAt: null,
       promotedPlayerIds: null,
-      eliminatedPlayerIds: null
+      eliminatedPlayerIds: null,
+      registrationClosed: false
     }
   };
 }

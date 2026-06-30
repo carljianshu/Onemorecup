@@ -1,4 +1,5 @@
 import { isAdminAuthed } from "@/lib/admin-auth";
+import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, Market, Pick, Player } from "@/types";
 
 export interface AdminBackupSnapshot {
@@ -8,6 +9,12 @@ export interface AdminBackupSnapshot {
   markets: Market[];
   picks: Pick[];
   config: GameConfig;
+}
+
+export type AdminBackupPlayerExport = Player & { rank: number };
+
+export interface AdminBackupExport extends Omit<AdminBackupSnapshot, "players"> {
+  players: AdminBackupPlayerExport[];
 }
 
 const LATEST_KEY = "onemorecup:admin-backup:latest";
@@ -73,16 +80,27 @@ export function saveAdminBackup(input: {
   return true;
 }
 
+export function buildAdminBackupExport(snapshot: AdminBackupSnapshot): AdminBackupExport {
+  const leaderboard = buildLeaderboard(snapshot.players, snapshot.markets, snapshot.picks);
+  const rankById = new Map(leaderboard.map((entry) => [entry.playerId, entry.rank]));
+  return {
+    ...snapshot,
+    players: snapshot.players.map((player) => ({
+      ...player,
+      rank: rankById.get(player.id) ?? snapshot.players.length
+    }))
+  };
+}
+
 export function downloadAdminBackup(snapshot?: AdminBackupSnapshot | null): boolean {
   const data = snapshot ?? loadLatestAdminBackup();
   if (!data) return false;
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(buildAdminBackupExport(data), null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
-  const stamp = data.savedAt.replace(/[:.]/g, "-").slice(0, 19);
   anchor.href = url;
-  anchor.download = `onemorecup-backup-v${data.version}-${stamp}.json`;
+  anchor.download = "player_data.json";
   anchor.click();
   URL.revokeObjectURL(url);
   return true;

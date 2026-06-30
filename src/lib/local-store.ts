@@ -1,7 +1,7 @@
 import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { defaultAnswersPageSchedule, migrateAnswersPageSchedule, migrateAnswersScheduleOpenApplied, patchAnswersPageSchedule } from "@/lib/public-features";
-import { assertInviteCodeForRegistration, findKnownPlayer } from "@/lib/invite-code";
+import { assertRegistrationAllowed, findKnownPlayer } from "@/lib/invite-code";
 import { applyPromotionToSave } from "@/lib/promotion";
 import { isPlayerPromoted, migratePromotionSnapshotTiming, removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
@@ -70,6 +70,7 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
         promotionLockedAt: null,
         promotedPlayerIds: null,
         eliminatedPlayerIds: null,
+        registrationClosed: false,
         ...overrides
     };
 }
@@ -113,7 +114,8 @@ function normalizeConfig(raw: unknown): GameConfig {
         page3EarningsDeductionsApplied: config?.page3EarningsDeductionsApplied ?? false,
         promotionLockedAt: config?.promotionLockedAt ?? null,
         promotedPlayerIds: config?.promotedPlayerIds ?? null,
-        eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null
+        eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null,
+        registrationClosed: config?.registrationClosed ?? true
     })).config).config).config;
 }
 function enrichPlayers(players: Player[], picks: Pick[], markets: Market[]): Player[] {
@@ -324,7 +326,13 @@ export function savePlayerPicks(name: string, pickInputs: PlayerPickInput[], sta
 } {
     const trimmedName = name.trim();
     const existing = findKnownPlayer(state.players, playerId ?? null, trimmedName);
-    assertInviteCodeForRegistration(trimmedName, playerId, state.players, inviteCode);
+    assertRegistrationAllowed(
+        trimmedName,
+        playerId,
+        state.players,
+        state.config?.registrationClosed ?? false,
+        inviteCode
+    );
     const promotionLeaderboard = leaderboardForPromotion ??
         refreshLeaderboard(state.players, state.markets, state.picks, state.config);
     const effectivePlayerId = existing?.id ?? null;
@@ -534,6 +542,13 @@ export function setEarlyMarketAnswersPublic(enabled: boolean, state: {
     config: GameConfig;
 }) {
     const config = { ...state.config, answersM1_1Public: enabled };
+    saveConfig(config);
+    return { config };
+}
+export function setRegistrationClosed(closed: boolean, state: {
+    config: GameConfig;
+}) {
+    const config = { ...state.config, registrationClosed: closed };
     saveConfig(config);
     return { config };
 }

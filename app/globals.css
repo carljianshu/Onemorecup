@@ -521,6 +521,388 @@ a {
   margin-bottom: 1rem;
 }
 
+.answers-page-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.answers-page-tab {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff7ed;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.answers-page-tab:hover {
+  background: rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.answers-page-tab-active {
+  background: rgba(234, 88, 12, 0.92);
+  border-color: rgba(251, 146, 60, 0.95);
+  color: #fff;
+}
+
+.answers-analytics-card {
+  min-height: 12rem;
+}
+
+.answers-analytics-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.answers-analytics-section {
+  padding: 1.25rem 1.35rem;
+}
+
+.answers-analytics-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.answers-analytics-lead {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.answers-analytics-leaders {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  background: rgba(234, 88, 12, 0.12);
+  border: 1px solid rgba(251, 146, 60, 0.35);
+}
+
+.answers-analytics-leaders-label {
+  margin: 0 0 0.55rem;
+  font-weight: 700;
+}
+
+.answers-analytics-leader-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.answers-analytics-leader-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+}
+
+.answers-analytics-leader-name {
+  font-weight: 600;
+}
+
+.answers-analytics-leader-count {
+  color: var(--muted);
+}
+
+.answers-analytics-leaders-unpopular {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.answers-analytics-gap-list .answers-analytics-leader-list li {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.answers-analytics-gap-list .answers-analytics-leader-count {
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.answers-analytics-max-win-list .answers-analytics-leader-list li {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.answers-analytics-table-wrap {
+  margin-top: 0.25rem;
+}
+
+.answers-analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.answers-analytics-table th,
+.answers-analytics-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.answers-analytics-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.answers-analytics-row-leader td {
+  font-weight: 600;
+}
+
+.answers-analytics-gap-summary {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.answers-analytics-gap-summary-single {
+  margin-bottom: 0;
+}
+
+.answers-analytics-pick-balance-section {
+  margin-bottom: 1rem;
+}
+
+.answers-analytics-pick-balance-heading {
+  margin: 0 0 0.55rem;
+  font-weight: 700;
+}
+
+@media (min-width: 720px) {
+  .answers-analytics-gap-summary:not(.answers-analytics-gap-summary-single) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.answers-analytics-gap-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.answers-analytics-gap-card-max {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.answers-analytics-gap-card-min {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.answers-analytics-gap-label {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.answers-analytics-gap-match {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.answers-analytics-gap-detail,
+.answers-analytics-gap-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.answers-analytics-row-max-gap td {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.answers-analytics-row-min-gap td {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.answers-analytics-placeholder {
+  margin: 0;
+  color: var(--muted);
+}
+
+.answers-analytics-chart-section {
+  padding: 1.25rem 1.35rem;
+}
+
+.answers-pick-stack-chart-header {
+  margin-bottom: 0.85rem;
+}
+
+.answers-pick-stack-chart-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.answers-pick-stack-chart-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.answers-pick-stack-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.answers-pick-stack-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.answers-pick-stack-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.15rem;
+  flex-shrink: 0;
+}
+
+.answers-pick-stack-swatch-hot {
+  background: rgba(251, 146, 60, 0.95);
+}
+
+.answers-pick-stack-swatch-cold {
+  background: rgba(56, 189, 248, 0.95);
+}
+
+.answers-pick-stack-swatch-winner {
+  background: rgba(34, 197, 94, 0.95);
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.85);
+}
+
+.answers-pick-stack-legend-axis {
+  margin-left: auto;
+  font-size: 0.82rem;
+}
+
+.answers-pick-stack-chart-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.answers-pick-stack-row {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, 11rem) 1fr minmax(9rem, 12rem);
+  gap: 0.55rem 0.75rem;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .answers-pick-stack-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .answers-pick-stack-legend-axis {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.answers-pick-stack-row-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.answers-pick-stack-market-id {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+.answers-pick-stack-matchup {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.answers-pick-stack-row-track {
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+}
+
+.answers-pick-stack-bar {
+  display: flex;
+  height: 1.35rem;
+  flex-shrink: 0;
+  border-radius: 0.3rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.answers-pick-stack-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #0a1220;
+}
+
+.answers-pick-stack-segment-hot {
+  background: rgba(251, 146, 60, 0.95);
+}
+
+.answers-pick-stack-segment-cold {
+  background: rgba(56, 189, 248, 0.95);
+}
+
+.answers-pick-stack-segment-winner {
+  background: rgba(34, 197, 94, 0.98);
+  box-shadow: inset 0 0 0 2px rgba(187, 247, 208, 0.95);
+  color: #052e16;
+  font-weight: 800;
+}
+
+.answers-pick-stack-segment-settled-loser {
+  opacity: 0.38;
+}
+
+.answers-pick-stack-row-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.answers-pick-stack-count-hot {
+  color: rgba(251, 191, 140, 0.95);
+}
+
+.answers-pick-stack-count-cold {
+  color: rgba(125, 211, 252, 0.95);
+}
+
+.answers-pick-stack-count-pct {
+  color: var(--muted);
+  margin-left: 0.15rem;
+}
+
 .btn-sm {
   padding: 0.45rem 0.85rem;
   font-size: 0.88rem;
@@ -759,6 +1141,12 @@ a {
   font-weight: 700;
 }
 
+.market-result-option-count {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .market-result-option-payout {
   font-size: 0.78rem;
   font-weight: 600;
@@ -950,6 +1338,33 @@ th {
 
 .score-zero {
   color: var(--muted);
+}
+
+.leaderboard-table {
+  min-width: 920px;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.leaderboard-table th:nth-child(2),
+.leaderboard-table td:nth-child(2) {
+  min-width: 5.5rem;
+}
+
+.leaderboard-table th:nth-child(5),
+.leaderboard-table td:nth-child(5),
+.leaderboard-table th:nth-child(7),
+.leaderboard-table td:nth-child(7) {
+  min-width: 6.5rem;
+}
+
+.leaderboard-table th:nth-child(6),
+.leaderboard-table td:nth-child(6) {
+  min-width: 7.5rem;
 }
 
 .leaderboard-cutoff-row td {

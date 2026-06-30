@@ -7,10 +7,18 @@ import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { formatMarketHeading, formatPlayMarketCandidate } from "@/i18n";
 import { buildMarketResultSections } from "@/lib/market-results";
-import { formatScorePlain } from "@/lib/score-format";
+import { formatScorePlain, roundScore } from "@/lib/score-format";
 import { isAnswersAnyPublic, isAnswersPagePublic, listPublicAnswerMarketIds } from "@/lib/public-features";
 import type { PlayPage } from "@/types";
 type ViewFilter = "all" | PlayPage;
+
+function formatAdjustmentSequenceValue(value: number): string {
+    const rounded = roundScore(value);
+    if (Number.isInteger(rounded))
+        return String(rounded);
+    return rounded.toFixed(2);
+}
+
 export default function MarketResultsPage() {
     const { ready, config, players, markets, picks } = useGame();
     const { locale, t } = useLocale();
@@ -116,6 +124,15 @@ export default function MarketResultsPage() {
 
               {section.settled && (<div className="market-result-settled-banner">
                   {section.isVoid ? (<p className="market-result-void">{t("marketResults.voidSettled")}</p>) : (<p className="market-result-settled-meta">
+                      {section.adjustmentSequence ? (<>
+                          {t("marketResults.adjustmentSequenceLine", {
+                                m: section.adjustmentSequence.largeCount,
+                                n: section.adjustmentSequence.smallCount,
+                                neg: formatAdjustmentSequenceValue(section.adjustmentSequence.negativePerSlot),
+                                pos: formatAdjustmentSequenceValue(section.adjustmentSequence.positivePerSlot)
+                            })}
+                          {" · "}
+                        </>) : null}
                       {t("marketResults.settledMeta", {
                                 adjustment: formatScorePlain(section.adjustment ?? 0),
                                 stake: formatScorePlain(section.stakePerSlot ?? 0)
@@ -125,12 +142,17 @@ export default function MarketResultsPage() {
 
               <div className="market-result-options">
                 {section.options.map((optionResult) => {
-                        const { option, picks: optionPicks, isWinner } = optionResult;
+                        const { option, picks: optionPicks, playerCount, doubleCount, isWinner } = optionResult;
                         return (<div key={option} className={`market-result-option${isWinner ? " market-result-option-winner" : ""}`}>
                       <div className="market-result-option-head">
                         <h3 className="market-result-option-label">
                           <span className="market-result-option-name">
                             {formatPlayMarketCandidate(locale, option)}
+                          </span>
+                          <span className="market-result-option-count">
+                            {doubleCount > 0
+                                ? t("marketResults.optionPickCountDouble", { count: playerCount, doubleCount })
+                                : t("marketResults.optionPickCount", { count: playerCount })}
                           </span>
                           <OptionPayoutHints option={option} candidates={section.options.map((item) => item.option)} questionPicks={picks.filter((pick) => pick.marketId === section.id)} marketId={section.id} className="market-result-option-payout"/>
                           {isWinner && (<span className="market-result-winner-badge">{t("marketResults.winner")}</span>)}
