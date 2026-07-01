@@ -305,6 +305,74 @@ export function computePage1UnpopularPickStats(
   return buildPage1SidePickStats(players, markets, picks, minorityTeamForMarket);
 }
 
+function buildPage1SettledResultStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  mode: "correct" | "incorrect"
+): Page1SidePickStats {
+  const marketById = new Map(
+    markets
+      .filter((market) => market.page === 1 && market.winner !== null)
+      .map((market) => [market.id, market])
+  );
+  const matchCountByPlayer = new Map<string, number>();
+
+  for (const player of players) {
+    matchCountByPlayer.set(player.id, 0);
+  }
+
+  for (const pick of picks) {
+    const market = marketById.get(pick.marketId);
+    if (!market?.winner)
+      continue;
+
+    const isCorrect = pick.team === market.winner;
+    if ((mode === "correct" && !isCorrect) || (mode === "incorrect" && isCorrect))
+      continue;
+
+    matchCountByPlayer.set(
+      pick.playerId,
+      (matchCountByPlayer.get(pick.playerId) ?? 0) + 1
+    );
+  }
+
+  const rows: Page1SidePickRow[] = players
+    .map((player) => ({
+      playerId: player.id,
+      playerName: player.name,
+      matchCount: matchCountByPlayer.get(player.id) ?? 0
+    }))
+    .sort(
+      (a, b) =>
+        b.matchCount - a.matchCount ||
+        a.playerName.localeCompare(b.playerName, "zh-CN")
+    );
+
+  const maxCount = rows[0]?.matchCount ?? 0;
+  const topRows = topTierByScore(rows, (row) => row.matchCount, 1);
+
+  return { rows, maxCount, topRows };
+}
+
+/** 1/16 决赛：已结算场次中猜对场数最多的玩家（每场计 1，不含 Double 加权）。 */
+export function computePage1CorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildPage1SettledResultStats(players, markets, picks, "correct");
+}
+
+/** 1/16 决赛：已结算场次中猜错场数最多的玩家（每场计 1，不含 Double 加权）。 */
+export function computePage1IncorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildPage1SettledResultStats(players, markets, picks, "incorrect");
+}
+
 export interface MaxSingleMatchWinRow {
   playerId: string;
   playerName: string;

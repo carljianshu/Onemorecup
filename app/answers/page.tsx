@@ -132,9 +132,13 @@ export default function AnswersPage() {
       </div>
 
       {tab === "analytics" ? (
-        <AnswersDataAnalytics />
+        <div className="answers-analytics-pane">
+          <AnswersDataAnalytics />
+        </div>
       ) : tab === "pickChart" ? (
-        <AnswersPickChartTab />
+        <div className="answers-analytics-pane">
+          <AnswersPickChartTab />
+        </div>
       ) : !answersOverviewPublic ? (
         <div className="card" style={{ maxWidth: 480 }}>
           <h2 style={{ marginTop: 0 }}>{t("answers.closedTitle")}</h2>

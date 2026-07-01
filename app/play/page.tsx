@@ -294,7 +294,12 @@ export default function PlayPage() {
       </div>
 
       {pageDeadline && (<div className="page-deadline-banner" role="status">
-          {t(step === 1 ? "play.page1Deadline" : step === 2 ? "play.page2Deadline" : "play.page3Deadline", { time: pageDeadline })}
+          <p className="page-deadline-banner-line">
+            {t(step === 1 ? "play.page1Deadline" : step === 2 ? "play.page2Deadline" : "play.page3Deadline", { time: pageDeadline })}
+          </p>
+          {step === 3 ? (
+            <p className="page-deadline-banner-subline">{t("play.page3DeadlineStakeNote")}</p>
+          ) : null}
         </div>)}
 
       {config.registrationClosed && !activePlayer && name.trim() && (<div className="message warning">{t("play.registrationClosed")}</div>)}

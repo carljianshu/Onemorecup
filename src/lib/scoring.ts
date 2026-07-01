@@ -239,7 +239,7 @@ export interface AdjustmentSequenceSummary {
 
 /**
  * M3-5/6/7：各选项按计分位计数（Double 视为 2）；人数最少者为 N，其余合计 M；
- * 参考序列 M 个 −20、N 个 20×M/N → σ，调整系数 = σ ÷ 20；实际本金 = 20÷调整系数。
+ * 参考序列 M 个 −10、N 个 10×M/N → σ，调整系数 = σ ÷ 10；实际本金 = 20÷调整系数。
  */
 function computeDistributionAdjustmentStats(groupPicks: Pick[]): {
   scoreStd: number;

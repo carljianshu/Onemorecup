@@ -9,6 +9,8 @@ import {
   computeMaxColdWinStats,
   computeMaxPotentialSingleMatchWinStats,
   computeMaxSingleMatchWinStats,
+  computePage1CorrectPickStats,
+  computePage1IncorrectPickStats,
   computePage1MarketPickBalanceStats,
   computePage1PopularPickStats,
   computePage1RealWorldComparison,
@@ -57,7 +59,10 @@ function LeaderBlock({
   sectionNumber: number;
   label: string;
   rows: Page1SidePickRow[];
-  countKey: "answers.analyticsPopularCount" | "answers.analyticsUnpopularCount";
+  countKey:
+    | "answers.analyticsPopularCount"
+    | "answers.analyticsUnpopularCount"
+    | "answers.analyticsSettledCount";
   className?: string;
 }) {
   const { locale, t } = useLocale();
@@ -74,16 +79,19 @@ function LeaderBlock({
   );
 
   return (
-    <div className={`answers-analytics-leaders${className ? ` ${className}` : ""}`}>
+    <div className={`answers-analytics-item answers-analytics-leaders${className ? ` ${className}` : ""}`}>
       <p className="answers-analytics-leaders-label">
         {sectionNumber}. {label}
       </p>
-      <ul className="answers-analytics-leader-list">
+      <ul className="answers-analytics-leader-list answers-analytics-item-body">
         {groupedRows.map((group) => (
           <li key={group.count}>
-            <span className="answers-analytics-leader-name">{group.names}</span>
-            <span className="answers-analytics-leader-count">
-              {t(countKey, { count: group.count })}
+            <span className="answers-analytics-leader-name">
+              {group.names}
+              <span className="answers-analytics-leader-count">
+                {" "}
+                {t(countKey, { count: group.count })}
+              </span>
             </span>
           </li>
         ))}
@@ -106,11 +114,11 @@ function GapBlock({
   const { locale, t } = useLocale();
 
   return (
-    <div className="answers-analytics-leaders answers-analytics-gap-list">
+    <div className="answers-analytics-item answers-analytics-leaders answers-analytics-gap-list">
       <p className="answers-analytics-leaders-label">
         {sectionNumber}. {label}
       </p>
-      <ul className="answers-analytics-leader-list">
+      <ul className="answers-analytics-leader-list answers-analytics-item-body">
         {rows.map((row) => (
           <li key={row.marketId}>
             <span className="answers-analytics-leader-name">
@@ -172,11 +180,11 @@ function PickBalanceCards({
   };
 
   return (
-    <div className="answers-analytics-pick-balance-section">
-      <p className="answers-analytics-pick-balance-heading">
+    <div className="answers-analytics-item answers-analytics-pick-balance-section">
+      <p className="answers-analytics-leaders-label">
         {sectionNumber}. {label}
       </p>
-      <div className="answers-analytics-gap-summary answers-analytics-gap-summary-single">
+      <div className="answers-analytics-gap-summary answers-analytics-gap-summary-single answers-analytics-item-body">
         {rows.map((row) => {
           const market = marketById.get(row.marketId);
           const marketLabel = market
@@ -249,11 +257,11 @@ function MaxColdWinBlock({
   );
 
   return (
-    <div className="answers-analytics-pick-balance-section">
-      <p className="answers-analytics-pick-balance-heading">
+    <div className="answers-analytics-item answers-analytics-pick-balance-section">
+      <p className="answers-analytics-leaders-label">
         {sectionNumber}. {label}
       </p>
-      <div className="answers-analytics-gap-summary answers-analytics-gap-summary-single">
+      <div className="answers-analytics-gap-summary answers-analytics-gap-summary-single answers-analytics-item-body">
         {rows.map((row) => {
           const market = marketById.get(row.marketId);
           const marketLabel = market
@@ -337,11 +345,11 @@ function MaxWinBlock({
   }, [rows, nameSeparator]);
 
   return (
-    <div className="answers-analytics-leaders answers-analytics-max-win-list">
+    <div className="answers-analytics-item answers-analytics-leaders answers-analytics-max-win-list">
       <p className="answers-analytics-leaders-label">
         {sectionNumber}. {label}
       </p>
-      <ul className="answers-analytics-leader-list">
+      <ul className="answers-analytics-leader-list answers-analytics-item-body">
         {groupedRows.map((group) => {
           const row = group.sample;
           const market = marketById.get(row.marketId);
@@ -351,14 +359,17 @@ function MaxWinBlock({
           const teamLabel = translateMarketCandidate(locale, row.team);
           return (
             <li key={group.count}>
-              <span className="answers-analytics-leader-name">{group.names}</span>
-              <span className="answers-analytics-leader-count">
-                {t("answers.analyticsMaxWinDetail", {
-                  amount: formatScore(row.winAmount),
-                  market: marketLabel,
-                  team: teamLabel,
-                  doubleNote: row.isDouble ? t("answers.analyticsMaxWinDoubleNote") : ""
-                })}
+              <span className="answers-analytics-leader-name">
+                {group.names}
+                <span className="answers-analytics-leader-count">
+                  {" "}
+                  {t("answers.analyticsMaxWinDetail", {
+                    amount: formatScore(row.winAmount),
+                    market: marketLabel,
+                    team: teamLabel,
+                    doubleNote: row.isDouble ? t("answers.analyticsMaxWinDoubleNote") : ""
+                  })}
+                </span>
               </span>
             </li>
           );
@@ -400,6 +411,14 @@ export function AnswersDataAnalytics() {
     () => computePage1MarketPickBalanceStats(markets, picks),
     [markets, picks]
   );
+  const correctPickStats = useMemo(
+    () => computePage1CorrectPickStats(players, markets, picks),
+    [players, markets, picks]
+  );
+  const incorrectPickStats = useMemo(
+    () => computePage1IncorrectPickStats(players, markets, picks),
+    [players, markets, picks]
+  );
 
   const formatRate = (value: number) => `${value.toFixed(1)}%`;
 
@@ -415,15 +434,21 @@ export function AnswersDataAnalytics() {
     sectionNumber: number,
     label: string,
     empty: string,
-    countKey: "answers.analyticsPopularCount" | "answers.analyticsUnpopularCount",
+    countKey:
+      | "answers.analyticsPopularCount"
+      | "answers.analyticsUnpopularCount"
+      | "answers.analyticsSettledCount",
     stats: Page1SidePickStats,
     className?: string
   ) => {
     if (stats.topRows.length === 0) {
       return (
-        <p className="answers-analytics-placeholder">
-          {sectionNumber}. {label} — {empty}
-        </p>
+        <div className="answers-analytics-item">
+          <p className="answers-analytics-leaders-label">
+            {sectionNumber}. {label}
+          </p>
+          <p className="answers-analytics-item-body answers-analytics-placeholder">{empty}</p>
+        </div>
       );
     }
     return (
@@ -438,9 +463,12 @@ export function AnswersDataAnalytics() {
   };
 
   const renderEmptySection = (sectionNumber: number, label: string, empty: string) => (
-    <p className="answers-analytics-placeholder">
-      {sectionNumber}. {label} — {empty}
-    </p>
+    <div className="answers-analytics-item">
+      <p className="answers-analytics-leaders-label">
+        {sectionNumber}. {label}
+      </p>
+      <p className="answers-analytics-item-body answers-analytics-placeholder">{empty}</p>
+    </div>
   );
 
   return (
@@ -517,11 +545,27 @@ export function AnswersDataAnalytics() {
           </>
         )}
 
+        {renderSideSection(
+          7,
+          t("answers.analyticsCorrectLeaders"),
+          t("answers.analyticsCorrectEmpty"),
+          "answers.analyticsSettledCount",
+          correctPickStats
+        )}
+
+        {renderSideSection(
+          8,
+          t("answers.analyticsIncorrectLeaders"),
+          t("answers.analyticsIncorrectEmpty"),
+          "answers.analyticsSettledCount",
+          incorrectPickStats
+        )}
+
         {maxPotentialWinStats.topRows.length === 0 ? (
-          renderEmptySection(7, t("answers.analyticsMaxPotentialWinLeaders"), t("answers.analyticsMaxPotentialWinEmpty"))
+          renderEmptySection(9, t("answers.analyticsMaxPotentialWinLeaders"), t("answers.analyticsMaxPotentialWinEmpty"))
         ) : (
           <MaxWinBlock
-            sectionNumber={7}
+            sectionNumber={9}
             label={t("answers.analyticsMaxPotentialWinLeaders")}
             rows={maxPotentialWinStats.topRows}
             markets={markets}
@@ -529,10 +573,10 @@ export function AnswersDataAnalytics() {
         )}
 
         {maxWinStats.topRows.length === 0 ? (
-          renderEmptySection(8, t("answers.analyticsMaxWinLeaders"), t("answers.analyticsMaxWinEmpty"))
+          renderEmptySection(10, t("answers.analyticsMaxWinLeaders"), t("answers.analyticsMaxWinEmpty"))
         ) : (
           <MaxWinBlock
-            sectionNumber={8}
+            sectionNumber={10}
             label={t("answers.analyticsMaxWinLeaders")}
             rows={maxWinStats.topRows}
             markets={markets}
@@ -540,10 +584,10 @@ export function AnswersDataAnalytics() {
         )}
 
         {maxColdWinStats.topRows.length === 0 ? (
-          renderEmptySection(9, t("answers.analyticsMaxColdWin"), t("answers.analyticsMaxColdWinEmpty"))
+          renderEmptySection(11, t("answers.analyticsMaxColdWin"), t("answers.analyticsMaxColdWinEmpty"))
         ) : (
           <MaxColdWinBlock
-            sectionNumber={9}
+            sectionNumber={11}
             label={t("answers.analyticsMaxColdWin")}
             rows={maxColdWinStats.topRows}
             markets={markets}

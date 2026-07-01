@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { translateMarketCandidate } from "@/i18n";
 import { computePage1PickDistribution } from "@/lib/answers-analytics";
 import type { Market, Pick } from "@/types";
+
+/** 柱状图轨道按满员计分位设计（约 35 人规模，含少量 Double）。 */
+export const PAGE1_PICK_CHART_MAX_SLOTS = 35;
 
 /** 每个计分位在图上的固定宽度（px）。 */
 const SLOT_UNIT_PX = 10;
@@ -51,7 +54,14 @@ export function AnswersPickStackChart({
   const hasSettled = rows.some((row) => row.winner !== null);
 
   return (
-    <div className="answers-pick-stack-chart">
+    <div
+      className="answers-pick-stack-chart"
+      style={
+        {
+          "--pick-chart-track-width": `${PAGE1_PICK_CHART_MAX_SLOTS * SLOT_UNIT_PX}px`
+        } as CSSProperties
+      }
+    >
       <div className="answers-pick-stack-chart-header">
         <h3 className="answers-pick-stack-chart-title">
           {t("answers.analyticsPickChartTitle")}
@@ -113,18 +123,20 @@ export function AnswersPickStackChart({
                     <span
                       className={segmentClass("hot", row.hotTeam, row.winner)}
                       style={{ width: `${row.hotSlots * SLOT_UNIT_PX}px` }}
+                      data-slots={row.hotSlots}
                       title={`${hotLabel} ${row.hotSlots}`}
                     >
-                      {row.hotSlots >= 3 ? row.hotSlots : ""}
+                      {row.hotSlots}
                     </span>
                   ) : null}
                   {row.coldSlots > 0 ? (
                     <span
                       className={segmentClass("cold", row.coldTeam, row.winner)}
                       style={{ width: `${row.coldSlots * SLOT_UNIT_PX}px` }}
+                      data-slots={row.coldSlots}
                       title={`${coldLabel} ${row.coldSlots}`}
                     >
-                      {row.coldSlots >= 3 ? row.coldSlots : ""}
+                      {row.coldSlots}
                     </span>
                   ) : null}
                 </div>
