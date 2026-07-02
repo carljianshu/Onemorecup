@@ -3,14 +3,14 @@
 import { useMemo } from "react";
 import { useGame } from "@/context/GameContext";
 import { useLocale } from "@/context/LocaleContext";
-import { formatMarketHeading, translateMarketCandidate } from "@/i18n";
+import { formatMarketMatchup, translateMarketCandidate } from "@/i18n";
 import { formatScore, formatScorePlain } from "@/lib/score-format";
 import {
   computeMaxColdWinStats,
-  computeMaxPotentialSingleMatchWinStats,
   computeMaxSingleMatchWinStats,
   computePage1CorrectPickStats,
   computePage1IncorrectPickStats,
+  computeMaxDoubleSingleMatchWinStats,
   computePage1MarketPickBalanceStats,
   computePage1PopularPickStats,
   computePage1RealWorldComparison,
@@ -144,7 +144,6 @@ function PickBalanceCards({
   sectionNumber,
   label,
   rows,
-  markets,
   players,
   picks,
   cardClass,
@@ -154,7 +153,6 @@ function PickBalanceCards({
   sectionNumber: number;
   label: string;
   rows: Page1MarketPickBalanceRow[];
-  markets: { id: string; name: string; candidates?: string[] }[];
   players: Player[];
   picks: Pick[];
   cardClass: "answers-analytics-gap-card-max" | "answers-analytics-gap-card-min";
@@ -163,10 +161,6 @@ function PickBalanceCards({
 }) {
   const { locale, t } = useLocale();
   const nameSeparator = locale === "zh" ? "、" : ", ";
-  const marketById = useMemo(
-    () => new Map(markets.map((market) => [market.id, market])),
-    [markets]
-  );
 
   const formatPickerNames = (marketId: string, coldTeam: string) => {
     const pickers = coldSidePickersForMarket(marketId, coldTeam, players, picks);
@@ -186,15 +180,22 @@ function PickBalanceCards({
       </p>
       <div className="answers-analytics-gap-summary answers-analytics-gap-summary-single answers-analytics-item-body">
         {rows.map((row) => {
-          const market = marketById.get(row.marketId);
-          const marketLabel = market
-            ? formatMarketHeading(locale, market.id, market.name)
-            : row.marketId;
+          const marketLabel = formatMarketMatchup(locale, row.teamA, row.teamB);
           const hotTeam = translateMarketCandidate(locale, row.hotTeam);
           const coldTeam = translateMarketCandidate(locale, row.coldTeam);
           const coldPickerNames = showColdPickers
             ? formatPickerNames(row.marketId, row.coldTeam)
             : null;
+          const detailSuffix = coldPickerNames
+            ? t("answers.analyticsPickBalanceColdPickers", {
+                team: coldTeam,
+                players: coldPickerNames
+              })
+            : showStake && row.stakePerSlot > 0
+              ? t("answers.analyticsPickBalanceStake", {
+                  amount: formatScorePlain(row.stakePerSlot)
+                })
+              : null;
 
           return (
             <article
@@ -210,22 +211,8 @@ function PickBalanceCards({
                   coldSlots: row.coldSlots,
                   gap: row.gap
                 })}
+                {detailSuffix ? ` · ${detailSuffix}` : ""}
               </p>
-              {coldPickerNames ? (
-                <p className="answers-analytics-gap-meta">
-                  {t("answers.analyticsPickBalanceColdPickers", {
-                    team: coldTeam,
-                    players: coldPickerNames
-                  })}
-                </p>
-              ) : null}
-              {showStake && row.stakePerSlot > 0 ? (
-                <p className="answers-analytics-gap-meta">
-                  {t("answers.analyticsPickBalanceStake", {
-                    amount: formatScorePlain(row.stakePerSlot)
-                  })}
-                </p>
-              ) : null}
             </article>
           );
         })}
@@ -264,9 +251,11 @@ function MaxColdWinBlock({
       <div className="answers-analytics-gap-summary answers-analytics-gap-summary-single answers-analytics-item-body">
         {rows.map((row) => {
           const market = marketById.get(row.marketId);
-          const marketLabel = market
-            ? formatMarketHeading(locale, market.id, market.name)
-            : row.marketId;
+          const candidates = market?.candidates ?? [];
+          const marketLabel =
+            candidates.length >= 2
+              ? formatMarketMatchup(locale, candidates[0]!, candidates[1]!)
+              : row.marketId;
           const winner = translateMarketCandidate(locale, row.winnerTeam);
           const hotTeam = translateMarketCandidate(locale, row.hotTeam);
           const coldTeam = translateMarketCandidate(locale, row.coldTeam);
@@ -275,6 +264,12 @@ function MaxColdWinBlock({
               `${picker.playerName}${picker.isDouble ? t("answers.analyticsMaxWinDoubleNote") : ""}`
             )
             .join(nameSeparator);
+          const pickerSuffix = winnerPickers
+            ? t("answers.analyticsPickBalanceColdPickers", {
+                team: winner,
+                players: winnerPickers
+              })
+            : null;
 
           return (
             <article
@@ -291,15 +286,8 @@ function MaxColdWinBlock({
                   coldSlots: row.coldSlots,
                   gap: row.gap
                 })}
+                {pickerSuffix ? ` · ${pickerSuffix}` : ""}
               </p>
-              {winnerPickers ? (
-                <p className="answers-analytics-gap-meta">
-                  {t("answers.analyticsPickBalanceColdPickers", {
-                    team: winner,
-                    players: winnerPickers
-                  })}
-                </p>
-              ) : null}
             </article>
           );
         })}
@@ -317,7 +305,7 @@ function MaxWinBlock({
   sectionNumber: number;
   label: string;
   rows: MaxSingleMatchWinRow[];
-  markets: { id: string; name: string }[];
+  markets: { id: string; name: string; candidates?: string[] }[];
 }) {
   const { locale, t } = useLocale();
   const nameSeparator = locale === "zh" ? "、" : ", ";
@@ -353,9 +341,11 @@ function MaxWinBlock({
         {groupedRows.map((group) => {
           const row = group.sample;
           const market = marketById.get(row.marketId);
-          const marketLabel = market
-            ? formatMarketHeading(locale, market.id, market.name)
-            : row.marketId;
+          const candidates = market?.candidates ?? [];
+          const marketLabel =
+            candidates.length >= 2
+              ? formatMarketMatchup(locale, candidates[0]!, candidates[1]!)
+              : row.marketId;
           const teamLabel = translateMarketCandidate(locale, row.team);
           return (
             <li key={group.count}>
@@ -403,10 +393,6 @@ export function AnswersDataAnalytics() {
     () => computeMaxColdWinStats(markets, picks),
     [markets, picks]
   );
-  const maxPotentialWinStats = useMemo(
-    () => computeMaxPotentialSingleMatchWinStats(players, markets, picks),
-    [players, markets, picks]
-  );
   const pickBalanceStats = useMemo(
     () => computePage1MarketPickBalanceStats(markets, picks),
     [markets, picks]
@@ -417,6 +403,10 @@ export function AnswersDataAnalytics() {
   );
   const incorrectPickStats = useMemo(
     () => computePage1IncorrectPickStats(players, markets, picks),
+    [players, markets, picks]
+  );
+  const maxDoubleWinStats = useMemo(
+    () => computeMaxDoubleSingleMatchWinStats(players, markets, picks),
     [players, markets, picks]
   );
 
@@ -526,7 +516,6 @@ export function AnswersDataAnalytics() {
               sectionNumber={5}
               label={t("answers.analyticsPickBalanceMostLopsided")}
               rows={pickBalanceStats.mostLopsidedRows}
-              markets={markets}
               players={players}
               picks={picks}
               cardClass="answers-analytics-gap-card-max"
@@ -536,7 +525,6 @@ export function AnswersDataAnalytics() {
               sectionNumber={6}
               label={t("answers.analyticsPickBalanceMostBalanced")}
               rows={pickBalanceStats.mostBalancedRows}
-              markets={markets}
               players={players}
               picks={picks}
               cardClass="answers-analytics-gap-card-min"
@@ -561,13 +549,13 @@ export function AnswersDataAnalytics() {
           incorrectPickStats
         )}
 
-        {maxPotentialWinStats.topRows.length === 0 ? (
-          renderEmptySection(9, t("answers.analyticsMaxPotentialWinLeaders"), t("answers.analyticsMaxPotentialWinEmpty"))
+        {maxDoubleWinStats.topRows.length === 0 ? (
+          renderEmptySection(9, t("answers.analyticsDoubleWinLeaders"), t("answers.analyticsDoubleWinEmpty"))
         ) : (
           <MaxWinBlock
             sectionNumber={9}
-            label={t("answers.analyticsMaxPotentialWinLeaders")}
-            rows={maxPotentialWinStats.topRows}
+            label={t("answers.analyticsDoubleWinLeaders")}
+            rows={maxDoubleWinStats.topRows}
             markets={markets}
           />
         )}

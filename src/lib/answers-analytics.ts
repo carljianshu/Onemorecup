@@ -373,6 +373,54 @@ export function computePage1IncorrectPickStats(
   return buildPage1SettledResultStats(players, markets, picks, "incorrect");
 }
 
+/**
+ * 已结算场次中，单次 Double 猜对且净得分 > 0 的最高记录（含并列）。
+ */
+export function computeMaxDoubleSingleMatchWinStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): MaxSingleMatchWinStats {
+  const playerById = new Map(players.map((player) => [player.id, player]));
+  const marketById = new Map(markets.map((market) => [market.id, market]));
+  const records: MaxSingleMatchWinRow[] = [];
+
+  for (const pick of picks) {
+    if (pick.stake !== DOUBLE_STAKE)
+      continue;
+
+    const market = marketById.get(pick.marketId);
+    if (!market || market.winner === null || pick.team !== market.winner)
+      continue;
+
+    const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
+    const breakdown = computeParimutuelBreakdown(market.winner, questionPicks, pick.marketId);
+    if (!breakdown || breakdown.isVoid)
+      continue;
+
+    const winAmount = roundScore(breakdown.scores[pick.playerId] ?? 0);
+    if (winAmount <= 0)
+      continue;
+
+    records.push({
+      playerId: pick.playerId,
+      playerName: playerById.get(pick.playerId)?.name ?? pick.playerId,
+      marketId: pick.marketId,
+      team: pick.team,
+      winAmount,
+      isDouble: true
+    });
+  }
+
+  const topRows = topTierByScore(records, (row) => row.winAmount, 1).sort(
+    (a, b) =>
+      b.winAmount - a.winAmount ||
+      a.playerName.localeCompare(b.playerName, "zh-CN")
+  );
+
+  return { topRows };
+}
+
 export interface MaxSingleMatchWinRow {
   playerId: string;
   playerName: string;
@@ -408,55 +456,6 @@ export function computeMaxSingleMatchWinStats(
 
     const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
     const breakdown = computeParimutuelBreakdown(market.winner, questionPicks, pick.marketId);
-    if (!breakdown || breakdown.isVoid)
-      continue;
-
-    const winAmount = roundScore(breakdown.scores[pick.playerId] ?? 0);
-    if (winAmount <= 0)
-      continue;
-
-    records.push({
-      playerId: pick.playerId,
-      playerName: playerById.get(pick.playerId)?.name ?? pick.playerId,
-      marketId: pick.marketId,
-      team: pick.team,
-      winAmount,
-      isDouble: pick.stake === DOUBLE_STAKE
-    });
-  }
-
-  const topRows = topTierByScore(records, (row) => row.winAmount, 1).sort(
-    (a, b) =>
-      b.winAmount - a.winAmount ||
-      a.playerName.localeCompare(b.playerName, "zh-CN")
-  );
-
-  return { topRows };
-}
-
-/**
- * 1/16 决赛：全员各场作答中，单场潜在猜对收益的最高记录（含 Double 双倍计分位）。
- * 仅统计尚未公布赛果的场次，按「若该选项胜出」模拟结算。
- */
-export function computeMaxPotentialSingleMatchWinStats(
-  players: Player[],
-  markets: Market[],
-  picks: Pick[]
-): MaxSingleMatchWinStats {
-  const playerById = new Map(players.map((player) => [player.id, player]));
-  const marketById = new Map(markets.map((market) => [market.id, market]));
-  const records: MaxSingleMatchWinRow[] = [];
-
-  for (const pick of picks) {
-    if (pick.team === null)
-      continue;
-
-    const market = marketById.get(pick.marketId);
-    if (!market || market.page !== 1 || market.winner !== null)
-      continue;
-
-    const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
-    const breakdown = computeParimutuelBreakdown(pick.team, questionPicks, pick.marketId);
     if (!breakdown || breakdown.isVoid)
       continue;
 

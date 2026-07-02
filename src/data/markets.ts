@@ -308,28 +308,30 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "K2/克罗地亚": "葡萄牙/克罗地亚"
     },
     "m2-4": {
-        "美国/BEFIJ3": "美国/波黑",
-        "美国/BI3": "美国/波黑",
-        "G1/AEHIJ3": "比利时/塞内加尔",
-        "G1/AHIJ3": "比利时/塞内加尔",
-        "G1/AIJ3": "比利时/塞内加尔",
-        "比利时/AIJ3": "比利时/塞内加尔",
-        "比利时/(韩国/I3/J3)": "比利时/塞内加尔",
-        "比利时/(韩国/塞内加尔/J3)": "比利时/塞内加尔"
+        "美国/BEFIJ3": "美国",
+        "美国/BI3": "美国",
+        "美国/波黑": "美国",
+        "G1/AEHIJ3": "比利时",
+        "G1/AHIJ3": "比利时",
+        "G1/AIJ3": "比利时",
+        "比利时/AIJ3": "比利时",
+        "比利时/(韩国/I3/J3)": "比利时",
+        "比利时/(韩国/塞内加尔/J3)": "比利时",
+        "比利时/塞内加尔": "比利时"
     },
     "m2-6": {
         "墨西哥/CEFHI3": "墨西哥",
         "墨西哥/CEH3": "墨西哥",
         "墨西哥/(苏格兰/厄瓜多尔)": "墨西哥",
         "墨西哥/厄瓜多尔": "墨西哥",
-        "L1/EHIJK3": "英格兰/民主刚果",
-        "L1/EIJK3": "英格兰/民主刚果",
-        "L1/IJK3": "英格兰/民主刚果",
-        "英格兰/(塞内加尔/J3/K3)": "英格兰/民主刚果",
-        "英格兰/(塞内加尔/加纳)": "英格兰/民主刚果",
-        "英格兰/(塞内加尔/K3)": "英格兰/民主刚果",
-        "英格兰/(塞内加尔/民主刚果)": "英格兰/民主刚果",
-        "英格兰/民主刚果": "英格兰/民主刚果"
+        "L1/EHIJK3": "英格兰",
+        "L1/EIJK3": "英格兰",
+        "L1/IJK3": "英格兰",
+        "英格兰/(塞内加尔/J3/K3)": "英格兰",
+        "英格兰/(塞内加尔/加纳)": "英格兰",
+        "英格兰/(塞内加尔/K3)": "英格兰",
+        "英格兰/(塞内加尔/民主刚果)": "英格兰",
+        "英格兰/民主刚果": "英格兰"
     },
     "m2-2": {
         "南非/加拿大": "加拿大",
@@ -381,14 +383,17 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
     "m3-2": {
         "西班牙区": "西班牙/奥地利/葡萄牙/克罗地亚",
         "H1区": "西班牙/奥地利/葡萄牙/克罗地亚",
-        "美国/比利时区": "美国/波黑/比利时/塞内加尔"
+        "美国/比利时区": "美国/比利时",
+        "美国/波黑/比利时/塞内加尔": "美国/比利时",
+        "美国/波黑/比利时": "美国/比利时"
     },
     "m3-3": {
         "巴西区": "巴西/挪威",
         "巴西/科特迪瓦/挪威": "巴西/挪威",
-        "墨西哥/英格兰区": "墨西哥/英格兰/民主刚果",
-        "墨西哥/L1区": "墨西哥/英格兰/民主刚果",
-        "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰/民主刚果"
+        "墨西哥/英格兰区": "墨西哥/英格兰",
+        "墨西哥/L1区": "墨西哥/英格兰",
+        "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰",
+        "墨西哥/英格兰/民主刚果": "墨西哥/英格兰"
     },
     "m3-4": {
         "阿根廷区": "阿根廷/佛得角/澳大利亚/埃及",
@@ -409,17 +414,20 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "待填 3": "西班牙/奥地利/葡萄牙/克罗地亚",
         "H1区": "西班牙/奥地利/葡萄牙/克罗地亚",
         "西班牙区": "西班牙/奥地利/葡萄牙/克罗地亚",
-        "待填 4": "美国/波黑/比利时/塞内加尔",
-        "美国/比利时区": "美国/波黑/比利时/塞内加尔"
+        "待填 4": "美国/比利时",
+        "美国/比利时区": "美国/比利时",
+        "美国/波黑/比利时/塞内加尔": "美国/比利时",
+        "美国/波黑/比利时": "美国/比利时"
     },
     "m3-6": {
         "待填 1": "巴西/挪威",
         "巴西区": "巴西/挪威",
         "巴西/科特迪瓦/挪威": "巴西/挪威",
-        "待填 2": "墨西哥/英格兰/民主刚果",
-        "墨西哥/英格兰区": "墨西哥/英格兰/民主刚果",
-        "墨西哥/L1区": "墨西哥/英格兰/民主刚果",
-        "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰/民主刚果",
+        "待填 2": "墨西哥/英格兰",
+        "墨西哥/英格兰区": "墨西哥/英格兰",
+        "墨西哥/L1区": "墨西哥/英格兰",
+        "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰",
+        "墨西哥/英格兰/民主刚果": "墨西哥/英格兰",
         "待填 3": "阿根廷/佛得角/澳大利亚/埃及",
         "阿根廷区": "阿根廷/佛得角/澳大利亚/埃及",
         "待填 4": "瑞士/阿尔及利亚/哥伦比亚/加纳",
@@ -440,15 +448,18 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "待填 3": "西班牙/奥地利/葡萄牙/克罗地亚",
         "H1区": "西班牙/奥地利/葡萄牙/克罗地亚",
         "西班牙区": "西班牙/奥地利/葡萄牙/克罗地亚",
-        "待填 4": "美国/波黑/比利时/塞内加尔",
-        "美国/比利时区": "美国/波黑/比利时/塞内加尔",
+        "待填 4": "美国/比利时",
+        "美国/比利时区": "美国/比利时",
+        "美国/波黑/比利时/塞内加尔": "美国/比利时",
+        "美国/波黑/比利时": "美国/比利时",
         "待填 5": "巴西/挪威",
         "巴西区": "巴西/挪威",
         "巴西/科特迪瓦/挪威": "巴西/挪威",
-        "待填 6": "墨西哥/英格兰/民主刚果",
-        "墨西哥/英格兰区": "墨西哥/英格兰/民主刚果",
-        "墨西哥/L1区": "墨西哥/英格兰/民主刚果",
-        "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰/民主刚果",
+        "待填 6": "墨西哥/英格兰",
+        "墨西哥/英格兰区": "墨西哥/英格兰",
+        "墨西哥/L1区": "墨西哥/英格兰",
+        "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰",
+        "墨西哥/英格兰/民主刚果": "墨西哥/英格兰",
         "待填 7": "阿根廷/佛得角/澳大利亚/埃及",
         "阿根廷区": "阿根廷/佛得角/澳大利亚/埃及",
         "待填 8": "瑞士/阿尔及利亚/哥伦比亚/加纳",
@@ -599,11 +610,23 @@ export function renameM25CandidateInTeamName(team: string): string {
     return team;
 }
 
-/** M2-6 1/8 选项：墨西哥/厄瓜多尔 → 墨西哥。 */
+/** M2-4 1/8 选项：美国/波黑 → 美国；比利时/塞内加尔 → 比利时。 */
+
+export function renameM24CandidateInTeamName(team: string): string {
+    if (team === "美国/波黑")
+        return "美国";
+    if (team === "比利时/塞内加尔")
+        return "比利时";
+    return team;
+}
+
+/** M2-6 1/8 选项：墨西哥/厄瓜多尔 → 墨西哥；英格兰/民主刚果 → 英格兰。 */
 
 export function renameM26CandidateInTeamName(team: string): string {
     if (team === "墨西哥/厄瓜多尔")
         return "墨西哥";
+    if (team === "英格兰/民主刚果")
+        return "英格兰";
     return team;
 }
 
@@ -618,9 +641,14 @@ export function renameM3BracketCandidatesInTeamName(team: string): string {
         .replaceAll("巴西/日本/科特迪瓦/挪威", "巴西/挪威")
         .replaceAll("巴西/科特迪瓦/挪威", "巴西/挪威")
         .replaceAll("西班牙区", "西班牙/奥地利/葡萄牙/克罗地亚")
-        .replaceAll("美国/比利时区", "美国/波黑/比利时/塞内加尔")
-        .replaceAll("墨西哥/厄瓜多尔/英格兰/民主刚果", "墨西哥/英格兰/民主刚果")
-        .replaceAll("墨西哥/英格兰区", "墨西哥/英格兰/民主刚果")
+        .replaceAll("美国/波黑/比利时/塞内加尔", "美国/比利时")
+        .replaceAll("美国/波黑/比利时", "美国/比利时")
+        .replaceAll("美国/比利时区", "美国/比利时")
+        .replaceAll("美国/波黑", "美国")
+        .replaceAll("墨西哥/厄瓜多尔/英格兰/民主刚果", "墨西哥/英格兰")
+        .replaceAll("墨西哥/英格兰/民主刚果", "墨西哥/英格兰")
+        .replaceAll("墨西哥/英格兰区", "墨西哥/英格兰")
+        .replaceAll("墨西哥/L1区", "墨西哥/英格兰")
         .replaceAll("瑞士/哥伦比亚区", "瑞士/阿尔及利亚/哥伦比亚/加纳");
 }
 
@@ -704,16 +732,16 @@ export function renameL1Round1OpponentInTeamName(team: string): string {
         .replaceAll("塞内加尔/加纳", "民主刚果")
         .replaceAll("塞内加尔/K3", "民主刚果")
         .replaceAll("塞内加尔/民主刚果", "民主刚果")
-        .replaceAll("L1/EHIJK3", "英格兰/民主刚果")
-        .replaceAll("L1/EIJK3", "英格兰/民主刚果")
-        .replaceAll("L1/IJK3", "英格兰/民主刚果")
-        .replaceAll("英格兰/EHIJK3", "英格兰/民主刚果")
-        .replaceAll("英格兰/EIJK3", "英格兰/民主刚果")
-        .replaceAll("英格兰/IJK3", "英格兰/民主刚果")
-        .replaceAll("英格兰/(塞内加尔/J3/K3)", "英格兰/民主刚果")
-        .replaceAll("英格兰/(塞内加尔/加纳)", "英格兰/民主刚果")
-        .replaceAll("英格兰/(塞内加尔/K3)", "英格兰/民主刚果")
-        .replaceAll("英格兰/(塞内加尔/民主刚果)", "英格兰/民主刚果")
+        .replaceAll("L1/EHIJK3", "英格兰")
+        .replaceAll("L1/EIJK3", "英格兰")
+        .replaceAll("L1/IJK3", "英格兰")
+        .replaceAll("英格兰/EHIJK3", "英格兰")
+        .replaceAll("英格兰/EIJK3", "英格兰")
+        .replaceAll("英格兰/IJK3", "英格兰")
+        .replaceAll("英格兰/(塞内加尔/J3/K3)", "英格兰")
+        .replaceAll("英格兰/(塞内加尔/加纳)", "英格兰")
+        .replaceAll("英格兰/(塞内加尔/K3)", "英格兰")
+        .replaceAll("英格兰/(塞内加尔/民主刚果)", "英格兰")
         .replaceAll("EHIJK3", "民主刚果")
         .replaceAll("EIJK3", "民主刚果")
         .replaceAll("EHIK3", "民主刚果")
@@ -916,14 +944,14 @@ export function renameMexicoRound1OpponentInTeamName(team: string): string {
         .replaceAll("CEH3", "厄瓜多尔");
 }
 
-/** 美国 1/16 对手槽位 → 波黑；1/8 联动选项同步。 */
+/** 美国 1/16 对手槽位 → 波黑（已淘汰）；1/8 联动选项同步为美国。 */
 
 export function renameUsaRound1OpponentInTeamName(team: string): string {
     return team
         .replaceAll("B/E/F/I/J3", "波黑")
         .replaceAll("B/I3", "波黑")
-        .replaceAll("美国/BEFIJ3", "美国/波黑")
-        .replaceAll("美国/BI3", "美国/波黑")
+        .replaceAll("美国/BEFIJ3", "美国")
+        .replaceAll("美国/BI3", "美国")
         .replaceAll("BEFIJ3", "波黑")
         .replaceAll("BI3", "波黑");
 }
@@ -937,12 +965,12 @@ export function renameG1Round1OpponentInTeamName(team: string): string {
         .replaceAll("A/I/J3", "塞内加尔")
         .replaceAll("韩国/I3/J3", "塞内加尔")
         .replaceAll("韩国/塞内加尔/J3", "塞内加尔")
-        .replaceAll("G1/AEHIJ3", "比利时/塞内加尔")
-        .replaceAll("G1/AHIJ3", "比利时/塞内加尔")
-        .replaceAll("G1/AIJ3", "比利时/塞内加尔")
-        .replaceAll("比利时/AIJ3", "比利时/塞内加尔")
-        .replaceAll("比利时/(韩国/I3/J3)", "比利时/塞内加尔")
-        .replaceAll("比利时/(韩国/塞内加尔/J3)", "比利时/塞内加尔")
+        .replaceAll("G1/AEHIJ3", "比利时")
+        .replaceAll("G1/AHIJ3", "比利时")
+        .replaceAll("G1/AIJ3", "比利时")
+        .replaceAll("比利时/AIJ3", "比利时")
+        .replaceAll("比利时/(韩国/I3/J3)", "比利时")
+        .replaceAll("比利时/(韩国/塞内加尔/J3)", "比利时")
         .replaceAll("AEHIJ3", "塞内加尔")
         .replaceAll("AHIJ3", "塞内加尔")
         .replaceAll("AIJ3", "塞内加尔")
@@ -1016,6 +1044,7 @@ export function migratePickTeam(marketId: string, team: string, candidates: stri
     mapped = renameG2InTeamName(mapped);
     mapped = renameM21CandidateInTeamName(mapped);
     mapped = renameM22CandidateInTeamName(mapped);
+    mapped = renameM24CandidateInTeamName(mapped);
     mapped = renameM25CandidateInTeamName(mapped);
     mapped = renameM26CandidateInTeamName(mapped);
     mapped = renameM3BracketCandidatesInTeamName(mapped);
@@ -1143,7 +1172,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m2-4",
         round: "M2",
         name: "谁会晋级？",
-        candidates: ["美国/波黑", "比利时/塞内加尔"],
+        candidates: ["美国", "比利时"],
         winner: null,
         page: 2
     },
@@ -1159,7 +1188,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m2-6",
         round: "M2",
         name: "谁会晋级？",
-        candidates: ["墨西哥", "英格兰/民主刚果"],
+        candidates: ["墨西哥", "英格兰"],
         winner: null,
         page: 2
     },
@@ -1191,7 +1220,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m3-2",
         round: "M3",
         name: "第二场1/4决赛谁会晋级？",
-        candidates: ["西班牙/奥地利/葡萄牙/克罗地亚", "美国/波黑/比利时/塞内加尔"],
+        candidates: ["西班牙/奥地利/葡萄牙/克罗地亚", "美国/比利时"],
         winner: null,
         page: 3
     },
@@ -1199,7 +1228,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m3-3",
         round: "M3",
         name: "第三场1/4决赛谁会晋级？",
-        candidates: ["巴西/挪威", "墨西哥/英格兰/民主刚果"],
+        candidates: ["巴西/挪威", "墨西哥/英格兰"],
         winner: null,
         page: 3
     },
@@ -1219,7 +1248,7 @@ export const DEFAULT_MARKETS: Market[] = [
             "巴拉圭/法国",
             "摩洛哥/加拿大",
             "西班牙/奥地利/葡萄牙/克罗地亚",
-            "美国/波黑/比利时/塞内加尔"
+            "美国/比利时"
         ],
         winner: null,
         page: 3
@@ -1230,7 +1259,7 @@ export const DEFAULT_MARKETS: Market[] = [
         name: "第二场半决赛谁会晋级？",
         candidates: [
             "巴西/挪威",
-            "墨西哥/英格兰/民主刚果",
+            "墨西哥/英格兰",
             "阿根廷/佛得角/澳大利亚/埃及",
             "瑞士/阿尔及利亚/哥伦比亚/加纳"
         ],
@@ -1245,9 +1274,9 @@ export const DEFAULT_MARKETS: Market[] = [
             "巴拉圭/法国",
             "摩洛哥/加拿大",
             "西班牙/奥地利/葡萄牙/克罗地亚",
-            "美国/波黑/比利时/塞内加尔",
+            "美国/比利时",
             "巴西/挪威",
-            "墨西哥/英格兰/民主刚果",
+            "墨西哥/英格兰",
             "阿根廷/佛得角/澳大利亚/埃及",
             "瑞士/阿尔及利亚/哥伦比亚/加纳"
         ],

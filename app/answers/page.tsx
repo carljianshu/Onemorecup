@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnswersDataAnalytics } from "@/components/AnswersDataAnalytics";
 import { AnswersPickChartTab } from "@/components/AnswersPickChartTab";
+import { AnswersEarningsTimelineTab } from "@/components/AnswersEarningsTimelineTab";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { formatScore } from "@/lib/score-format";
@@ -15,7 +16,7 @@ import { translateMarketCandidate } from "@/i18n";
 import type { PlayPage } from "@/types";
 
 type ViewFilter = "all" | PlayPage;
-type AnswersTab = "overview" | "analytics" | "pickChart";
+type AnswersTab = "overview" | "analytics" | "pickChart" | "earningsTimeline";
 
 export default function AnswersPage() {
     const { ready, config, players, markets, picks, leaderboard } = useGame();
@@ -129,6 +130,15 @@ export default function AnswersPage() {
         >
           {t("answers.tabPickChart")}
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "earningsTimeline"}
+          className={`answers-page-tab${tab === "earningsTimeline" ? " answers-page-tab-active" : ""}`}
+          onClick={() => setTab("earningsTimeline")}
+        >
+          {t("answers.tabEarningsTimeline")}
+        </button>
       </div>
 
       {tab === "analytics" ? (
@@ -138,6 +148,10 @@ export default function AnswersPage() {
       ) : tab === "pickChart" ? (
         <div className="answers-analytics-pane">
           <AnswersPickChartTab />
+        </div>
+      ) : tab === "earningsTimeline" ? (
+        <div className="answers-analytics-pane">
+          <AnswersEarningsTimelineTab />
         </div>
       ) : !answersOverviewPublic ? (
         <div className="card" style={{ maxWidth: 480 }}>

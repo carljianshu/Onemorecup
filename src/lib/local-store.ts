@@ -513,7 +513,15 @@ export function updateMarketWinner(marketId: string, winner: string | null, stat
     picks: Pick[];
     config?: GameConfig;
 }) {
-    const markets = state.markets.map((m) => m.id === marketId ? { ...m, winner: winner || null } : m);
+    const markets = state.markets.map((m) =>
+        m.id === marketId
+            ? {
+                ...m,
+                winner: winner || null,
+                settledAt: winner ? new Date().toISOString() : null
+            }
+            : m
+    );
     saveMarkets(markets);
     const leaderboard = refreshLeaderboard(state.players, markets, state.picks, state.config);
     return { markets, leaderboard };

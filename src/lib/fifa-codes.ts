@@ -89,6 +89,27 @@ function zhCountryInitial(name: string): string {
   return name.charAt(0);
 }
 
+function fifaCodeForTeam(name: string): string {
+  return ZH_COUNTRY_TO_FIFA[name] ?? EN_COUNTRY_TO_FIFA[name] ?? name.slice(0, 3).toUpperCase();
+}
+
+/** 单选项缩写：中文各队首字用 / 连接；英文各队 FIFA 三字母用 / 连接。 */
+export function abbreviateTeamSideLabel(team: string, locale: "zh" | "en"): string {
+  return team
+    .split("/")
+    .map((part) => (locale === "zh" ? zhCountryInitial(part) : fifaCodeForTeam(part)))
+    .join("/");
+}
+
+/** 折线图 x 轴：两选项缩写，如 南/加、RSA/CAN。 */
+export function formatTimelineMatchupLabel(
+  locale: "zh" | "en",
+  teamA: string,
+  teamB: string
+): string {
+  return `${abbreviateTeamSideLabel(teamA, locale)}/${abbreviateTeamSideLabel(teamB, locale)}`;
+}
+
 /** 答题总览 / 排行榜每场收益：M1-1～M1-16 列标题（中文取队名首字，英文用 FIFA 代码）。 */
 export function formatM1MarketColumnLabel(
   marketId: string,
@@ -102,11 +123,7 @@ export function formatM1MarketColumnLabel(
   if (num < 1 || num > 16 || !candidates || candidates.length < 2)
     return null;
   const [teamA, teamB] = candidates;
-  if (locale === "zh")
-    return `${zhCountryInitial(teamA)}/${zhCountryInitial(teamB)}`;
-  const codeA = ZH_COUNTRY_TO_FIFA[teamA] ?? teamA;
-  const codeB = ZH_COUNTRY_TO_FIFA[teamB] ?? teamB;
-  return `${codeA}/${codeB}`;
+  return formatTimelineMatchupLabel(locale, teamA, teamB);
 }
 
 export function displayM1MarketColumnLabel(

@@ -217,6 +217,12 @@ export function formatMarketHeading(locale: Locale, marketId: string, name: stri
     const separator = locale === "zh" ? "：" : ": ";
     return `${marketId.toUpperCase()}${separator}${translateMarketName(locale, name)}`;
 }
+
+/** 两支队伍对阵展示（数据分析等场景用 marketId+题面 之外的写法）。 */
+
+export function formatMarketMatchup(locale: Locale, teamA: string, teamB: string): string {
+    return `${translateMarketCandidate(locale, teamA)} vs ${translateMarketCandidate(locale, teamB)}`;
+}
 export function homeRuleValues() {
     return {
         page1: PAGE1_COUNT,

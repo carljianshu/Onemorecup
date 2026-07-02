@@ -29,6 +29,8 @@ export interface Market {
   page: PlayPage;
   winner: string | null;
   candidates?: string[];
+  /** 管理员录入赛果的时间（UTC ISO）；用于积分走势排序。 */
+  settledAt?: string | null;
 }
 
 export type StakeAmount = 10 | 20;
