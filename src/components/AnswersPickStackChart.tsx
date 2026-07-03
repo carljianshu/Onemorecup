@@ -48,17 +48,26 @@ export function AnswersPickStackChart({
     [markets, picks]
   );
 
+  const maxSlotsInData = useMemo(
+    () => rows.reduce((max, row) => Math.max(max, row.totalSlots), 0),
+    [rows]
+  );
+
   if (rows.length === 0)
     return null;
 
   const hasSettled = rows.some((row) => row.winner !== null);
+  const trackWidthPx = Math.min(
+    PAGE1_PICK_CHART_MAX_SLOTS,
+    Math.max(maxSlotsInData, 1)
+  ) * SLOT_UNIT_PX;
 
   return (
     <div
       className="answers-pick-stack-chart"
       style={
         {
-          "--pick-chart-track-width": `${PAGE1_PICK_CHART_MAX_SLOTS * SLOT_UNIT_PX}px`
+          "--pick-chart-track-width": `${trackWidthPx}px`
         } as CSSProperties
       }
     >

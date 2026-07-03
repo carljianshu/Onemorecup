@@ -41,7 +41,10 @@ export const PAGE1_SETTLEMENT_ORDER = [
   "m1-14",
   "m1-9",
   "m1-16",
-  "m1-13"
+  "m1-13",
+  "m1-4",
+  "m1-8",
+  "m1-10"
 ] as const;
 
 function page1SettlementIndex(marketId: string): number {

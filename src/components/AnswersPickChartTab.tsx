@@ -23,7 +23,7 @@ export function AnswersPickChartTab() {
   }
 
   return (
-    <section className="card answers-analytics-section answers-analytics-chart-section">
+    <section className="card answers-analytics-section answers-analytics-chart-section answers-pick-chart-section">
       <AnswersPickStackChart markets={markets} picks={picks} />
     </section>
   );

@@ -400,6 +400,7 @@ export default function PlayPage() {
             </div>) : null}
           {market.id === DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID && (<div className="play-distribution-note card" role="note">
               <p>{t("play.page3DistributionNote")}</p>
+              <p>{t("play.page3DistributionNoteExample")}</p>
             </div>)}
           <section className="card item-card">
           <h3>

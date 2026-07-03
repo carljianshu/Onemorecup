@@ -66,7 +66,7 @@ export function AnswersEarningsTimelineTab() {
     return resolveTimelinePlayerIds(viewMode, earningsTimeline.series, players);
   }, [viewMode, earningsTimeline, players]);
 
-  const visiblePlayers = useMemo(() => {
+  const legendPlayers = useMemo(() => {
     const buildRow = (playerId: string) => {
       const meta = playerMetaById.get(playerId);
       if (!meta)
@@ -107,7 +107,6 @@ export function AnswersEarningsTimelineTab() {
         <AnswersTimelineViewPicker
           mode={viewMode}
           onChange={setViewMode}
-          visiblePlayers={visiblePlayers}
         />
       </section>
       <section className="card answers-analytics-section answers-analytics-chart-section answers-timeline-chart-section">
@@ -117,6 +116,7 @@ export function AnswersEarningsTimelineTab() {
           picks={picks}
           selectedPlayerIds={selectedPlayerIds}
           colorIndexByPlayerId={colorIndexByPlayerId}
+          legendPlayers={legendPlayers}
         />
       </section>
       <section className="card answers-analytics-section answers-analytics-chart-section answers-ranking-timeline-section">
@@ -126,6 +126,7 @@ export function AnswersEarningsTimelineTab() {
           picks={picks}
           selectedPlayerIds={selectedPlayerIds}
           colorIndexByPlayerId={colorIndexByPlayerId}
+          legendPlayers={legendPlayers}
         />
       </section>
     </>

@@ -11,8 +11,11 @@ import {
   TIMELINE_PAD_RIGHT,
   TIMELINE_PAD_TOP,
   timelineSeriesColor,
-  timelineStepLabel
+  timelineStepLabel,
+  TIMELINE_SERIES_STROKE_WIDTH
 } from "@/components/answers-timeline-chart-shared";
+import { AnswersTimelineChartLegend } from "@/components/AnswersTimelineChartLegend";
+import type { TimelineViewPlayer } from "@/components/AnswersTimelineViewPicker";
 import type { Market, Pick, Player } from "@/types";
 
 function formatRank(rank: number): string {
@@ -24,13 +27,15 @@ export function AnswersRankingTimelineChart({
   markets,
   picks,
   selectedPlayerIds,
-  colorIndexByPlayerId
+  colorIndexByPlayerId,
+  legendPlayers
 }: {
   players: Player[];
   markets: Market[];
   picks: Pick[];
   selectedPlayerIds: Set<string>;
   colorIndexByPlayerId: Map<string, number>;
+  legendPlayers: TimelineViewPlayer[];
 }) {
   const { locale, t } = useLocale();
   const timeline = useMemo(
@@ -92,8 +97,9 @@ export function AnswersRankingTimelineChart({
           {t("answers.analyticsTimelinePlayerPickerEmpty")}
         </p>
       ) : (
-        <div className="answers-earnings-timeline-chart-wrap">
-          <svg
+        <div className="answers-timeline-chart-row">
+          <div className="answers-earnings-timeline-chart-wrap">
+            <svg
             className="answers-earnings-timeline-chart"
             viewBox={`0 0 ${TIMELINE_CHART_WIDTH} ${TIMELINE_CHART_HEIGHT}`}
             role="img"
@@ -131,7 +137,7 @@ export function AnswersRankingTimelineChart({
                   points={points}
                   fill="none"
                   stroke={color}
-                  strokeWidth={2}
+                  strokeWidth={TIMELINE_SERIES_STROKE_WIDTH}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                 />
@@ -153,6 +159,8 @@ export function AnswersRankingTimelineChart({
               </text>
             ))}
           </svg>
+          </div>
+          <AnswersTimelineChartLegend players={legendPlayers} showRank />
         </div>
       )}
     </div>

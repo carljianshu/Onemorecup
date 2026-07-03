@@ -90,6 +90,7 @@ export const en: Messages = {
         page2Hint: "Each main question in the Round of 16 has 4 sub-questions: answer all subs, or tap Skip on the main question. Partial subs cannot be saved.",
         page2HintStrong: "answer all sub-questions",
         page3DistributionNote: "Sequoia adjustment: count support per option (Double counts as 2). Let N = least-chosen option and M = everyone else. Reference P/L = M entries at −10 and N at +10×M/N; adjustment = σ÷10 (std dev σ); stake per slot = 20÷adjustment.",
+        page3DistributionNoteExample: "Example: a semifinal with 4 options picked by 4, 3, 2, and 1 players (no Doubles). N=1, M=9; reference sequence: nine −10s and one +90; σ=30, adjustment=3, stake=20÷3≈$6.67.",
         page3StakeNote: "Quarter-finals and later: stake per slot is 20÷adjustment.",
         loadedEdit: "Your previous picks are loaded. You can edit before the deadline, then Save this page.",
         pageLocked: "{page} is locked; you cannot edit these picks.",

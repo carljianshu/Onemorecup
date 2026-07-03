@@ -1,21 +1,24 @@
 import { formatTimelineMatchupLabel } from "@/lib/fifa-codes";
 import type { EarningsTimelineData } from "@/lib/earnings-timeline";
 
+/** 深色背景折线图：色相均匀分布，避免粉/紫/青绿扎堆。 */
 export const TIMELINE_SERIES_COLORS = [
-  "#fb923c",
-  "#38bdf8",
-  "#4ade80",
-  "#f472b6",
-  "#a78bfa",
-  "#facc15",
-  "#2dd4bf",
-  "#f87171",
-  "#818cf8",
-  "#fb7185",
-  "#34d399",
-  "#c084fc",
-  "#e879f9"
+  "#FF5C5C", // red
+  "#FF9F1C", // orange
+  "#FFEA00", // yellow
+  "#8FD14F", // yellow-green
+  "#2ECC71", // green
+  "#1DD3B0", // teal
+  "#00C2FF", // cyan
+  "#4F8CFF", // blue
+  "#7B61FF", // indigo
+  "#B44CFF", // purple
+  "#FF4FD8", // magenta
+  "#FF6B9D", // pink
+  "#FF7A45" // coral
 ] as const;
+
+export const TIMELINE_SERIES_STROKE_WIDTH = 2.75;
 
 export const TIMELINE_CHART_WIDTH = 920;
 export const TIMELINE_CHART_HEIGHT = 420;
