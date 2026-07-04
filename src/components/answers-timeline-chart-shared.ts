@@ -23,9 +23,18 @@ export const TIMELINE_SERIES_STROKE_WIDTH = 2.75;
 export const TIMELINE_CHART_WIDTH = 920;
 export const TIMELINE_CHART_HEIGHT = 420;
 export const TIMELINE_PAD_LEFT = 52;
-export const TIMELINE_PAD_RIGHT = 16;
+export const TIMELINE_PAD_RIGHT = 48;
 export const TIMELINE_PAD_TOP = 20;
 export const TIMELINE_PAD_BOTTOM = 88;
+export const TIMELINE_MIN_STEP_PX = 76;
+
+/** 按结算场次数放宽 SVG 宽度，避免 x 轴标签被裁切。 */
+export function timelineChartWidth(stepCount: number): number {
+  if (stepCount <= 1)
+    return TIMELINE_CHART_WIDTH;
+  const plotWidth = (stepCount - 1) * TIMELINE_MIN_STEP_PX;
+  return Math.max(TIMELINE_CHART_WIDTH, TIMELINE_PAD_LEFT + TIMELINE_PAD_RIGHT + plotWidth);
+}
 
 export function timelineSeriesColor(index: number): string {
   return TIMELINE_SERIES_COLORS[index % TIMELINE_SERIES_COLORS.length]!;

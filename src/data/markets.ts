@@ -349,10 +349,12 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "巴西/日本": "巴西"
     },
     "m2-7": {
-        "(澳大利亚/巴拉圭)/G2": "澳大利亚/埃及",
-        "D2/G2": "澳大利亚/埃及",
-        "澳大利亚/G2": "澳大利亚/埃及",
-        "阿根廷/H2": "阿根廷/佛得角"
+        "(澳大利亚/巴拉圭)/G2": "埃及",
+        "D2/G2": "埃及",
+        "澳大利亚/G2": "埃及",
+        "澳大利亚/埃及": "埃及",
+        "阿根廷/H2": "阿根廷",
+        "阿根廷/佛得角": "阿根廷"
     },
     "m2-8": {
         "瑞士/EFGIJ3": "瑞士",
@@ -361,12 +363,13 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "瑞士/阿尔及利亚": "瑞士",
         "E/F/G/I/J3": "阿尔及利亚",
         "E/G/I/J3": "阿尔及利亚",
-        "K1/DEIJL3": "哥伦比亚/加纳",
-        "K1/DEIL3": "哥伦比亚/加纳",
-        "K1/EIL3": "哥伦比亚/加纳",
-        "K1/(厄瓜多尔/塞内加尔/L3)": "哥伦比亚/加纳",
-        "K1/L3": "哥伦比亚/加纳",
-        "K1/加纳": "哥伦比亚/加纳",
+        "K1/DEIJL3": "哥伦比亚",
+        "K1/DEIL3": "哥伦比亚",
+        "K1/EIL3": "哥伦比亚",
+        "K1/(厄瓜多尔/塞内加尔/L3)": "哥伦比亚",
+        "K1/L3": "哥伦比亚",
+        "K1/加纳": "哥伦比亚",
+        "哥伦比亚/加纳": "哥伦比亚",
         "D/E/I/J/L3": "加纳",
         "D/E/I/L3": "加纳",
         "E/I/L3": "加纳",
@@ -400,10 +403,13 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "墨西哥/英格兰/民主刚果": "墨西哥/英格兰"
     },
     "m3-4": {
-        "阿根廷区": "阿根廷/佛得角/澳大利亚/埃及",
-        "瑞士/哥伦比亚区": "瑞士/哥伦比亚/加纳",
-        "瑞士/K1区": "瑞士/哥伦比亚/加纳",
-        "瑞士/阿尔及利亚/哥伦比亚/加纳": "瑞士/哥伦比亚/加纳"
+        "阿根廷区": "阿根廷/埃及",
+        "阿根廷/佛得角/澳大利亚/埃及": "阿根廷/埃及",
+        "阿根廷/佛得角/埃及": "阿根廷/埃及",
+        "瑞士/哥伦比亚区": "瑞士/哥伦比亚",
+        "瑞士/K1区": "瑞士/哥伦比亚",
+        "瑞士/阿尔及利亚/哥伦比亚/加纳": "瑞士/哥伦比亚",
+        "瑞士/哥伦比亚/加纳": "瑞士/哥伦比亚"
     },
     "m3-5": {
         "待填 1": "巴拉圭/法国",
@@ -434,12 +440,15 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "墨西哥/L1区": "墨西哥/英格兰",
         "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰",
         "墨西哥/英格兰/民主刚果": "墨西哥/英格兰",
-        "待填 3": "阿根廷/佛得角/澳大利亚/埃及",
-        "阿根廷区": "阿根廷/佛得角/澳大利亚/埃及",
-        "待填 4": "瑞士/哥伦比亚/加纳",
-        "瑞士/哥伦比亚区": "瑞士/哥伦比亚/加纳",
-        "瑞士/K1区": "瑞士/哥伦比亚/加纳",
-        "瑞士/阿尔及利亚/哥伦比亚/加纳": "瑞士/哥伦比亚/加纳"
+        "待填 3": "阿根廷/埃及",
+        "阿根廷区": "阿根廷/埃及",
+        "阿根廷/佛得角/澳大利亚/埃及": "阿根廷/埃及",
+        "阿根廷/佛得角/埃及": "阿根廷/埃及",
+        "待填 4": "瑞士/哥伦比亚",
+        "瑞士/哥伦比亚区": "瑞士/哥伦比亚",
+        "瑞士/K1区": "瑞士/哥伦比亚",
+        "瑞士/阿尔及利亚/哥伦比亚/加纳": "瑞士/哥伦比亚",
+        "瑞士/哥伦比亚/加纳": "瑞士/哥伦比亚"
     },
     "m3-7": {
         "待填 1": "巴拉圭/法国",
@@ -468,12 +477,15 @@ const LEGACY_CANDIDATE_ALIASES: Record<string, Record<string, string>> = {
         "墨西哥/L1区": "墨西哥/英格兰",
         "墨西哥/厄瓜多尔/英格兰/民主刚果": "墨西哥/英格兰",
         "墨西哥/英格兰/民主刚果": "墨西哥/英格兰",
-        "待填 7": "阿根廷/佛得角/澳大利亚/埃及",
-        "阿根廷区": "阿根廷/佛得角/澳大利亚/埃及",
-        "待填 8": "瑞士/哥伦比亚/加纳",
-        "瑞士/哥伦比亚区": "瑞士/哥伦比亚/加纳",
-        "瑞士/K1区": "瑞士/哥伦比亚/加纳",
-        "瑞士/阿尔及利亚/哥伦比亚/加纳": "瑞士/哥伦比亚/加纳"
+        "待填 7": "阿根廷/埃及",
+        "阿根廷区": "阿根廷/埃及",
+        "阿根廷/佛得角/澳大利亚/埃及": "阿根廷/埃及",
+        "阿根廷/佛得角/埃及": "阿根廷/埃及",
+        "待填 8": "瑞士/哥伦比亚",
+        "瑞士/哥伦比亚区": "瑞士/哥伦比亚",
+        "瑞士/K1区": "瑞士/哥伦比亚",
+        "瑞士/阿尔及利亚/哥伦比亚/加纳": "瑞士/哥伦比亚",
+        "瑞士/哥伦比亚/加纳": "瑞士/哥伦比亚"
     }
 };
 
@@ -649,11 +661,23 @@ export function renameM26CandidateInTeamName(team: string): string {
     return team;
 }
 
-/** M2-8 1/8 选项：瑞士/阿尔及利亚 → 瑞士。 */
+/** M2-7 1/8 选项：阿根廷/佛得角 → 阿根廷；澳大利亚/埃及 → 埃及。 */
+
+export function renameM27CandidateInTeamName(team: string): string {
+    if (team === "阿根廷/佛得角")
+        return "阿根廷";
+    if (team === "澳大利亚/埃及")
+        return "埃及";
+    return team;
+}
+
+/** M2-8 1/8 选项：瑞士/阿尔及利亚 → 瑞士；哥伦比亚/加纳 → 哥伦比亚。 */
 
 export function renameM28CandidateInTeamName(team: string): string {
     if (team === "瑞士/阿尔及利亚")
         return "瑞士";
+    if (team === "哥伦比亚/加纳")
+        return "哥伦比亚";
     return team;
 }
 
@@ -678,8 +702,13 @@ export function renameM3BracketCandidatesInTeamName(team: string): string {
         .replaceAll("墨西哥/英格兰/民主刚果", "墨西哥/英格兰")
         .replaceAll("墨西哥/英格兰区", "墨西哥/英格兰")
         .replaceAll("墨西哥/L1区", "墨西哥/英格兰")
-        .replaceAll("瑞士/阿尔及利亚/哥伦比亚/加纳", "瑞士/哥伦比亚/加纳")
-        .replaceAll("瑞士/哥伦比亚区", "瑞士/哥伦比亚/加纳");
+        .replaceAll("阿根廷/佛得角/澳大利亚/埃及", "阿根廷/埃及")
+        .replaceAll("阿根廷/佛得角/埃及", "阿根廷/埃及")
+        .replaceAll("阿根廷区", "阿根廷/埃及")
+        .replaceAll("瑞士/阿尔及利亚/哥伦比亚/加纳", "瑞士/哥伦比亚")
+        .replaceAll("瑞士/哥伦比亚/加纳", "瑞士/哥伦比亚")
+        .replaceAll("瑞士/K1区", "瑞士/哥伦比亚")
+        .replaceAll("瑞士/哥伦比亚区", "瑞士/哥伦比亚");
 }
 
 export function renameB2InTeamName(team: string): string {
@@ -801,12 +830,12 @@ export function renameK1Round1OpponentInTeamName(team: string): string {
         .replaceAll("D/E/I/L3", "加纳")
         .replaceAll("E/I/L3", "加纳")
         .replaceAll("厄瓜多尔/塞内加尔/L3", "加纳")
-        .replaceAll("K1/DEIJL3", "哥伦比亚/加纳")
-        .replaceAll("K1/DEIL3", "哥伦比亚/加纳")
-        .replaceAll("K1/EIL3", "哥伦比亚/加纳")
-        .replaceAll("K1/(厄瓜多尔/塞内加尔/L3)", "哥伦比亚/加纳")
-        .replaceAll("K1/L3", "哥伦比亚/加纳")
-        .replaceAll("K1/加纳", "哥伦比亚/加纳")
+        .replaceAll("K1/DEIJL3", "哥伦比亚")
+        .replaceAll("K1/DEIL3", "哥伦比亚")
+        .replaceAll("K1/EIL3", "哥伦比亚")
+        .replaceAll("K1/(厄瓜多尔/塞内加尔/L3)", "哥伦比亚")
+        .replaceAll("K1/L3", "哥伦比亚")
+        .replaceAll("K1/加纳", "哥伦比亚")
         .replaceAll("DEIJL3", "加纳")
         .replaceAll("DEIL3", "加纳")
         .replaceAll("EIL3", "加纳");
@@ -1079,6 +1108,7 @@ export function migratePickTeam(marketId: string, team: string, candidates: stri
     mapped = renameM24CandidateInTeamName(mapped);
     mapped = renameM25CandidateInTeamName(mapped);
     mapped = renameM26CandidateInTeamName(mapped);
+    mapped = renameM27CandidateInTeamName(mapped);
     mapped = renameM28CandidateInTeamName(mapped);
     mapped = renameM3BracketCandidatesInTeamName(mapped);
     if (candidates.includes(mapped))
@@ -1229,7 +1259,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m2-7",
         round: "M2",
         name: "谁会晋级？",
-        candidates: ["阿根廷/佛得角", "澳大利亚/埃及"],
+        candidates: ["阿根廷", "埃及"],
         winner: null,
         page: 2
     },
@@ -1237,7 +1267,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m2-8",
         round: "M2",
         name: "谁会晋级？",
-        candidates: ["瑞士", "哥伦比亚/加纳"],
+        candidates: ["瑞士", "哥伦比亚"],
         winner: null,
         page: 2
     },
@@ -1269,7 +1299,7 @@ export const DEFAULT_MARKETS: Market[] = [
         id: "m3-4",
         round: "M3",
         name: "第四场1/4决赛谁会晋级？",
-        candidates: ["阿根廷/佛得角/澳大利亚/埃及", "瑞士/哥伦比亚/加纳"],
+        candidates: ["阿根廷/埃及", "瑞士/哥伦比亚"],
         winner: null,
         page: 3
     },
@@ -1293,8 +1323,8 @@ export const DEFAULT_MARKETS: Market[] = [
         candidates: [
             "巴西/挪威",
             "墨西哥/英格兰",
-            "阿根廷/佛得角/澳大利亚/埃及",
-            "瑞士/哥伦比亚/加纳"
+            "阿根廷/埃及",
+            "瑞士/哥伦比亚"
         ],
         winner: null,
         page: 3
@@ -1310,8 +1340,8 @@ export const DEFAULT_MARKETS: Market[] = [
             "美国/比利时",
             "巴西/挪威",
             "墨西哥/英格兰",
-            "阿根廷/佛得角/澳大利亚/埃及",
-            "瑞士/哥伦比亚/加纳"
+            "阿根廷/埃及",
+            "瑞士/哥伦比亚"
         ],
         winner: null,
         page: 3
@@ -1349,6 +1379,14 @@ export { isMarketLocked, isMarketPickFrozen, marketLocksAt, formatMarketLockDead
 function defaultMarketById(id: string) {
     return DEFAULT_MARKETS.find((m) => m.id === id);
 }
+function readStoredWinnerRaw(stored: Market | undefined): string | null {
+    if (!stored)
+        return null;
+    const legacy = stored as Market & {
+        winnerTeamId?: string | null;
+    };
+    return stored.winner ?? legacy.winnerTeamId ?? null;
+}
 function resolvePage1StoredWinner(base: Market, storedById: Map<string, Market>): string | null {
     const slotMatch = base.id.match(/^m1-(\d+)$/);
     if (!slotMatch)
@@ -1362,12 +1400,55 @@ function resolvePage1StoredWinner(base: Market, storedById: Map<string, Market>)
         const migrated = migratePickTeam(base.id, raw, candidates);
         return candidates.includes(migrated) ? migrated : null;
     };
-    const direct = tryWinner(storedById.get(base.id)?.winner ?? null);
+    const direct = tryWinner(readStoredWinnerRaw(storedById.get(base.id)));
     if (direct)
         return direct;
-    if (sourceNum === slot)
+    if (sourceNum !== slot) {
+        const fromSource = tryWinner(readStoredWinnerRaw(storedById.get(`m1-${sourceNum}`)));
+        if (fromSource)
+            return fromSource;
+    }
+    for (const [oldSlot, newSlot] of Object.entries(PAGE1_SLOT_MIGRATION_MAP)) {
+        if (newSlot !== base.id)
+            continue;
+        const fromOldSlot = tryWinner(readStoredWinnerRaw(storedById.get(oldSlot)));
+        if (fromOldSlot)
+            return fromOldSlot;
+    }
+    for (const [legacyId, modernId] of Object.entries(LEGACY_PAGE1_MARKET_ID_MAP)) {
+        if (modernId !== base.id)
+            continue;
+        const fromLegacy = tryWinner(readStoredWinnerRaw(storedById.get(legacyId)));
+        if (fromLegacy)
+            return fromLegacy;
+    }
+    return null;
+}
+function resolvePage1StoredSettledAt(base: Market, storedById: Map<string, Market>, winner: string | null): string | null {
+    if (!winner)
         return null;
-    return tryWinner(storedById.get(`m1-${sourceNum}`)?.winner ?? null);
+    const slotMatch = base.id.match(/^m1-(\d+)$/);
+    if (!slotMatch)
+        return storedById.get(base.id)?.settledAt ?? null;
+    const slot = Number(slotMatch[1]);
+    const sourceNum = PAGE1_SOURCE_ORDER[slot - 1];
+    const idsToCheck = [base.id];
+    if (sourceNum !== slot)
+        idsToCheck.push(`m1-${sourceNum}`);
+    for (const [oldSlot, newSlot] of Object.entries(PAGE1_SLOT_MIGRATION_MAP)) {
+        if (newSlot === base.id)
+            idsToCheck.push(oldSlot);
+    }
+    for (const [legacyId, modernId] of Object.entries(LEGACY_PAGE1_MARKET_ID_MAP)) {
+        if (modernId === base.id)
+            idsToCheck.push(legacyId);
+    }
+    for (const id of idsToCheck) {
+        const settledAt = storedById.get(id)?.settledAt;
+        if (settledAt)
+            return settledAt;
+    }
+    return null;
 }
 function resolveStoredWinner(base: Market, stored: Market | undefined, storedById: Map<string, Market>): string | null {
     if (base.page === 1) {
@@ -1389,9 +1470,15 @@ export function ensureMarketShape(markets: Market[]): Market[] {
     return DEFAULT_MARKETS.map((base) => {
         const stored = storedById.get(base.id);
         const winner = resolveStoredWinner(base, stored, storedById);
+        const settledAt = base.page === 1
+            ? resolvePage1StoredSettledAt(base, storedById, winner)
+            : winner
+                ? stored?.settledAt ?? null
+                : null;
         return {
             ...base,
-            winner
+            winner,
+            settledAt
         };
     });
 }

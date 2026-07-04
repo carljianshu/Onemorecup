@@ -8,7 +8,8 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const script = `
-import { PAGE1_SETTLEMENT_ORDER, sortMarketsBySettlementOrder } from "./src/lib/earnings-timeline.ts";
+import { computeEarningsTimeline, PAGE1_SETTLEMENT_ORDER, sortMarketsBySettlementOrder } from "./src/lib/earnings-timeline.ts";
+import { ensureMarketShape, DEFAULT_MARKETS } from "./src/data/markets.ts";
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -27,13 +28,51 @@ assert(
   "settled M1 order should match PAGE1_SETTLEMENT_ORDER"
 );
 
+const legacySlotWinner = DEFAULT_MARKETS.map((market) =>
+  market.id === "m1-12"
+    ? { ...market, winner: "西班牙", settledAt: "2026-06-29T12:00:00.000Z" }
+    : market
+);
+const shapedLegacy = ensureMarketShape(legacySlotWinner);
+assert(
+  shapedLegacy.find((market) => market.id === "m1-4")?.winner === "西班牙",
+  "winner stored on legacy slot m1-12 should resolve to m1-4"
+);
+assert(
+  shapedLegacy.find((market) => market.id === "m1-4")?.settledAt === "2026-06-29T12:00:00.000Z",
+  "settledAt should follow resolved winner source"
+);
+
+const i13 = order.indexOf("m1-13");
+const i11 = order.indexOf("m1-11");
 const i4 = order.indexOf("m1-4");
+assert(i11 > i13, "m1-11 should settle after m1-13");
+assert(i4 > i11, "m1-4 should settle after m1-11");
 const i8 = order.indexOf("m1-8");
 const i10 = order.indexOf("m1-10");
-const i13 = order.indexOf("m1-13");
-assert(i4 > i13, "m1-4 should settle after the first nine M1 matches");
 assert(i8 > i4, "m1-8 should settle after m1-4");
 assert(i10 > i8, "m1-10 should settle after m1-8");
+const i6 = order.indexOf("m1-6");
+assert(i6 > i10, "m1-6 should settle after m1-10");
+const i15 = order.indexOf("m1-15");
+assert(i15 > i6, "m1-15 should settle after m1-6");
+
+const allSettled = ensureMarketShape(
+  DEFAULT_MARKETS.map((market) =>
+    PAGE1_SETTLEMENT_ORDER.includes(market.id)
+      ? { ...market, winner: market.candidates?.[0] ?? "A", settledAt: "2026-06-29T00:00:00.000Z" }
+      : market
+  )
+);
+const timelineSteps = computeEarningsTimeline(
+  [{ id: "p1", name: "Test", createdAt: "", pickPenalty: 0, pickPenaltyPage3: 0 }],
+  allSettled,
+  []
+).steps.map((step) => step.marketId ?? "start");
+assert(
+  timelineSteps.join(",") === ["start", ...PAGE1_SETTLEMENT_ORDER].join(","),
+  "timeline should list every settled M1 match in order"
+);
 
 const shuffled = [...settledMarkets].reverse();
 const reshuffled = sortMarketsBySettlementOrder(shuffled).map((m) => m.id);

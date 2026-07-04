@@ -42,9 +42,12 @@ export const PAGE1_SETTLEMENT_ORDER = [
   "m1-9",
   "m1-16",
   "m1-13",
+  "m1-11",
   "m1-4",
   "m1-8",
-  "m1-10"
+  "m1-10",
+  "m1-6",
+  "m1-15"
 ] as const;
 
 function page1SettlementIndex(marketId: string): number {
@@ -90,7 +93,9 @@ export function computeEarningsTimeline(
   markets: Market[],
   picks: Pick[]
 ): EarningsTimelineData {
-  const settledMarkets = sortMarketsBySettlementOrder(markets);
+  const settledMarkets = sortMarketsBySettlementOrder(
+    markets.filter((market) => market.page === 1)
+  );
 
   const steps: EarningsTimelineStep[] = [
     { stepIndex: 0, marketId: null, labelKey: "start" }

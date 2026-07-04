@@ -5,11 +5,11 @@ import { useLocale } from "@/context/LocaleContext";
 import { computeRankingTimeline } from "@/lib/earnings-timeline";
 import {
   TIMELINE_CHART_HEIGHT,
-  TIMELINE_CHART_WIDTH,
   TIMELINE_PAD_BOTTOM,
   TIMELINE_PAD_LEFT,
   TIMELINE_PAD_RIGHT,
   TIMELINE_PAD_TOP,
+  timelineChartWidth,
   timelineSeriesColor,
   timelineStepLabel,
   TIMELINE_SERIES_STROKE_WIDTH
@@ -50,6 +50,7 @@ export function AnswersRankingTimelineChart({
   );
 
   const stepCount = timeline.steps.length;
+  const chartWidth = timelineChartWidth(stepCount);
   const maxRank = timeline.playerCount;
   const minRank = 1;
 
@@ -72,7 +73,7 @@ export function AnswersRankingTimelineChart({
     return ticks;
   })();
 
-  const plotWidth = TIMELINE_CHART_WIDTH - TIMELINE_PAD_LEFT - TIMELINE_PAD_RIGHT;
+  const plotWidth = chartWidth - TIMELINE_PAD_LEFT - TIMELINE_PAD_RIGHT;
   const plotHeight = TIMELINE_CHART_HEIGHT - TIMELINE_PAD_TOP - TIMELINE_PAD_BOTTOM;
   const rankSpan = maxRank - minRank || 1;
 
@@ -101,7 +102,8 @@ export function AnswersRankingTimelineChart({
           <div className="answers-earnings-timeline-chart-wrap">
             <svg
             className="answers-earnings-timeline-chart"
-            viewBox={`0 0 ${TIMELINE_CHART_WIDTH} ${TIMELINE_CHART_HEIGHT}`}
+            viewBox={`0 0 ${chartWidth} ${TIMELINE_CHART_HEIGHT}`}
+            style={{ minWidth: chartWidth }}
             role="img"
             aria-label={t("answers.analyticsRankingTimelineTitle")}
           >
@@ -109,7 +111,7 @@ export function AnswersRankingTimelineChart({
               <g key={tick}>
                 <line
                   x1={TIMELINE_PAD_LEFT}
-                  x2={TIMELINE_CHART_WIDTH - TIMELINE_PAD_RIGHT}
+                  x2={chartWidth - TIMELINE_PAD_RIGHT}
                   y1={yAt(tick)}
                   y2={yAt(tick)}
                   className="answers-earnings-timeline-grid"

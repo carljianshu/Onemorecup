@@ -107,7 +107,7 @@ assert(migratedM3MoroccoCanada.length === 2, "m3 荷兰/摩洛哥/加拿大 lega
 assert(migratedM3MoroccoCanada.every((p) => p.team === "摩洛哥/加拿大"), "m3 荷兰/摩洛哥/加拿大 should become 摩洛哥/加拿大");
 assert(migratedM3.filter((p) => p.marketId === "m3-2").every((p) => p.team === "西班牙/葡萄牙"));
 assert(migratedM3.find((p) => p.marketId === "m3-3")?.team === "墨西哥/英格兰");
-assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士/哥伦比亚/加纳");
+assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士/哥伦比亚");
 assert(migratedM3.find((p) => p.marketId === "m3-5")?.team === "美国/比利时");
 
 const m3BrazilLegacy = [
@@ -235,7 +235,55 @@ const m3SwitzerlandBracketLegacy = [
 ];
 const migratedM3SwitzerlandBracket = migratePicksForMarkets(m3SwitzerlandBracketLegacy, markets);
 assert(migratedM3SwitzerlandBracket.length === 2, "m3 瑞士/阿尔及利亚/哥伦比亚/加纳 legacy picks should migrate");
-assert(migratedM3SwitzerlandBracket.every((p) => p.team === "瑞士/哥伦比亚/加纳"), "m3 should drop 阿尔及利亚 from bracket option");
+assert(migratedM3SwitzerlandBracket.every((p) => p.team === "瑞士/哥伦比亚"), "m3 should drop 阿尔及利亚 from bracket option");
+
+const m28ColombiaLegacy = [
+  { playerId, marketId: "m2-8", team: "哥伦比亚/加纳", stake: 1 },
+  { playerId: "p-m28c", marketId: "m2-8", team: "K1/L3", stake: 1 },
+];
+const migratedM28Colombia = migratePicksForMarkets(m28ColombiaLegacy, markets);
+assert(migratedM28Colombia.length === 2, "m2-8 哥伦比亚/加纳 legacy picks should migrate");
+assert(migratedM28Colombia.every((p) => p.team === "哥伦比亚"), "m2-8 哥伦比亚/加纳 should become 哥伦比亚");
+
+const m3ColombiaBracketLegacy = [
+  { playerId, marketId: "m3-4", team: "瑞士/哥伦比亚/加纳", stake: 1 },
+  { playerId: "p-m3-co", marketId: "m3-7", team: "瑞士/K1区", stake: 1 },
+];
+const migratedM3ColombiaBracket = migratePicksForMarkets(m3ColombiaBracketLegacy, markets);
+assert(migratedM3ColombiaBracket.length === 2, "m3 瑞士/哥伦比亚/加纳 legacy picks should migrate");
+assert(migratedM3ColombiaBracket.every((p) => p.team === "瑞士/哥伦比亚"), "m3 should drop 加纳 from bracket option");
+
+const m27EgyptLegacy = [
+  { playerId, marketId: "m2-7", team: "澳大利亚/埃及", stake: 1 },
+  { playerId: "p-m27b", marketId: "m2-7", team: "D2/G2", stake: 1 },
+];
+const migratedM27Egypt = migratePicksForMarkets(m27EgyptLegacy, markets);
+assert(migratedM27Egypt.length === 2, "m2-7 澳大利亚/埃及 legacy picks should migrate");
+assert(migratedM27Egypt.every((p) => p.team === "埃及"), "m2-7 澳大利亚/埃及 should become 埃及");
+
+const m3ArgentinaEgyptLegacy = [
+  { playerId, marketId: "m3-4", team: "阿根廷/佛得角/澳大利亚/埃及", stake: 1 },
+  { playerId: "p-m3-ae", marketId: "m3-7", team: "待填 7", stake: 1 },
+];
+const migratedM3ArgentinaEgypt = migratePicksForMarkets(m3ArgentinaEgyptLegacy, markets);
+assert(migratedM3ArgentinaEgypt.length === 2, "m3 阿根廷/佛得角/澳大利亚/埃及 legacy picks should migrate");
+assert(migratedM3ArgentinaEgypt.every((p) => p.team === "阿根廷/埃及"), "m3 should drop 澳大利亚 from bracket option");
+
+const m27ArgentinaLegacy = [
+  { playerId, marketId: "m2-7", team: "阿根廷/佛得角", stake: 1 },
+  { playerId: "p-m27a", marketId: "m2-7", team: "阿根廷/H2", stake: 1 },
+];
+const migratedM27Argentina = migratePicksForMarkets(m27ArgentinaLegacy, markets);
+assert(migratedM27Argentina.length === 2, "m2-7 阿根廷/佛得角 legacy picks should migrate");
+assert(migratedM27Argentina.every((p) => p.team === "阿根廷"), "m2-7 阿根廷/佛得角 should become 阿根廷");
+
+const m3ArgentinaBracketLegacy = [
+  { playerId, marketId: "m3-4", team: "阿根廷/佛得角/埃及", stake: 1 },
+  { playerId: "p-m3-ar", marketId: "m3-7", team: "阿根廷区", stake: 1 },
+];
+const migratedM3ArgentinaBracket = migratePicksForMarkets(m3ArgentinaBracketLegacy, markets);
+assert(migratedM3ArgentinaBracket.length === 2, "m3 阿根廷/佛得角/埃及 legacy picks should migrate");
+assert(migratedM3ArgentinaBracket.every((p) => p.team === "阿根廷/埃及"), "m3 should drop 佛得角 from bracket option");
 
 console.log("migrate-pick smoke tests passed");
 `;

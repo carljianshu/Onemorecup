@@ -22,18 +22,23 @@ export function AnswersEarningsTimelineTab() {
   const { t } = useLocale();
   const [viewMode, setViewMode] = useState<TimelinePlayerViewMode>("top10");
 
-  const hasSettled = useMemo(
-    () => sortMarketsBySettlementOrder(markets).length > 0,
+  const page1Markets = useMemo(
+    () => markets.filter((market) => market.page === 1),
     [markets]
   );
 
+  const hasSettled = useMemo(
+    () => sortMarketsBySettlementOrder(page1Markets).length > 0,
+    [page1Markets]
+  );
+
   const earningsTimeline = useMemo(
-    () => (hasSettled ? computeEarningsTimeline(players, markets, picks) : null),
-    [hasSettled, players, markets, picks]
+    () => (hasSettled ? computeEarningsTimeline(players, page1Markets, picks) : null),
+    [hasSettled, players, page1Markets, picks]
   );
   const rankingTimeline = useMemo(
-    () => (hasSettled ? computeRankingTimeline(players, markets, picks) : null),
-    [hasSettled, players, markets, picks]
+    () => (hasSettled ? computeRankingTimeline(players, page1Markets, picks) : null),
+    [hasSettled, players, page1Markets, picks]
   );
 
   const playerMetaById = useMemo(() => {

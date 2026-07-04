@@ -9,11 +9,11 @@ import {
 import {
   roundTimelineTick,
   TIMELINE_CHART_HEIGHT,
-  TIMELINE_CHART_WIDTH,
   TIMELINE_PAD_BOTTOM,
   TIMELINE_PAD_LEFT,
   TIMELINE_PAD_RIGHT,
   TIMELINE_PAD_TOP,
+  timelineChartWidth,
   timelineSeriesColor,
   timelineStepLabel,
   TIMELINE_SERIES_STROKE_WIDTH
@@ -50,6 +50,7 @@ export function AnswersEarningsTimelineChart({
   );
 
   const stepCount = timeline.steps.length;
+  const chartWidth = timelineChartWidth(stepCount);
   const allValues = visibleSeries.flatMap((row) => row.values);
   const minY = stepCount <= 1 || visibleSeries.length === 0 ? 0 : Math.min(0, ...allValues);
   const maxY = stepCount <= 1 || visibleSeries.length === 0 ? 0 : Math.max(0, ...allValues);
@@ -77,7 +78,7 @@ export function AnswersEarningsTimelineChart({
     );
   }
 
-  const plotWidth = TIMELINE_CHART_WIDTH - TIMELINE_PAD_LEFT - TIMELINE_PAD_RIGHT;
+  const plotWidth = chartWidth - TIMELINE_PAD_LEFT - TIMELINE_PAD_RIGHT;
   const plotHeight = TIMELINE_CHART_HEIGHT - TIMELINE_PAD_TOP - TIMELINE_PAD_BOTTOM;
 
   const xAt = (index: number) =>
@@ -105,7 +106,8 @@ export function AnswersEarningsTimelineChart({
           <div className="answers-earnings-timeline-chart-wrap">
             <svg
             className="answers-earnings-timeline-chart"
-            viewBox={`0 0 ${TIMELINE_CHART_WIDTH} ${TIMELINE_CHART_HEIGHT}`}
+            viewBox={`0 0 ${chartWidth} ${TIMELINE_CHART_HEIGHT}`}
+            style={{ minWidth: chartWidth }}
             role="img"
             aria-label={t("answers.analyticsEarningsTimelineTitle")}
           >
@@ -113,7 +115,7 @@ export function AnswersEarningsTimelineChart({
               <g key={tick}>
                 <line
                   x1={TIMELINE_PAD_LEFT}
-                  x2={TIMELINE_CHART_WIDTH - TIMELINE_PAD_RIGHT}
+                  x2={chartWidth - TIMELINE_PAD_RIGHT}
                   y1={yAt(tick)}
                   y2={yAt(tick)}
                   className="answers-earnings-timeline-grid"
@@ -133,7 +135,7 @@ export function AnswersEarningsTimelineChart({
             {minY < 0 && maxY > 0 ? (
               <line
                 x1={TIMELINE_PAD_LEFT}
-                x2={TIMELINE_CHART_WIDTH - TIMELINE_PAD_RIGHT}
+                x2={chartWidth - TIMELINE_PAD_RIGHT}
                 y1={yAt(0)}
                 y2={yAt(0)}
                 className="answers-earnings-timeline-zero"
