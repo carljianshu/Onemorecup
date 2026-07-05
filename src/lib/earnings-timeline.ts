@@ -1,4 +1,5 @@
 import { roundScore } from "@/lib/score-format";
+import { playerDisplayName } from "@/lib/player-display";
 import { settlePickGroup } from "@/lib/scoring";
 import type { Market, Pick, Player } from "@/types";
 
@@ -47,7 +48,14 @@ export const PAGE1_SETTLEMENT_ORDER = [
   "m1-8",
   "m1-10",
   "m1-6",
+  "m1-5",
   "m1-15"
+] as const;
+
+/** 1/8 决赛实际结算顺序（与题号顺序无关；未列出的场次排在已知顺序之后）。 */
+export const PAGE2_SETTLEMENT_ORDER = [
+  "m2-2",
+  "m2-1"
 ] as const;
 
 function page1SettlementIndex(marketId: string): number {
@@ -59,6 +67,15 @@ function page1SettlementIndex(marketId: string): number {
   return PAGE1_SETTLEMENT_ORDER.length + parseMarketSortKey(marketId);
 }
 
+function page2SettlementIndex(marketId: string): number {
+  const index = PAGE2_SETTLEMENT_ORDER.indexOf(
+    marketId as (typeof PAGE2_SETTLEMENT_ORDER)[number]
+  );
+  if (index >= 0)
+    return index;
+  return PAGE2_SETTLEMENT_ORDER.length + parseMarketSortKey(marketId);
+}
+
 /** 已结算场次排序：M1 用固定结算顺序，其余按 page + settledAt / 题号。 */
 export function sortMarketsBySettlementOrder(markets: Market[]): Market[] {
   return [...markets]
@@ -66,6 +83,8 @@ export function sortMarketsBySettlementOrder(markets: Market[]): Market[] {
     .sort((a, b) => {
       if (a.page === 1 && b.page === 1)
         return page1SettlementIndex(a.id) - page1SettlementIndex(b.id);
+      if (a.page === 2 && b.page === 2)
+        return page2SettlementIndex(a.id) - page2SettlementIndex(b.id);
       if (a.page !== b.page)
         return a.page - b.page;
 
@@ -94,7 +113,7 @@ export function computeEarningsTimeline(
   picks: Pick[]
 ): EarningsTimelineData {
   const settledMarkets = sortMarketsBySettlementOrder(
-    markets.filter((market) => market.page === 1)
+    markets.filter((market) => market.page === 1 || market.page === 2)
   );
 
   const steps: EarningsTimelineStep[] = [
@@ -129,7 +148,7 @@ export function computeEarningsTimeline(
 
     return {
       playerId: player.id,
-      playerName: player.name,
+      playerName: playerDisplayName(player, player.name),
       values,
       deltas,
       finalNet: values[values.length - 1] ?? roundScore(0 - penalty)

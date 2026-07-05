@@ -1,8 +1,8 @@
-import { setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore, setPage3EarningsDeductions as setPage3EarningsDeductionsInStore, hydrateGameState, migrateStoredAnswers, savePlayerPicks, setPageLocked, setPlayerHu, setPlayerInGroup, snapshotFromState, updateMarketWinner, updatePublicFeature, type GameSnapshot } from "@/lib/local-store";
+import { setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore, setPage3EarningsDeductions as setPage3EarningsDeductionsInStore, setRankLockApplied as setRankLockAppliedInStore, hydrateGameState, migrateStoredAnswers, savePlayerPicks, setPageLocked, setPlayerHu, setPlayerInGroup, snapshotFromState, updateMarketWinner, updatePublicFeature, type GameSnapshot } from "@/lib/local-store";
 import { mergePickInputsForPageSave } from "@/lib/market-helpers";
 import { migratePickInputsForMarkets } from "@/data/markets";
 import { assertRegistrationAllowed } from "@/lib/invite-code";
-import { applyPromotionToSave } from "@/lib/promotion";
+import { removePlayerFromRankLockSnapshot } from "@/lib/rank-lock";
 import { removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { applyManualPageLock, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { applyLockedMarketPickPreservation } from "@/lib/market-lock";
@@ -107,7 +107,7 @@ export async function registerPlayer(body: {
         const state = hydrateGameState(current.payload, { persist: false });
         assertPageUnlocked(state.config, body.page);
         const pagePickInputs = applyLockedMarketPickPreservation(body.page, body.pagePickInputs, state.markets, body.playerId ?? null, state.picks);
-        const pickInputs = migratePickInputsForMarkets(applyPromotionToSave(mergePickInputsForPageSave(body.page, pagePickInputs, state.markets, body.playerId ?? null, state.picks), state.markets, state.leaderboard, body.playerId ?? null, body.page, state.config), state.markets);
+        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(body.page, pagePickInputs, state.markets, body.playerId ?? null, state.picks), state.markets);
         validatePlayerSave(body.page, pickInputs, pagePickInputs, state.markets);
         assertRegistrationAllowed(
             body.name,
@@ -236,7 +236,10 @@ export function removePlayer(playerId: string, expectedVersion?: number) {
             players,
             markets: state.markets,
             picks,
-            config: removePlayerFromPromotionSnapshot(state.config, playerId)
+            config: removePlayerFromRankLockSnapshot(
+                removePlayerFromPromotionSnapshot(state.config, playerId),
+                playerId
+            )
         });
     }, expectedVersion);
 }
@@ -298,6 +301,22 @@ export function setPage3EarningsDeductions(enabled: boolean, expectedVersion?: n
         }, enabled);
         return snapshotFromState({
             players: result.players,
+            markets: state.markets,
+            picks: state.picks,
+            config: result.config
+        });
+    }, expectedVersion);
+}
+export function setRankLockApplied(enabled: boolean, expectedVersion?: number) {
+    return mutateAdmin((state) => {
+        const result = setRankLockAppliedInStore({
+            players: state.players,
+            markets: state.markets,
+            picks: state.picks,
+            config: state.config
+        }, enabled);
+        return snapshotFromState({
+            players: state.players,
             markets: state.markets,
             picks: state.picks,
             config: result.config

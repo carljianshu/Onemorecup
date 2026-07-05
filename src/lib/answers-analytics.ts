@@ -1,5 +1,17 @@
 import { DOUBLE_STAKE } from "@/data/markets";
 import { PAGE1_REAL_WORLD_RATES, type Page1RealWorldRate } from "@/data/page1-real-world-rates";
+import { PAGE2_REAL_WORLD_RATES, type Page2RealWorldRate } from "@/data/page2-real-world-rates";
+import { playerDisplayName } from "@/lib/player-display";
+
+export type AnalyticsPage = 1 | 2;
+
+/** 数据分析 tab：M1 + M2 合并统计。 */
+export const PHASE12_ANALYTICS_PAGES: readonly AnalyticsPage[] = [1, 2];
+
+export const PHASE12_REAL_WORLD_RATES = [
+  ...PAGE1_REAL_WORLD_RATES,
+  ...PAGE2_REAL_WORLD_RATES
+] as const;
 import { roundScore } from "@/lib/score-format";
 import { computeParimutuelBreakdown, computeProjectedStakeBreakdown } from "@/lib/scoring";
 import type { Market, Pick, Player } from "@/types";
@@ -41,14 +53,15 @@ export function teamSupportRatesForMarket(
   return rates;
 }
 
-function findPage1MarketByTeams(
+function findMarketByTeams(
   markets: Market[],
+  pages: readonly AnalyticsPage[],
   teamA: string,
   teamB: string
 ): Market | undefined {
   return markets.find(
     (market) =>
-      market.page === 1 &&
+      pages.includes(market.page as AnalyticsPage) &&
       market.candidates?.includes(teamA) &&
       market.candidates?.includes(teamB)
   );
@@ -87,16 +100,18 @@ export function topTierByScore<T>(
   return rows.filter((row) => scoreOf(row) >= cutoff);
 }
 
-export function computePage1RealWorldComparison(
+function computeRealWorldComparisonForPages(
   markets: Market[],
   picks: Pick[],
-  benchmarks: Page1RealWorldRate[] = PAGE1_REAL_WORLD_RATES
+  pages: readonly AnalyticsPage[],
+  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate)[]
 ): Page1RealWorldComparisonStats {
   const rows: Page1RealWorldComparisonRow[] = [];
 
   for (const benchmark of benchmarks) {
-    const market = findPage1MarketByTeams(
+    const market = findMarketByTeams(
       markets,
+      pages,
       benchmark.favoriteTeam,
       benchmark.underdogTeam
     );
@@ -141,6 +156,30 @@ export function computePage1RealWorldComparison(
         a.marketId.localeCompare(b.marketId, undefined, { numeric: true })
     )
   };
+}
+
+export function computePage1RealWorldComparison(
+  markets: Market[],
+  picks: Pick[],
+  benchmarks: Page1RealWorldRate[] = PAGE1_REAL_WORLD_RATES
+): Page1RealWorldComparisonStats {
+  return computeRealWorldComparisonForPages(markets, picks, [1], benchmarks);
+}
+
+export function computePage2RealWorldComparison(
+  markets: Market[],
+  picks: Pick[],
+  benchmarks: Page2RealWorldRate[] = PAGE2_REAL_WORLD_RATES
+): Page1RealWorldComparisonStats {
+  return computeRealWorldComparisonForPages(markets, picks, [2], benchmarks);
+}
+
+export function computePhase12RealWorldComparison(
+  markets: Market[],
+  picks: Pick[],
+  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate)[] = PHASE12_REAL_WORLD_RATES
+): Page1RealWorldComparisonStats {
+  return computeRealWorldComparisonForPages(markets, picks, PHASE12_ANALYTICS_PAGES, benchmarks);
 }
 
 /** 某题按计分位统计后，人数较多的一方；平局则无数。 */
@@ -235,20 +274,23 @@ export interface Page1SidePickStats {
   topRows: Page1SidePickRow[];
 }
 
-function buildPage1SidePickStats(
+function buildSidePickStatsForPages(
   players: Player[],
   markets: Market[],
   picks: Pick[],
+  pages: readonly AnalyticsPage[],
   sideTeamForMarket: (market: Market, picks: Pick[]) => string | null
 ): Page1SidePickStats {
-  const page1Markets = markets.filter((market) => market.page === 1);
+  const pageMarkets = markets.filter((market) =>
+    pages.includes(market.page as AnalyticsPage)
+  );
   const matchCountByPlayer = new Map<string, number>();
 
   for (const player of players) {
     matchCountByPlayer.set(player.id, 0);
   }
 
-  for (const market of page1Markets) {
+  for (const market of pageMarkets) {
     const sideTeam = sideTeamForMarket(market, picks);
     if (!sideTeam)
       continue;
@@ -266,7 +308,7 @@ function buildPage1SidePickStats(
   const rows: Page1SidePickRow[] = players
     .map((player) => ({
       playerId: player.id,
-      playerName: player.name,
+      playerName: playerDisplayName(player, player.id),
       matchCount: matchCountByPlayer.get(player.id) ?? 0
     }))
     .sort(
@@ -290,11 +332,33 @@ export function computePage1PopularPickStats(
   markets: Market[],
   picks: Pick[]
 ): Page1SidePickStats {
-  return buildPage1SidePickStats(players, markets, picks, majorityTeamForMarket);
+  return buildSidePickStatsForPages(players, markets, picks, [1], majorityTeamForMarket);
+}
+
+export function computePage2PopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSidePickStatsForPages(players, markets, picks, [2], majorityTeamForMarket);
+}
+
+export function computePhase12PopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSidePickStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    majorityTeamForMarket
+  );
 }
 
 /**
- * 1/16 决赛：每位玩家猜中「少数派（冷门）」的场数。
+ * 每位玩家猜中「少数派（冷门）」的场数。
  * 少数派按计分位判定（Double 计 2）；玩家累加时每场 +1，Double 不额外加倍。
  */
 export function computePage1UnpopularPickStats(
@@ -302,18 +366,44 @@ export function computePage1UnpopularPickStats(
   markets: Market[],
   picks: Pick[]
 ): Page1SidePickStats {
-  return buildPage1SidePickStats(players, markets, picks, minorityTeamForMarket);
+  return buildSidePickStatsForPages(players, markets, picks, [1], minorityTeamForMarket);
 }
 
-function buildPage1SettledResultStats(
+export function computePage2UnpopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSidePickStatsForPages(players, markets, picks, [2], minorityTeamForMarket);
+}
+
+export function computePhase12UnpopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSidePickStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    minorityTeamForMarket
+  );
+}
+
+function buildSettledResultStatsForPages(
   players: Player[],
   markets: Market[],
   picks: Pick[],
+  pages: readonly AnalyticsPage[],
   mode: "correct" | "incorrect"
 ): Page1SidePickStats {
   const marketById = new Map(
     markets
-      .filter((market) => market.page === 1 && market.winner !== null)
+      .filter(
+        (market) =>
+          pages.includes(market.page as AnalyticsPage) && market.winner !== null
+      )
       .map((market) => [market.id, market])
   );
   const matchCountByPlayer = new Map<string, number>();
@@ -340,7 +430,7 @@ function buildPage1SettledResultStats(
   const rows: Page1SidePickRow[] = players
     .map((player) => ({
       playerId: player.id,
-      playerName: player.name,
+      playerName: playerDisplayName(player, player.id),
       matchCount: matchCountByPlayer.get(player.id) ?? 0
     }))
     .sort(
@@ -355,22 +445,65 @@ function buildPage1SettledResultStats(
   return { rows, maxCount, topRows };
 }
 
-/** 1/16 决赛：已结算场次中猜对场数最多的玩家（每场计 1，不含 Double 加权）。 */
 export function computePage1CorrectPickStats(
   players: Player[],
   markets: Market[],
   picks: Pick[]
 ): Page1SidePickStats {
-  return buildPage1SettledResultStats(players, markets, picks, "correct");
+  return buildSettledResultStatsForPages(players, markets, picks, [1], "correct");
 }
 
-/** 1/16 决赛：已结算场次中猜错场数最多的玩家（每场计 1，不含 Double 加权）。 */
+export function computePage2CorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSettledResultStatsForPages(players, markets, picks, [2], "correct");
+}
+
+export function computePhase12CorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSettledResultStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    "correct"
+  );
+}
+
+/** 已结算场次中猜错场数最多的玩家（每场计 1，不含 Double 加权）。 */
 export function computePage1IncorrectPickStats(
   players: Player[],
   markets: Market[],
   picks: Pick[]
 ): Page1SidePickStats {
-  return buildPage1SettledResultStats(players, markets, picks, "incorrect");
+  return buildSettledResultStatsForPages(players, markets, picks, [1], "incorrect");
+}
+
+export function computePage2IncorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSettledResultStatsForPages(players, markets, picks, [2], "incorrect");
+}
+
+export function computePhase12IncorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[]
+): Page1SidePickStats {
+  return buildSettledResultStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    "incorrect"
+  );
 }
 
 /**
@@ -379,7 +512,8 @@ export function computePage1IncorrectPickStats(
 export function computeMaxDoubleSingleMatchWinStats(
   players: Player[],
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  pages: readonly AnalyticsPage[] = [1]
 ): MaxSingleMatchWinStats {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const marketById = new Map(markets.map((market) => [market.id, market]));
@@ -390,7 +524,12 @@ export function computeMaxDoubleSingleMatchWinStats(
       continue;
 
     const market = marketById.get(pick.marketId);
-    if (!market || market.winner === null || pick.team !== market.winner)
+    if (
+      !market ||
+      !pages.includes(market.page as AnalyticsPage) ||
+      market.winner === null ||
+      pick.team !== market.winner
+    )
       continue;
 
     const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
@@ -404,7 +543,7 @@ export function computeMaxDoubleSingleMatchWinStats(
 
     records.push({
       playerId: pick.playerId,
-      playerName: playerById.get(pick.playerId)?.name ?? pick.playerId,
+      playerName: playerDisplayName(playerById.get(pick.playerId), pick.playerId),
       marketId: pick.marketId,
       team: pick.team,
       winAmount,
@@ -435,13 +574,14 @@ export interface MaxSingleMatchWinStats {
 }
 
 /**
- * 1/16 决赛：全员各场作答中，单场实际猜对收益的最高记录（含 Double 双倍计分位）。
+ * 全员各场作答中，单场实际猜对收益的最高记录（含 Double 双倍计分位）。
  * 仅统计已公布赛果且该玩家猜对的场次。
  */
 export function computeMaxSingleMatchWinStats(
   players: Player[],
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  pages: readonly AnalyticsPage[] = [1]
 ): MaxSingleMatchWinStats {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const marketById = new Map(markets.map((market) => [market.id, market]));
@@ -449,7 +589,7 @@ export function computeMaxSingleMatchWinStats(
 
   for (const pick of picks) {
     const market = marketById.get(pick.marketId);
-    if (!market || market.page !== 1)
+    if (!market || !pages.includes(market.page as AnalyticsPage))
       continue;
     if (market.winner === null || pick.team !== market.winner)
       continue;
@@ -465,7 +605,7 @@ export function computeMaxSingleMatchWinStats(
 
     records.push({
       playerId: pick.playerId,
-      playerName: playerById.get(pick.playerId)?.name ?? pick.playerId,
+      playerName: playerDisplayName(playerById.get(pick.playerId), pick.playerId),
       marketId: pick.marketId,
       team: pick.team,
       winAmount,
@@ -513,7 +653,7 @@ export function coldSidePickersForMarket(
     .filter((pick) => pick.marketId === marketId && pick.team === coldTeam)
     .map((pick) => ({
       playerId: pick.playerId,
-      playerName: playerById.get(pick.playerId)?.name ?? pick.playerId,
+      playerName: playerDisplayName(playerById.get(pick.playerId), pick.playerId),
       isDouble: pick.stake === DOUBLE_STAKE
     }))
     .sort(
@@ -544,16 +684,19 @@ export function bottomTierByScore<T>(
 }
 
 /**
- * 1/16 决赛：各场热门与冷门计分位差距（Double 计 2）。
+ * 各场热门与冷门计分位差距（Double 计 2）。
  * 最悬殊 = 热门 − 冷门最大；最平均 = 该差最小。
  */
-export function computePage1MarketPickBalanceStats(
+function computeMarketPickBalanceStatsForPages(
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  pages: readonly AnalyticsPage[]
 ): Page1MarketPickBalanceStats {
   const rows: Page1MarketPickBalanceRow[] = [];
 
-  for (const market of markets.filter((item) => item.page === 1)) {
+  for (const market of markets.filter((item) =>
+    pages.includes(item.page as AnalyticsPage)
+  )) {
     const slotCounts = teamSlotCountsForMarket(market, picks);
     const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
     if (totalSlots === 0)
@@ -616,6 +759,27 @@ export function computePage1MarketPickBalanceStats(
   };
 }
 
+export function computePage1MarketPickBalanceStats(
+  markets: Market[],
+  picks: Pick[]
+): Page1MarketPickBalanceStats {
+  return computeMarketPickBalanceStatsForPages(markets, picks, [1]);
+}
+
+export function computePage2MarketPickBalanceStats(
+  markets: Market[],
+  picks: Pick[]
+): Page1MarketPickBalanceStats {
+  return computeMarketPickBalanceStatsForPages(markets, picks, [2]);
+}
+
+export function computePhase12MarketPickBalanceStats(
+  markets: Market[],
+  picks: Pick[]
+): Page1MarketPickBalanceStats {
+  return computeMarketPickBalanceStatsForPages(markets, picks, PHASE12_ANALYTICS_PAGES);
+}
+
 export interface MaxColdWinRow {
   marketId: string;
   winnerTeam: string;
@@ -630,12 +794,13 @@ export interface MaxColdWinStats {
   topRows: MaxColdWinRow[];
 }
 
-/** 1/16 决赛：少数派实际获胜的场次，按热门−冷门差距取最大（含并列）。 */
+/** 少数派实际获胜的场次，按热门−冷门差距取最大（含并列）。 */
 export function computeMaxColdWinStats(
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  pages: readonly AnalyticsPage[] = [1]
 ): MaxColdWinStats {
-  const balance = computePage1MarketPickBalanceStats(markets, picks);
+  const balance = computeMarketPickBalanceStatsForPages(markets, picks, pages);
   const marketById = new Map(markets.map((market) => [market.id, market]));
   const upsets: MaxColdWinRow[] = [];
 
@@ -676,14 +841,15 @@ export interface Page1PickDistributionRow {
   winner: string | null;
 }
 
-/** 1/16 决赛 16 场：各选项计分位分布（Double 计 2）；左热门、右冷门。 */
-export function computePage1PickDistribution(
+/** 各阶段场次：各选项计分位分布（Double 计 2）；左热门、右冷门。 */
+function computePickDistributionForPage(
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  page: AnalyticsPage
 ): Page1PickDistributionRow[] {
   const rows: Page1PickDistributionRow[] = [];
 
-  for (const market of markets.filter((item) => item.page === 1)) {
+  for (const market of markets.filter((item) => item.page === page)) {
     const candidates = market.candidates ?? [];
     if (candidates.length < 2)
       continue;
@@ -732,4 +898,18 @@ export function computePage1PickDistribution(
     (a, b) =>
       a.marketId.localeCompare(b.marketId, undefined, { numeric: true })
   );
+}
+
+export function computePage1PickDistribution(
+  markets: Market[],
+  picks: Pick[]
+): Page1PickDistributionRow[] {
+  return computePickDistributionForPage(markets, picks, 1);
+}
+
+export function computePage2PickDistribution(
+  markets: Market[],
+  picks: Pick[]
+): Page1PickDistributionRow[] {
+  return computePickDistributionForPage(markets, picks, 2);
 }

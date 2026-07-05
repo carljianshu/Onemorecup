@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
+import { formatPlayerDisplayName } from "@/lib/player-display";
 import { formatEarningsDeduction, formatScore } from "@/lib/score-format";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
@@ -67,7 +68,7 @@ export default function LeaderboardPage() {
                 <Fragment key={entry.playerId}>
                   <tr>
                     <td>#{entry.rank}</td>
-                    <td>{entry.name}</td>
+                    <td>{formatPlayerDisplayName(entry.name, entry)}</td>
                     <td>
                       {entry.pickStats.page1Count} / {MIN_PAGE1_PICKS}
                     </td>

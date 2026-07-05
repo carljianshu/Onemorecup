@@ -60,9 +60,8 @@ const MARKET_NAMES_EN: Record<string, string> = {
     "第二场1/4决赛谁会晋级？": "Who advances from QF match 2?",
     "第三场1/4决赛谁会晋级？": "Who advances from QF match 3?",
     "第四场1/4决赛谁会晋级？": "Who advances from QF match 4?",
-    "第一场半决赛谁会晋级？": "Who advances from SF match 1?",
-    "第二场半决赛谁会晋级？": "Who advances from SF match 2?",
-    "谁能夺冠？": "Who wins the title?"
+    "以下球队哪支可以晋级世界杯决赛": "Which of these teams advances to the World Cup final?",
+    "以下哪支球队将获得世界杯冠军？": "Which of these teams will win the World Cup?",
 };
 export function translateMarketName(locale: Locale, name: string) {
     if (locale === "zh")

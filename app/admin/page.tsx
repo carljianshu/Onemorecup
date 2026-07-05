@@ -12,6 +12,7 @@ import { formatPickTeamAsFifaCodes } from "@/lib/fifa-codes";
 import { answersFeatureLabelKey, translateMarketCandidate, translateMarketName } from "@/i18n";
 import { fromDatetimeLocalValue, isAnswersFeaturePublic, isEarlyMarketAnswersPublic, toDatetimeLocalValue } from "@/lib/public-features";
 import { clearAdminAuthed } from "@/lib/admin-auth";
+import { formatPlayerDisplayName } from "@/lib/player-display";
 import { formatScore } from "@/lib/score-format";
 import type { AnswersPageFeature } from "@/lib/public-features";
 import type { Market, Pick, PlayPage } from "@/types";
@@ -117,7 +118,7 @@ export default function AdminPage() {
     </AdminGate>);
 }
 function AdminPageContent() {
-    const { ready, players, markets, picks, config, leaderboard, setMarketWinner, togglePageLocked, setRegistrationClosed, deletePlayer, setPlayerInGroup, setPlayerHu, setPhase12EarningsDeductions, setPage3EarningsDeductions, refreshScores } = useGame();
+    const { ready, players, markets, picks, config, leaderboard, setMarketWinner, togglePageLocked, setRegistrationClosed, deletePlayer, setPlayerInGroup, setPlayerHu, setPhase12EarningsDeductions, setPage3EarningsDeductions, setRankLockApplied, refreshScores } = useGame();
     const { t, locale, pageLabel } = useLocale();
     const [message, setMessage] = useState<{
         type: "error" | "success" | "warning";
@@ -133,6 +134,7 @@ function AdminPageContent() {
     }
     const phase12DeductionsOn = config.phase12EarningsDeductionsApplied;
     const page3DeductionsOn = config.page3EarningsDeductionsApplied;
+    const rankLockOn = config.rankLockApplied;
     async function handleTogglePhase12Deductions() {
         const enabling = !phase12DeductionsOn;
         const confirmKey = enabling
@@ -169,6 +171,25 @@ function AdminPageContent() {
         }
         catch {
             setMessage({ type: "error", text: t("admin.penaltiesGenerateFailed") });
+        }
+    }
+    async function handleToggleRankLock() {
+        const enabling = !rankLockOn;
+        const confirmKey = enabling
+            ? "admin.confirmApplyRankLock"
+            : "admin.confirmCancelRankLock";
+        if (!confirm(t(confirmKey))) {
+            return;
+        }
+        try {
+            await setRankLockApplied(enabling);
+            setMessage({
+                type: "success",
+                text: t(enabling ? "admin.rankLockApplied" : "admin.rankLockCancelled")
+            });
+        }
+        catch {
+            setMessage({ type: "error", text: t("admin.rankLockFailed") });
         }
     }
     async function handleToggleRegistrationClosed() {
@@ -271,6 +292,9 @@ function AdminPageContent() {
         </button>
         <button type="button" className={`btn ${page3DeductionsOn ? "btn-danger" : "btn-secondary"}`} onClick={() => void handleTogglePage3Deductions()}>
           {page3DeductionsOn ? t("admin.cancelPenaltiesPage3") : t("admin.generatePenaltiesPage3")}
+        </button>
+        <button type="button" className={`btn ${rankLockOn ? "btn-danger" : "btn-secondary"}`} onClick={() => void handleToggleRankLock()}>
+          {rankLockOn ? t("admin.cancelRankLock") : t("admin.applyRankLock")}
         </button>
         <button type="button" className={`btn ${config.registrationClosed ? "btn-secondary" : "btn-danger"}`} onClick={() => void handleToggleRegistrationClosed()}>
           {config.registrationClosed ? t("admin.openRegistration") : t("admin.closeRegistration")}
@@ -399,7 +423,7 @@ function AdminPageContent() {
                       {t("common.delete")}
                     </button>
                   </td>
-                  <td>{player.name}</td>
+                  <td>{formatPlayerDisplayName(player.name, player)}</td>
                   <td>
                     {player.pickStats.page1Count} / {MIN_PAGE1_PICKS}
                   </td>

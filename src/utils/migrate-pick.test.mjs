@@ -96,7 +96,7 @@ const m3Legacy = [
 ];
 const migratedM3 = migratePicksForMarkets(m3Legacy, markets);
 assert(migratedM3.length === 6, "all m3 legacy picks should migrate");
-assert(migratedM3.find((p) => p.marketId === "m3-1")?.team === "摩洛哥/加拿大");
+assert(migratedM3.find((p) => p.marketId === "m3-1")?.team === "摩洛哥");
 
 const m3MoroccoCanadaLegacy = [
   { playerId: "p-m3-mc", marketId: "m3-5", team: "荷兰/摩洛哥/加拿大", stake: 1 },
@@ -104,7 +104,14 @@ const m3MoroccoCanadaLegacy = [
 ];
 const migratedM3MoroccoCanada = migratePicksForMarkets(m3MoroccoCanadaLegacy, markets);
 assert(migratedM3MoroccoCanada.length === 2, "m3 荷兰/摩洛哥/加拿大 legacy picks should migrate");
-assert(migratedM3MoroccoCanada.every((p) => p.team === "摩洛哥/加拿大"), "m3 荷兰/摩洛哥/加拿大 should become 摩洛哥/加拿大");
+assert(migratedM3MoroccoCanada.every((p) => p.team === "摩洛哥"), "m3 荷兰/摩洛哥/加拿大 should become 摩洛哥");
+
+const m3MoroccoCanadaDirect = [
+  { playerId: "p-m3-mcd", marketId: "m3-1", team: "摩洛哥/加拿大", stake: 1 },
+  { playerId: "p-m3-mcd2", marketId: "m3-7", team: "摩洛哥/加拿大", stake: 1 },
+];
+const migratedM3MoroccoCanadaDirect = migratePicksForMarkets(m3MoroccoCanadaDirect, markets);
+assert(migratedM3MoroccoCanadaDirect.every((p) => p.team === "摩洛哥"), "m3 摩洛哥/加拿大 should become 摩洛哥");
 assert(migratedM3.filter((p) => p.marketId === "m3-2").every((p) => p.team === "西班牙/葡萄牙"));
 assert(migratedM3.find((p) => p.marketId === "m3-3")?.team === "墨西哥/英格兰");
 assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士/哥伦比亚");
@@ -146,7 +153,14 @@ const m3ParaguayFranceLegacy = [
 ];
 const migratedM3ParaguayFrance = migratePicksForMarkets(m3ParaguayFranceLegacy, markets);
 assert(migratedM3ParaguayFrance.length === 2, "m3 巴拉圭/法国/瑞典 legacy picks should migrate");
-assert(migratedM3ParaguayFrance.every((p) => p.team === "巴拉圭/法国"), "m3 巴拉圭/法国/瑞典 should become 巴拉圭/法国");
+assert(migratedM3ParaguayFrance.every((p) => p.team === "法国"), "m3 巴拉圭/法国/瑞典 should become 法国");
+
+const m3FranceDirect = [
+  { playerId: "p-m3-fr", marketId: "m3-1", team: "巴拉圭/法国", stake: 1 },
+  { playerId: "p-m3-fr2", marketId: "m3-5", team: "巴拉圭/法国", stake: 1 },
+];
+const migratedM3FranceDirect = migratePicksForMarkets(m3FranceDirect, markets);
+assert(migratedM3FranceDirect.every((p) => p.team === "法国"), "m3 巴拉圭/法国 should become 法国");
 
 const m26MexicoLegacy = [
   { playerId, marketId: "m2-6", team: "墨西哥/厄瓜多尔", stake: 1 },

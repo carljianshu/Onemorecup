@@ -10,7 +10,7 @@ export function rebuildLeaderboard(
   config: GameConfig
 ): { leaderboard: LeaderboardEntry[]; config: GameConfig; configChanged: boolean } {
   const scheduled = applyScheduledAnswersPageOpen(config);
-  const leaderboard = buildLeaderboard(players, markets, picks);
+  const leaderboard = buildLeaderboard(players, markets, picks, config);
   const locked = maybeLockPromotion(scheduled.config, leaderboard);
   return {
     leaderboard,

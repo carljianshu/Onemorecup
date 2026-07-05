@@ -2,7 +2,7 @@ import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicks
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { defaultAnswersPageSchedule, migrateAnswersPageSchedule, migrateAnswersScheduleOpenApplied, patchAnswersPageSchedule } from "@/lib/public-features";
 import { assertRegistrationAllowed, findKnownPlayer } from "@/lib/invite-code";
-import { applyPromotionToSave } from "@/lib/promotion";
+import { computeRankLockSnapshot, removePlayerFromRankLockSnapshot } from "@/lib/rank-lock";
 import { isPlayerPromoted, migratePromotionSnapshotTiming, removePlayerFromPromotionSnapshot } from "@/lib/promotion";
 import { computePickStats } from "@/lib/pick-stats";
 import { calculatePhase12PickPenalty, calculatePage3PickPenalty } from "@/lib/pick-penalty";
@@ -54,7 +54,7 @@ function refreshLeaderboard(players: Player[], markets: Market[], picks: Pick[],
     if (config) {
         return refreshLeaderboardWithConfig(players, markets, picks, config).leaderboard;
     }
-    const leaderboard = buildLeaderboard(players, markets, picks);
+    const leaderboard = buildLeaderboard(players, markets, picks, config);
     write(KEYS.leaderboard, leaderboard);
     return leaderboard;
 }
@@ -70,6 +70,10 @@ function defaultGameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
         promotionLockedAt: null,
         promotedPlayerIds: null,
         eliminatedPlayerIds: null,
+        rankLockApplied: false,
+        rankLockAppliedAt: null,
+        rankLockTopPlayerIds: null,
+        rankLockBottomPlayerIds: null,
         registrationClosed: false,
         ...overrides
     };
@@ -115,6 +119,10 @@ function normalizeConfig(raw: unknown): GameConfig {
         promotionLockedAt: config?.promotionLockedAt ?? null,
         promotedPlayerIds: config?.promotedPlayerIds ?? null,
         eliminatedPlayerIds: config?.eliminatedPlayerIds ?? null,
+        rankLockApplied: config?.rankLockApplied ?? false,
+        rankLockAppliedAt: config?.rankLockAppliedAt ?? null,
+        rankLockTopPlayerIds: config?.rankLockTopPlayerIds ?? null,
+        rankLockBottomPlayerIds: config?.rankLockBottomPlayerIds ?? null,
         registrationClosed: config?.registrationClosed ?? true
     })).config).config).config;
 }
@@ -333,12 +341,9 @@ export function savePlayerPicks(name: string, pickInputs: PlayerPickInput[], sta
         state.config?.registrationClosed ?? false,
         inviteCode
     );
-    const promotionLeaderboard = leaderboardForPromotion ??
-        refreshLeaderboard(state.players, state.markets, state.picks, state.config);
     const effectivePlayerId = existing?.id ?? null;
-    const finalPickInputs = page !== undefined
-        ? applyPromotionToSave(pickInputs, state.markets, promotionLeaderboard, effectivePlayerId, page, state.config)
-        : pickInputs;
+    // 晋级门槛暂不在保存时生效；第三页全员开放，待后续规则更新后再接 applyPromotionToSave。
+    const finalPickInputs = pickInputs;
     const migratedPickInputs = migratePickInputsForMarkets(finalPickInputs, state.markets);
     validatePickInputs(migratedPickInputs, state.markets);
     if (existing) {
@@ -409,7 +414,10 @@ export function deletePlayer(playerId: string, state: {
     const picks = state.picks.filter((p) => p.playerId !== playerId);
     savePlayers(players);
     savePicks(picks);
-    const config = removePlayerFromPromotionSnapshot(state.config ?? defaultGameConfig(), playerId);
+    const config = removePlayerFromRankLockSnapshot(
+        removePlayerFromPromotionSnapshot(state.config ?? defaultGameConfig(), playerId),
+        playerId
+    );
     if (state.config)
         saveConfig(config);
     const rebuilt = refreshLeaderboardWithConfig(players, state.markets, picks, config);
@@ -484,6 +492,36 @@ export function setPage3EarningsDeductions(state: {
     saveConfig(config);
     const next = refreshLeaderboardWithConfig(players, state.markets, state.picks, config);
     return { players, config: next.config, leaderboard: next.leaderboard };
+}
+
+export function setRankLockApplied(state: {
+    players: Player[];
+    markets: Market[];
+    picks: Pick[];
+    config: GameConfig;
+}, enabled: boolean) {
+    if (!enabled) {
+        const config: GameConfig = {
+            ...state.config,
+            rankLockApplied: false,
+            rankLockAppliedAt: null,
+            rankLockTopPlayerIds: null,
+            rankLockBottomPlayerIds: null
+        };
+        saveConfig(config);
+        const rebuilt = refreshLeaderboardWithConfig(state.players, state.markets, state.picks, config);
+        return { config: rebuilt.config, leaderboard: rebuilt.leaderboard };
+    }
+
+    const preLockLeaderboard = buildLeaderboard(state.players, state.markets, state.picks);
+    const config: GameConfig = {
+        ...state.config,
+        rankLockApplied: true,
+        ...computeRankLockSnapshot(preLockLeaderboard)
+    };
+    saveConfig(config);
+    const rebuilt = refreshLeaderboardWithConfig(state.players, state.markets, state.picks, config);
+    return { config: rebuilt.config, leaderboard: rebuilt.leaderboard };
 }
 
 /** @deprecated Use setPhase12EarningsDeductions */

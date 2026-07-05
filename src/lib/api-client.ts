@@ -165,3 +165,11 @@ export async function setPage3EarningsDeductionsApi(token: string, enabled: bool
     });
     return applyVersion(await parseResponse<LeaderboardResponse>(response));
 }
+export async function setRankLockAppliedApi(token: string, enabled: boolean) {
+    const response = await fetch("/api/admin/rank-lock", {
+        method: "POST",
+        headers: adminHeaders(token),
+        body: JSON.stringify({ enabled })
+    });
+    return applyVersion(await parseResponse<LeaderboardResponse>(response));
+}

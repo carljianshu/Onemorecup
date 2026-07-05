@@ -2,7 +2,8 @@ import { roundScore } from "@/lib/score-format";
 import { DOUBLE_STAKE, marketStakePerPick, marketUsesDistributionAdjustment, PAGE3_STAKE_PER_PICK, STAKE_PER_PICK } from "@/data/markets";
 import { computePickStats } from "@/lib/pick-stats";
 import { countPlayerGuessedItems } from "@/lib/market-helpers";
-import type { LeaderboardEntry, Market, Pick, Player } from "@/types";
+import { applyRankLockTierSort, isRankLockApplied } from "@/lib/rank-lock";
+import type { GameConfig, LeaderboardEntry, Market, Pick, Player } from "@/types";
 
 export { roundScore } from "@/lib/score-format";
 
@@ -613,7 +614,8 @@ export function computePlayerScores(
 export function buildLeaderboard(
   players: Player[],
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig
 ): LeaderboardEntry[] {
   const scores = computePlayerScores(players, markets, picks);
 
@@ -647,12 +649,17 @@ export function buildLeaderboard(
     };
   });
 
-  entries.sort((a, b) => b.netEarnings - a.netEarnings || a.createdAt.localeCompare(b.createdAt));
+  let sorted = [...entries].sort(
+    (a, b) => b.netEarnings - a.netEarnings || a.createdAt.localeCompare(b.createdAt)
+  );
+  if (config && isRankLockApplied(config)) {
+    sorted = applyRankLockTierSort(sorted, config);
+  }
 
   let lastScore: number | null = null;
   let lastRank = 0;
 
-  return entries.map((entry, i) => {
+  return sorted.map((entry, i) => {
     const rank = entry.netEarnings === lastScore ? lastRank : i + 1;
     lastScore = entry.netEarnings;
     lastRank = rank;

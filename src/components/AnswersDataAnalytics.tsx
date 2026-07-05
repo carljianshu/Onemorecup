@@ -8,13 +8,14 @@ import { formatScore, formatScorePlain } from "@/lib/score-format";
 import {
   computeMaxColdWinStats,
   computeMaxSingleMatchWinStats,
-  computePage1CorrectPickStats,
-  computePage1IncorrectPickStats,
+  computePhase12CorrectPickStats,
+  computePhase12IncorrectPickStats,
   computeMaxDoubleSingleMatchWinStats,
-  computePage1MarketPickBalanceStats,
-  computePage1PopularPickStats,
-  computePage1RealWorldComparison,
-  computePage1UnpopularPickStats,
+  computePhase12MarketPickBalanceStats,
+  computePhase12PopularPickStats,
+  computePhase12RealWorldComparison,
+  computePhase12UnpopularPickStats,
+  PHASE12_ANALYTICS_PAGES,
   coldSidePickersForMarket,
   type MaxColdWinRow,
   type MaxSingleMatchWinRow,
@@ -23,7 +24,18 @@ import {
   type Page1SidePickRow,
   type Page1SidePickStats
 } from "@/lib/answers-analytics";
-import type { Pick, Player } from "@/types";
+import type { Market, Pick, Player } from "@/types";
+
+type AnalyticsEmptyKey =
+  | "answers.analyticsPopularEmpty"
+  | "answers.analyticsUnpopularEmpty"
+  | "answers.analyticsRealWorldEmpty"
+  | "answers.analyticsPickBalanceEmpty"
+  | "answers.analyticsCorrectEmpty"
+  | "answers.analyticsIncorrectEmpty"
+  | "answers.analyticsDoubleWinEmpty"
+  | "answers.analyticsMaxWinEmpty"
+  | "answers.analyticsMaxColdWinEmpty";
 
 function groupRowsByCount<T>(
   rows: T[],
@@ -369,61 +381,60 @@ function MaxWinBlock({
   );
 }
 
-export function AnswersDataAnalytics() {
-  const { players, markets, picks } = useGame();
+function AnalyticsSection({
+  players,
+  markets,
+  picks
+}: {
+  players: Player[];
+  markets: Market[];
+  picks: Pick[];
+}) {
   const { t } = useLocale();
 
   const popularStats = useMemo(
-    () => computePage1PopularPickStats(players, markets, picks),
+    () => computePhase12PopularPickStats(players, markets, picks),
     [players, markets, picks]
   );
   const unpopularStats = useMemo(
-    () => computePage1UnpopularPickStats(players, markets, picks),
+    () => computePhase12UnpopularPickStats(players, markets, picks),
     [players, markets, picks]
   );
   const realWorldComparison = useMemo(
-    () => computePage1RealWorldComparison(markets, picks),
+    () => computePhase12RealWorldComparison(markets, picks),
     [markets, picks]
   );
   const maxWinStats = useMemo(
-    () => computeMaxSingleMatchWinStats(players, markets, picks),
+    () => computeMaxSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES),
     [players, markets, picks]
   );
   const maxColdWinStats = useMemo(
-    () => computeMaxColdWinStats(markets, picks),
+    () => computeMaxColdWinStats(markets, picks, PHASE12_ANALYTICS_PAGES),
     [markets, picks]
   );
   const pickBalanceStats = useMemo(
-    () => computePage1MarketPickBalanceStats(markets, picks),
+    () => computePhase12MarketPickBalanceStats(markets, picks),
     [markets, picks]
   );
   const correctPickStats = useMemo(
-    () => computePage1CorrectPickStats(players, markets, picks),
+    () => computePhase12CorrectPickStats(players, markets, picks),
     [players, markets, picks]
   );
   const incorrectPickStats = useMemo(
-    () => computePage1IncorrectPickStats(players, markets, picks),
+    () => computePhase12IncorrectPickStats(players, markets, picks),
     [players, markets, picks]
   );
   const maxDoubleWinStats = useMemo(
-    () => computeMaxDoubleSingleMatchWinStats(players, markets, picks),
+    () => computeMaxDoubleSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES),
     [players, markets, picks]
   );
 
   const formatRate = (value: number) => `${value.toFixed(1)}%`;
 
-  if (players.length === 0) {
-    return (
-      <div className="card answers-analytics-card">
-        <p className="answers-analytics-placeholder">{t("answers.empty")}</p>
-      </div>
-    );
-  }
-
   const renderSideSection = (
     sectionNumber: number,
     label: string,
-    empty: string,
+    emptyKey: AnalyticsEmptyKey,
     countKey:
       | "answers.analyticsPopularCount"
       | "answers.analyticsUnpopularCount"
@@ -437,7 +448,7 @@ export function AnswersDataAnalytics() {
           <p className="answers-analytics-leaders-label">
             {sectionNumber}. {label}
           </p>
-          <p className="answers-analytics-item-body answers-analytics-placeholder">{empty}</p>
+          <p className="answers-analytics-item-body answers-analytics-placeholder">{t(emptyKey)}</p>
         </div>
       );
     }
@@ -452,138 +463,159 @@ export function AnswersDataAnalytics() {
     );
   };
 
-  const renderEmptySection = (sectionNumber: number, label: string, empty: string) => (
+  const renderEmptySection = (
+    sectionNumber: number,
+    label: string,
+    emptyKey: AnalyticsEmptyKey
+  ) => (
     <div className="answers-analytics-item">
       <p className="answers-analytics-leaders-label">
         {sectionNumber}. {label}
       </p>
-      <p className="answers-analytics-item-body answers-analytics-placeholder">{empty}</p>
+      <p className="answers-analytics-item-body answers-analytics-placeholder">{t(emptyKey)}</p>
     </div>
   );
 
   return (
-    <div className="answers-analytics-stack">
-      <section className="card answers-analytics-section">
-        <h2 className="answers-analytics-title">{t("answers.analyticsTitle")}</h2>
+    <section className="card answers-analytics-section">
+      <h2 className="answers-analytics-title">{t("answers.analyticsTitle")}</h2>
 
-        {renderSideSection(
-          1,
-          t("answers.analyticsPopularLeaders"),
-          t("answers.analyticsPopularEmpty"),
-          "answers.analyticsPopularCount",
-          popularStats
-        )}
+      {renderSideSection(
+        1,
+        t("answers.analyticsPopularLeaders"),
+        "answers.analyticsPopularEmpty",
+        "answers.analyticsPopularCount",
+        popularStats
+      )}
 
-        {renderSideSection(
-          2,
-          t("answers.analyticsUnpopularLeaders"),
-          t("answers.analyticsUnpopularEmpty"),
-          "answers.analyticsUnpopularCount",
-          unpopularStats,
-          "answers-analytics-leaders-unpopular"
-        )}
+      {renderSideSection(
+        2,
+        t("answers.analyticsUnpopularLeaders"),
+        "answers.analyticsUnpopularEmpty",
+        "answers.analyticsUnpopularCount",
+        unpopularStats,
+        "answers-analytics-leaders-unpopular"
+      )}
 
-        {realWorldComparison.topGapRows.length === 0 ? (
-          renderEmptySection(3, t("answers.analyticsRealWorldTopGaps"), t("answers.analyticsRealWorldEmpty"))
-        ) : (
-          <GapBlock
-            sectionNumber={3}
-            label={t("answers.analyticsRealWorldTopGaps")}
-            rows={realWorldComparison.topGapRows}
-            formatRate={formatRate}
-          />
-        )}
+      {realWorldComparison.topGapRows.length === 0 ? (
+        renderEmptySection(3, t("answers.analyticsRealWorldTopGaps"), "answers.analyticsRealWorldEmpty")
+      ) : (
+        <GapBlock
+          sectionNumber={3}
+          label={t("answers.analyticsRealWorldTopGaps")}
+          rows={realWorldComparison.topGapRows}
+          formatRate={formatRate}
+        />
+      )}
 
-        {realWorldComparison.bottomGapRows.length === 0 ? (
-          renderEmptySection(4, t("answers.analyticsRealWorldSmallestGaps"), t("answers.analyticsRealWorldEmpty"))
-        ) : (
-          <GapBlock
-            sectionNumber={4}
-            label={t("answers.analyticsRealWorldSmallestGaps")}
-            rows={realWorldComparison.bottomGapRows}
-            formatRate={formatRate}
-          />
-        )}
+      {realWorldComparison.bottomGapRows.length === 0 ? (
+        renderEmptySection(4, t("answers.analyticsRealWorldSmallestGaps"), "answers.analyticsRealWorldEmpty")
+      ) : (
+        <GapBlock
+          sectionNumber={4}
+          label={t("answers.analyticsRealWorldSmallestGaps")}
+          rows={realWorldComparison.bottomGapRows}
+          formatRate={formatRate}
+        />
+      )}
 
-        {pickBalanceStats.rows.length === 0 ? (
-          <>
-            {renderEmptySection(5, t("answers.analyticsPickBalanceMostLopsided"), t("answers.analyticsPickBalanceEmpty"))}
-            {renderEmptySection(6, t("answers.analyticsPickBalanceMostBalanced"), t("answers.analyticsPickBalanceEmpty"))}
-          </>
-        ) : (
-          <>
-            <PickBalanceCards
-              sectionNumber={5}
-              label={t("answers.analyticsPickBalanceMostLopsided")}
-              rows={pickBalanceStats.mostLopsidedRows}
-              players={players}
-              picks={picks}
-              cardClass="answers-analytics-gap-card-max"
-              showColdPickers
-            />
-            <PickBalanceCards
-              sectionNumber={6}
-              label={t("answers.analyticsPickBalanceMostBalanced")}
-              rows={pickBalanceStats.mostBalancedRows}
-              players={players}
-              picks={picks}
-              cardClass="answers-analytics-gap-card-min"
-              showStake
-            />
-          </>
-        )}
-
-        {renderSideSection(
-          7,
-          t("answers.analyticsCorrectLeaders"),
-          t("answers.analyticsCorrectEmpty"),
-          "answers.analyticsSettledCount",
-          correctPickStats
-        )}
-
-        {renderSideSection(
-          8,
-          t("answers.analyticsIncorrectLeaders"),
-          t("answers.analyticsIncorrectEmpty"),
-          "answers.analyticsSettledCount",
-          incorrectPickStats
-        )}
-
-        {maxDoubleWinStats.topRows.length === 0 ? (
-          renderEmptySection(9, t("answers.analyticsDoubleWinLeaders"), t("answers.analyticsDoubleWinEmpty"))
-        ) : (
-          <MaxWinBlock
-            sectionNumber={9}
-            label={t("answers.analyticsDoubleWinLeaders")}
-            rows={maxDoubleWinStats.topRows}
-            markets={markets}
-          />
-        )}
-
-        {maxWinStats.topRows.length === 0 ? (
-          renderEmptySection(10, t("answers.analyticsMaxWinLeaders"), t("answers.analyticsMaxWinEmpty"))
-        ) : (
-          <MaxWinBlock
-            sectionNumber={10}
-            label={t("answers.analyticsMaxWinLeaders")}
-            rows={maxWinStats.topRows}
-            markets={markets}
-          />
-        )}
-
-        {maxColdWinStats.topRows.length === 0 ? (
-          renderEmptySection(11, t("answers.analyticsMaxColdWin"), t("answers.analyticsMaxColdWinEmpty"))
-        ) : (
-          <MaxColdWinBlock
-            sectionNumber={11}
-            label={t("answers.analyticsMaxColdWin")}
-            rows={maxColdWinStats.topRows}
-            markets={markets}
+      {pickBalanceStats.rows.length === 0 ? (
+        <>
+          {renderEmptySection(5, t("answers.analyticsPickBalanceMostLopsided"), "answers.analyticsPickBalanceEmpty")}
+          {renderEmptySection(6, t("answers.analyticsPickBalanceMostBalanced"), "answers.analyticsPickBalanceEmpty")}
+        </>
+      ) : (
+        <>
+          <PickBalanceCards
+            sectionNumber={5}
+            label={t("answers.analyticsPickBalanceMostLopsided")}
+            rows={pickBalanceStats.mostLopsidedRows}
             players={players}
             picks={picks}
+            cardClass="answers-analytics-gap-card-max"
+            showColdPickers
           />
-        )}
-      </section>
+          <PickBalanceCards
+            sectionNumber={6}
+            label={t("answers.analyticsPickBalanceMostBalanced")}
+            rows={pickBalanceStats.mostBalancedRows}
+            players={players}
+            picks={picks}
+            cardClass="answers-analytics-gap-card-min"
+            showStake
+          />
+        </>
+      )}
+
+      {renderSideSection(
+        7,
+        t("answers.analyticsCorrectLeaders"),
+        "answers.analyticsCorrectEmpty",
+        "answers.analyticsSettledCount",
+        correctPickStats
+      )}
+
+      {renderSideSection(
+        8,
+        t("answers.analyticsIncorrectLeaders"),
+        "answers.analyticsIncorrectEmpty",
+        "answers.analyticsSettledCount",
+        incorrectPickStats
+      )}
+
+      {maxDoubleWinStats.topRows.length === 0 ? (
+        renderEmptySection(9, t("answers.analyticsDoubleWinLeaders"), "answers.analyticsDoubleWinEmpty")
+      ) : (
+        <MaxWinBlock
+          sectionNumber={9}
+          label={t("answers.analyticsDoubleWinLeaders")}
+          rows={maxDoubleWinStats.topRows}
+          markets={markets}
+        />
+      )}
+
+      {maxWinStats.topRows.length === 0 ? (
+        renderEmptySection(10, t("answers.analyticsMaxWinLeaders"), "answers.analyticsMaxWinEmpty")
+      ) : (
+        <MaxWinBlock
+          sectionNumber={10}
+          label={t("answers.analyticsMaxWinLeaders")}
+          rows={maxWinStats.topRows}
+          markets={markets}
+        />
+      )}
+
+      {maxColdWinStats.topRows.length === 0 ? (
+        renderEmptySection(11, t("answers.analyticsMaxColdWin"), "answers.analyticsMaxColdWinEmpty")
+      ) : (
+        <MaxColdWinBlock
+          sectionNumber={11}
+          label={t("answers.analyticsMaxColdWin")}
+          rows={maxColdWinStats.topRows}
+          markets={markets}
+          players={players}
+          picks={picks}
+        />
+      )}
+    </section>
+  );
+}
+
+export function AnswersDataAnalytics() {
+  const { players, markets, picks } = useGame();
+  const { t } = useLocale();
+
+  if (players.length === 0) {
+    return (
+      <div className="card answers-analytics-card">
+        <p className="answers-analytics-placeholder">{t("answers.empty")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="answers-analytics-stack">
+      <AnalyticsSection players={players} markets={markets} picks={picks} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { deletePlayerApi, patchPlayerHuApi, patchPlayerInGroupApi, fetchLeaderboard, setPhase12EarningsDeductionsApi, setPage3EarningsDeductionsApi, patchAdminConfigApi, patchMarketWinnerApi, registerPlayer, type LeaderboardResponse } from "@/lib/api-client";
+import { deletePlayerApi, patchPlayerHuApi, patchPlayerInGroupApi, fetchLeaderboard, setPhase12EarningsDeductionsApi, setPage3EarningsDeductionsApi, setRankLockAppliedApi, patchAdminConfigApi, patchMarketWinnerApi, registerPlayer, type LeaderboardResponse } from "@/lib/api-client";
 import { getAdminToken } from "@/lib/admin-auth";
 import { maybeSaveAdminBackup } from "@/lib/admin-backup";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
@@ -32,6 +32,7 @@ interface GameContextValue {
     refreshFromCloud: () => Promise<void>;
     setPhase12EarningsDeductions: (enabled: boolean) => Promise<void>;
     setPage3EarningsDeductions: (enabled: boolean) => Promise<void>;
+    setRankLockApplied: (enabled: boolean) => Promise<void>;
     players: Player[];
     markets: Market[];
     picks: Pick[];
@@ -90,6 +91,10 @@ export function GameProvider({ children }: {
         promotionLockedAt: null,
         promotedPlayerIds: null,
         eliminatedPlayerIds: null,
+        rankLockApplied: false,
+        rankLockAppliedAt: null,
+        rankLockTopPlayerIds: null,
+        rankLockBottomPlayerIds: null,
         registrationClosed: false
     });
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -315,6 +320,16 @@ export function GameProvider({ children }: {
         setConfig(result.config);
         setLeaderboard(result.leaderboard);
     }, [apiSync, players, markets, picks, config, applyResponse]);
+    const setRankLockApplied = useCallback(async (enabled: boolean) => {
+        if (apiSync) {
+            applyResponse(await setRankLockAppliedApi(requireAdminToken(), enabled));
+            return;
+        }
+        const { setRankLockApplied: setLocal } = await import("@/lib/local-store");
+        const result = setLocal({ players, markets, picks, config }, enabled);
+        setConfig(result.config);
+        setLeaderboard(result.leaderboard);
+    }, [apiSync, players, markets, picks, config, applyResponse]);
     const value = useMemo(() => ({
         ready,
         apiSync,
@@ -336,7 +351,8 @@ export function GameProvider({ children }: {
         refreshScores,
         refreshFromCloud,
         setPhase12EarningsDeductions,
-        setPage3EarningsDeductions
+        setPage3EarningsDeductions,
+        setRankLockApplied
     }), [
         ready,
         apiSync,
@@ -358,7 +374,8 @@ export function GameProvider({ children }: {
         refreshScores,
         refreshFromCloud,
         setPhase12EarningsDeductions,
-        setPage3EarningsDeductions
+        setPage3EarningsDeductions,
+        setRankLockApplied
     ]);
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

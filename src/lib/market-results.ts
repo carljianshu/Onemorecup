@@ -1,6 +1,7 @@
 import { DOUBLE_STAKE } from "@/data/markets";
 import { allPickColumns, type PickColumn } from "@/lib/market-helpers";
 import { translate, type Locale } from "@/i18n";
+import { playerDisplayName } from "@/lib/player-display";
 import { formatScore, roundScore } from "@/lib/score-format";
 import { computeParimutuelBreakdown, type AdjustmentSequenceSummary } from "@/lib/scoring";
 import type { Market, Pick, Player, PlayPage } from "@/types";
@@ -87,7 +88,7 @@ export function buildMarketResultSections(
     const actualScores: MarketResultPlayerScore[] = questionPicks
       .map((pick) => ({
         playerId: pick.playerId,
-        playerName: playerById.get(pick.playerId)?.name ?? unknownPlayer,
+        playerName: playerDisplayName(playerById.get(pick.playerId), unknownPlayer),
         team: pick.team,
         isDouble: pick.stake === DOUBLE_STAKE,
         score: roundScore(actualBreakdown?.scores[pick.playerId] ?? 0)
@@ -112,7 +113,7 @@ export function buildMarketResultSections(
         picks: optionQuestionPicks
           .map((pick) => ({
             playerId: pick.playerId,
-            playerName: playerById.get(pick.playerId)?.name ?? unknownPlayer,
+            playerName: playerDisplayName(playerById.get(pick.playerId), unknownPlayer),
             isDouble: pick.stake === DOUBLE_STAKE,
             ifCorrectPayout: roundScore(hypotheticalScores[pick.playerId] ?? 0),
             actualPayout:

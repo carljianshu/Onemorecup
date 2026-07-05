@@ -40,6 +40,10 @@ function emptyPayload(): GameSnapshot {
       promotionLockedAt: null,
       promotedPlayerIds: null,
       eliminatedPlayerIds: null,
+      rankLockApplied: false,
+      rankLockAppliedAt: null,
+      rankLockTopPlayerIds: null,
+      rankLockBottomPlayerIds: null,
       registrationClosed: false
     }
   };

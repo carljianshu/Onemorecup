@@ -23,7 +23,7 @@ export function AnswersEarningsTimelineTab() {
   const [viewMode, setViewMode] = useState<TimelinePlayerViewMode>("top10");
 
   const page1Markets = useMemo(
-    () => markets.filter((market) => market.page === 1),
+    () => markets.filter((market) => market.page === 1 || market.page === 2),
     [markets]
   );
 

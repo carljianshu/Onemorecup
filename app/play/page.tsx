@@ -11,7 +11,6 @@ import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, findPlayerPick, initSelectionMap, isPickTeamValidForMarket, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
 import { isValidInviteCode, findKnownPlayer } from "@/lib/invite-code";
-import { isPlayerPromoted, promotionCutoffCount } from "@/lib/promotion";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
 function buildPickInputsForPage(page: PlayPage, markets: Market[], selections: Record<string, string | null>, doubles: Record<string, boolean>, config: GameConfig, editingPlayerId: string | null, picks: Pick[]): PlayerPickInput[] {
     const result: PlayerPickInput[] = [];
@@ -44,7 +43,7 @@ function buildPickInputsForPage(page: PlayPage, markets: Market[], selections: R
     return result;
 }
 export default function PlayPage() {
-    const { ready, markets, picks, config, currentPlayerId, submitPicks, players, leaderboard } = useGame();
+    const { ready, markets, picks, config, currentPlayerId, submitPicks, players } = useGame();
     const { t, locale, playPageLabel, formatDeadline } = useLocale();
     const [step, setStep] = useState<PlayPage>(1);
     const [name, setName] = useState("");
@@ -67,10 +66,8 @@ export default function PlayPage() {
     const pageMarkets = useMemo(() => marketsForPage(markets, step), [markets, step]);
     const pageLocked = isPageLocked(config, step);
     const pageDeadline = formatDeadline(pageLocksAt(config, step));
-    const page3Promoted = isPlayerPromoted(leaderboard, activePlayerId, config);
     const registrationBlocked = config.registrationClosed && !activePlayer;
-    const pageInputBlocked = pageLocked || (step === 3 && !page3Promoted) || registrationBlocked;
-    const promotionCutoff = promotionCutoffCount(leaderboard.length);
+    const pageInputBlocked = pageLocked || registrationBlocked;
     void scheduleTick;
     useEffect(() => {
         const id = window.setInterval(() => setScheduleTick((tick) => tick + 1), 30000);
@@ -175,16 +172,6 @@ export default function PlayPage() {
             return;
         }
         if (pageInputBlocked) {
-            if (step === 3 && !page3Promoted) {
-                setMessage({
-                    type: "warning",
-                    text: t("play.page3NotPromoted", {
-                        cutoff: promotionCutoff,
-                        total: leaderboard.length
-                    })
-                });
-                return;
-            }
             setMessage({
                 type: "warning",
                 text: t("play.pageLockedSubmit", { page: playPageLabel(step) })
@@ -223,11 +210,6 @@ export default function PlayPage() {
                         ? t("play.registrationClosed")
                         : error.code === "INVITE_CODE_INVALID"
                         ? t("play.errInviteCode")
-                        : error.code === "PAGE3_NOT_PROMOTED"
-                            ? t("play.page3NotPromoted", {
-                                cutoff: promotionCutoff,
-                                total: leaderboard.length
-                            })
                             : error.code === "TOO_MANY_DOUBLES"
                                 ? step === 1
                                     ? t("play.errTooManyDoublesP1")
@@ -245,11 +227,6 @@ export default function PlayPage() {
                     ? t("play.registrationClosed")
                     : code === "INVITE_CODE_INVALID"
                     ? t("play.errInviteCode")
-                    : code === "PAGE3_NOT_PROMOTED"
-                        ? t("play.page3NotPromoted", {
-                            cutoff: promotionCutoff,
-                            total: leaderboard.length
-                        })
                         : code === "TOO_MANY_DOUBLES"
                             ? step === 1
                                 ? t("play.errTooManyDoublesP1")
@@ -284,11 +261,9 @@ export default function PlayPage() {
                     ? pickStats.page2Count
                     : pickStats.page3Count;
             const total = minPicksForPage(page);
-            const page3Denied = page === 3 && !isPlayerPromoted(leaderboard, activePlayerId, config);
-            return (<button key={page} type="button" className={`page-step ${step === page ? "active" : ""} ${isPageLocked(config, page) ? "locked" : ""} ${page3Denied ? "not-promoted" : ""}`} onClick={() => setStep(page)}>
+            return (<button key={page} type="button" className={`page-step ${step === page ? "active" : ""} ${isPageLocked(config, page) ? "locked" : ""}`} onClick={() => setStep(page)}>
               {playPageLabel(page)} · {t("play.pageAnswered", { count, total })}
               {isPageLocked(config, page) && " 🔒"}
-              {page3Denied && " ⛔"}
             </button>);
         })}
       </div>
@@ -307,13 +282,6 @@ export default function PlayPage() {
       {isEditing && !pageInputBlocked && (<div className="message success">{t("play.loadedEdit")}</div>)}
 
       {pageLocked && (<div className="message warning">{t("play.pageLocked", { page: playPageLabel(step) })}</div>)}
-
-      {step === 3 && !page3Promoted && (<div className="message warning">
-          {t("play.page3NotPromoted", {
-                cutoff: promotionCutoff,
-                total: leaderboard.length
-            })}
-        </div>)}
 
       {(step === 1 || config.registrationClosed) && (<>
           <div className="field">

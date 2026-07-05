@@ -3,7 +3,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { translateMarketCandidate } from "@/i18n";
-import { computePage1PickDistribution } from "@/lib/answers-analytics";
+import { computePage1PickDistribution, computePage2PickDistribution, type AnalyticsPage } from "@/lib/answers-analytics";
 import type { Market, Pick } from "@/types";
 
 /** 柱状图轨道按满员计分位设计（约 35 人规模，含少量 Double）。 */
@@ -37,15 +37,19 @@ function segmentClass(
 
 export function AnswersPickStackChart({
   markets,
-  picks
+  picks,
+  page = 1
 }: {
   markets: Market[];
   picks: Pick[];
+  page?: AnalyticsPage;
 }) {
   const { locale, t } = useLocale();
   const rows = useMemo(
-    () => computePage1PickDistribution(markets, picks),
-    [markets, picks]
+    () => (page === 2
+      ? computePage2PickDistribution(markets, picks)
+      : computePage1PickDistribution(markets, picks)),
+    [markets, picks, page]
   );
 
   const maxSlotsInData = useMemo(
@@ -73,7 +77,7 @@ export function AnswersPickStackChart({
     >
       <div className="answers-pick-stack-chart-header">
         <h3 className="answers-pick-stack-chart-title">
-          {t("answers.analyticsPickChartTitle")}
+          {t(page === 2 ? "answers.analyticsPickChartTitlePage2" : "answers.analyticsPickChartTitle")}
         </h3>
         <p className="answers-pick-stack-chart-note">
           {t("answers.analyticsPickChartNote")}

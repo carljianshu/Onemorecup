@@ -6,6 +6,7 @@ import { AnswersPickChartTab } from "@/components/AnswersPickChartTab";
 import { AnswersEarningsTimelineTab } from "@/components/AnswersEarningsTimelineTab";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
+import { formatPlayerDisplayName } from "@/lib/player-display";
 import { formatScore } from "@/lib/score-format";
 import { useGame } from "@/context/GameContext";
 import { DOUBLE_STAKE, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS } from "@/data/markets";
@@ -219,7 +220,7 @@ export default function AnswersPage() {
                   {sortedPlayers.map((player) => {
                     const score = leaderboard.find((e) => e.playerId === player.id)?.netEarnings ?? 0;
                     return (<tr key={player.id}>
-                        <td className="sticky-col player-name">{player.name}</td>
+                        <td className="sticky-col player-name">{formatPlayerDisplayName(player.name, player)}</td>
                         <td>
                           {player.pickStats.page1Count}/{MIN_PAGE1_PICKS}
                         </td>

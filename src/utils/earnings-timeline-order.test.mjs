@@ -8,7 +8,7 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const script = `
-import { computeEarningsTimeline, PAGE1_SETTLEMENT_ORDER, sortMarketsBySettlementOrder } from "./src/lib/earnings-timeline.ts";
+import { computeEarningsTimeline, PAGE1_SETTLEMENT_ORDER, PAGE2_SETTLEMENT_ORDER, sortMarketsBySettlementOrder } from "./src/lib/earnings-timeline.ts";
 import { ensureMarketShape, DEFAULT_MARKETS } from "./src/data/markets.ts";
 
 function assert(cond, msg) {
@@ -54,8 +54,32 @@ assert(i8 > i4, "m1-8 should settle after m1-4");
 assert(i10 > i8, "m1-10 should settle after m1-8");
 const i6 = order.indexOf("m1-6");
 assert(i6 > i10, "m1-6 should settle after m1-10");
+const i5 = order.indexOf("m1-5");
+assert(i5 > i6, "m1-5 should settle after m1-6");
 const i15 = order.indexOf("m1-15");
-assert(i15 > i6, "m1-15 should settle after m1-6");
+assert(i15 > i5, "m1-15 should settle after m1-5");
+
+const settledM2 = PAGE2_SETTLEMENT_ORDER.map((id) => ({
+  id,
+  page: 2,
+  winner: "A",
+  candidates: ["A", "B"]
+}));
+const m2Order = sortMarketsBySettlementOrder(settledM2).map((m) => m.id);
+assert(
+  m2Order.join(",") === PAGE2_SETTLEMENT_ORDER.join(","),
+  "settled M2 order should match PAGE2_SETTLEMENT_ORDER"
+);
+assert(m2Order.indexOf("m2-2") < m2Order.indexOf("m2-1"), "m2-2 should settle before m2-1");
+
+const crossPage = sortMarketsBySettlementOrder([
+  ...settledM2,
+  { id: "m1-15", page: 1, winner: "A", candidates: ["A", "B"] }
+]).map((m) => m.id);
+assert(
+  crossPage.join(",") === "m1-15,m2-2,m2-1",
+  "M1 should precede M2; after m1-15 comes m2-2 then m2-1"
+);
 
 const allSettled = ensureMarketShape(
   DEFAULT_MARKETS.map((market) =>
