@@ -2,7 +2,7 @@
 
 import { useMemo, type CSSProperties } from "react";
 import { useLocale } from "@/context/LocaleContext";
-import { translateMarketCandidate } from "@/i18n";
+import { formatMarketMatchup, translateMarketCandidate } from "@/i18n";
 import { computePage1PickDistribution, computePage2PickDistribution, type AnalyticsPage } from "@/lib/answers-analytics";
 import type { Market, Pick } from "@/types";
 
@@ -108,6 +108,7 @@ export function AnswersPickStackChart({
         {rows.map((row) => {
           const hotLabel = translateMarketCandidate(locale, row.hotTeam);
           const coldLabel = translateMarketCandidate(locale, row.coldTeam);
+          const matchupLabel = formatMarketMatchup(locale, row.teamA, row.teamB);
 
           return (
             <li key={row.marketId} className="answers-pick-stack-row">
@@ -116,7 +117,7 @@ export function AnswersPickStackChart({
                   {row.marketId.toUpperCase()}
                 </span>
                 <span className="answers-pick-stack-matchup">
-                  {hotLabel} vs {coldLabel}
+                  {matchupLabel}
                 </span>
               </div>
               <div className="answers-pick-stack-row-track">

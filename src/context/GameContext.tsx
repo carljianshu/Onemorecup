@@ -7,6 +7,8 @@ import { defaultPageLockSchedule } from "@/lib/page-lock";
 import { defaultAnswersPageSchedule } from "@/lib/public-features";
 import { isPageLocked } from "@/data/markets";
 import { getCurrentPlayerId, hydrateGameState, loadGameState, recalculateLeaderboardWithConfig, setCurrentPlayerId } from "@/lib/local-store";
+import { computePromotionFateByPlayerId } from "@/lib/promotion-fate";
+import { syncPromotionFateByPlayerId } from "@/lib/player-display";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
 import type { AnswersPageFeature } from "@/lib/public-features";
 interface GameContextValue {
@@ -38,6 +40,7 @@ interface GameContextValue {
     picks: Pick[];
     config: GameConfig;
     leaderboard: LeaderboardEntry[];
+    promotionFateByPlayerId: ReadonlyMap<string, "A" | "E">;
     currentPlayerId: string | null;
 }
 const GameContext = createContext<GameContextValue | null>(null);
@@ -330,6 +333,14 @@ export function GameProvider({ children }: {
         setConfig(result.config);
         setLeaderboard(result.leaderboard);
     }, [apiSync, players, markets, picks, config, applyResponse]);
+    const promotionFateByPlayerId = useMemo(
+        () => computePromotionFateByPlayerId(players, markets, picks),
+        [players, markets, picks]
+    );
+    useEffect(() => {
+        syncPromotionFateByPlayerId(promotionFateByPlayerId);
+        return () => syncPromotionFateByPlayerId(null);
+    }, [promotionFateByPlayerId]);
     const value = useMemo(() => ({
         ready,
         apiSync,
@@ -338,6 +349,7 @@ export function GameProvider({ children }: {
         picks,
         config,
         leaderboard,
+        promotionFateByPlayerId,
         currentPlayerId,
         submitPicks,
         setMarketWinner,
@@ -361,6 +373,7 @@ export function GameProvider({ children }: {
         picks,
         config,
         leaderboard,
+        promotionFateByPlayerId,
         currentPlayerId,
         submitPicks,
         setMarketWinner,

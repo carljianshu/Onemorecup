@@ -1,4 +1,5 @@
 import { isAdminAuthed } from "@/lib/admin-auth";
+import { computePromotionFateByPlayerId, type PromotionFateTag } from "@/lib/promotion-fate";
 import { buildLeaderboard } from "@/lib/scoring";
 import type { GameConfig, Market, Pick, Player } from "@/types";
 
@@ -11,7 +12,11 @@ export interface AdminBackupSnapshot {
   config: GameConfig;
 }
 
-export type AdminBackupPlayerExport = Player & { rank: number };
+export type AdminBackupPlayerExport = Player & {
+  rank: number;
+  /** 铁定晋级 "A"、铁定淘汰 "E"；摇摆区或未结算完时为 null */
+  promotionFate: PromotionFateTag | null;
+};
 
 export interface AdminBackupExport extends Omit<AdminBackupSnapshot, "players"> {
   players: AdminBackupPlayerExport[];
@@ -83,11 +88,17 @@ export function saveAdminBackup(input: {
 export function buildAdminBackupExport(snapshot: AdminBackupSnapshot): AdminBackupExport {
   const leaderboard = buildLeaderboard(snapshot.players, snapshot.markets, snapshot.picks);
   const rankById = new Map(leaderboard.map((entry) => [entry.playerId, entry.rank]));
+  const promotionFateByPlayerId = computePromotionFateByPlayerId(
+    snapshot.players,
+    snapshot.markets,
+    snapshot.picks
+  );
   return {
     ...snapshot,
     players: snapshot.players.map((player) => ({
       ...player,
-      rank: rankById.get(player.id) ?? snapshot.players.length
+      rank: rankById.get(player.id) ?? snapshot.players.length,
+      promotionFate: promotionFateByPlayerId.get(player.id) ?? null
     }))
   };
 }

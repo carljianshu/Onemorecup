@@ -706,30 +706,11 @@ function computeMarketPickBalanceStatsForPages(
     if (candidates.length < 2)
       continue;
 
-    let hotTeam: string | null = null;
-    let coldTeam: string | null = null;
-    let hotSlots = 0;
-    let coldSlots = Number.POSITIVE_INFINITY;
-
-    for (const team of candidates) {
-      const count = slotCounts.get(team) ?? 0;
-      if (count > hotSlots) {
-        hotSlots = count;
-        hotTeam = team;
-      }
-    }
-
-    for (const team of candidates) {
-      const count = slotCounts.get(team) ?? 0;
-      if (count < coldSlots) {
-        coldSlots = count;
-        coldTeam = team;
-      }
-    }
-
-    if (!hotTeam || !coldTeam)
+    const sides = hotColdSlotCounts(candidates, slotCounts);
+    if (!sides)
       continue;
 
+    const { hotTeam, coldTeam, hotSlots, coldSlots } = sides;
     const teamA = candidates[0]!;
     const teamB = candidates[1]!;
     const groupPicks = picks.filter((pick) => pick.marketId === market.id);
@@ -833,12 +814,56 @@ export function computeMaxColdWinStats(
 
 export interface Page1PickDistributionRow {
   marketId: string;
+  teamA: string;
+  teamB: string;
   hotTeam: string;
   coldTeam: string;
   hotSlots: number;
   coldSlots: number;
   totalSlots: number;
   winner: string | null;
+}
+
+function hotColdSlotCounts(
+  candidates: string[],
+  slotCounts: Map<string, number>
+): { hotTeam: string; coldTeam: string; hotSlots: number; coldSlots: number } | null {
+  if (candidates.length < 2)
+    return null;
+
+  let hotTeam: string | null = null;
+  let hotSlots = 0;
+
+  for (const team of candidates) {
+    const count = slotCounts.get(team) ?? 0;
+    if (count > hotSlots) {
+      hotSlots = count;
+      hotTeam = team;
+    }
+  }
+
+  if (!hotTeam)
+    return null;
+
+  let coldTeam: string;
+  let coldSlots: number;
+  if (candidates.length === 2) {
+    coldTeam = candidates.find((team) => team !== hotTeam) ?? candidates[0]!;
+    coldSlots = slotCounts.get(coldTeam) ?? 0;
+  }
+  else {
+    coldTeam = hotTeam;
+    coldSlots = Number.POSITIVE_INFINITY;
+    for (const team of candidates) {
+      const count = slotCounts.get(team) ?? 0;
+      if (count < coldSlots) {
+        coldSlots = count;
+        coldTeam = team;
+      }
+    }
+  }
+
+  return { hotTeam, coldTeam, hotSlots, coldSlots };
 }
 
 /** 各阶段场次：各选项计分位分布（Double 计 2）；左热门、右冷门。 */
@@ -855,36 +880,19 @@ function computePickDistributionForPage(
       continue;
 
     const slotCounts = teamSlotCountsForMarket(market, picks);
-    let hotTeam: string | null = null;
-    let coldTeam: string | null = null;
-    let hotSlots = 0;
-    let coldSlots = Number.POSITIVE_INFINITY;
-
-    for (const team of candidates) {
-      const count = slotCounts.get(team) ?? 0;
-      if (count > hotSlots) {
-        hotSlots = count;
-        hotTeam = team;
-      }
-    }
-
-    for (const team of candidates) {
-      const count = slotCounts.get(team) ?? 0;
-      if (count < coldSlots) {
-        coldSlots = count;
-        coldTeam = team;
-      }
-    }
-
-    if (!hotTeam || !coldTeam)
+    const sides = hotColdSlotCounts(candidates, slotCounts);
+    if (!sides)
       continue;
 
-    const totalSlots = hotSlots + coldSlots;
+    const { hotTeam, coldTeam, hotSlots, coldSlots } = sides;
+    const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
     if (totalSlots === 0)
       continue;
 
     rows.push({
       marketId: market.id,
+      teamA: candidates[0]!,
+      teamB: candidates[1]!,
       hotTeam,
       coldTeam,
       hotSlots,

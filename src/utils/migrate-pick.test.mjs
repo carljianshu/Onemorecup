@@ -113,7 +113,7 @@ const m3MoroccoCanadaDirect = [
 const migratedM3MoroccoCanadaDirect = migratePicksForMarkets(m3MoroccoCanadaDirect, markets);
 assert(migratedM3MoroccoCanadaDirect.every((p) => p.team === "摩洛哥"), "m3 摩洛哥/加拿大 should become 摩洛哥");
 assert(migratedM3.filter((p) => p.marketId === "m3-2").every((p) => p.team === "西班牙/葡萄牙"));
-assert(migratedM3.find((p) => p.marketId === "m3-3")?.team === "墨西哥/英格兰");
+assert(migratedM3.find((p) => p.marketId === "m3-3")?.team === "英格兰");
 assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士/哥伦比亚");
 assert(migratedM3.find((p) => p.marketId === "m3-5")?.team === "美国/比利时");
 
@@ -123,7 +123,7 @@ const m3BrazilLegacy = [
 ];
 const migratedM3Brazil = migratePicksForMarkets(m3BrazilLegacy, markets);
 assert(migratedM3Brazil.length === 2, "m3 brazil bracket legacy picks should migrate");
-assert(migratedM3Brazil.every((p) => p.team === "巴西/挪威"), "m3 brazil bracket should drop 日本与科特迪瓦");
+assert(migratedM3Brazil.every((p) => p.team === "挪威"), "m3 brazil bracket should become 挪威");
 
 const m25NorwayLegacy = [
   { playerId, marketId: "m2-5", team: "科特迪瓦/挪威", stake: 1 },
@@ -137,7 +137,7 @@ const m3BrazilBracketLegacy = [
   { playerId: "p-m3-br2", marketId: "m3-6", team: "巴西/科特迪瓦/挪威", stake: 1 },
 ];
 const migratedM3BrazilBracket = migratePicksForMarkets(m3BrazilBracketLegacy, markets);
-assert(migratedM3BrazilBracket.length === 1 && migratedM3BrazilBracket[0].team === "巴西/挪威");
+assert(migratedM3BrazilBracket.length === 1 && migratedM3BrazilBracket[0].team === "挪威");
 
 const m21FranceLegacy = [
   { playerId, marketId: "m2-1", team: "法国/瑞典", stake: 1 },
@@ -176,7 +176,21 @@ const m3MexicoEnglandLegacy = [
 ];
 const migratedM3MexicoEngland = migratePicksForMarkets(m3MexicoEnglandLegacy, markets);
 assert(migratedM3MexicoEngland.length === 2, "m3 墨西哥/厄瓜多尔/英格兰/民主刚果 legacy picks should migrate");
-assert(migratedM3MexicoEngland.every((p) => p.team === "墨西哥/英格兰"), "m3 should drop 厄瓜多尔与民主刚果 from bracket option");
+assert(migratedM3MexicoEngland.every((p) => p.team === "英格兰"), "m3 should drop 厄瓜多尔与民主刚果 from bracket option");
+
+const m3BrazilNorwayDirect = [
+  { playerId: "p-m3-bn", marketId: "m3-3", team: "巴西/挪威", stake: 1 },
+  { playerId: "p-m3-bn2", marketId: "m3-7", team: "巴西/挪威", stake: 1 },
+];
+const migratedM3BrazilNorwayDirect = migratePicksForMarkets(m3BrazilNorwayDirect, markets);
+assert(migratedM3BrazilNorwayDirect.every((p) => p.team === "挪威"), "m3 巴西/挪威 should become 挪威");
+
+const m3MexicoEnglandDirect = [
+  { playerId: "p-m3-me2", marketId: "m3-6", team: "墨西哥/英格兰", stake: 1 },
+  { playerId: "p-m3-me3", marketId: "m3-7", team: "墨西哥/英格兰", stake: 1 },
+];
+const migratedM3MexicoEnglandDirect = migratePicksForMarkets(m3MexicoEnglandDirect, markets);
+assert(migratedM3MexicoEnglandDirect.every((p) => p.team === "英格兰"), "m3 墨西哥/英格兰 should become 英格兰");
 
 const m26EnglandLegacy = [
   { playerId, marketId: "m2-6", team: "英格兰/民主刚果", stake: 1 },

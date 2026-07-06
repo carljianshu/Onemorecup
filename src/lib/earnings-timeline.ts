@@ -55,7 +55,9 @@ export const PAGE1_SETTLEMENT_ORDER = [
 /** 1/8 决赛实际结算顺序（与题号顺序无关；未列出的场次排在已知顺序之后）。 */
 export const PAGE2_SETTLEMENT_ORDER = [
   "m2-2",
-  "m2-1"
+  "m2-1",
+  "m2-5",
+  "m2-6"
 ] as const;
 
 function page1SettlementIndex(marketId: string): number {
