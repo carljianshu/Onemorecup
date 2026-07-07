@@ -5,7 +5,7 @@ import { getAdminToken } from "@/lib/admin-auth";
 import { maybeSaveAdminBackup } from "@/lib/admin-backup";
 import { defaultPageLockSchedule } from "@/lib/page-lock";
 import { defaultAnswersPageSchedule } from "@/lib/public-features";
-import { isPageLocked } from "@/data/markets";
+import { isPageLocked, syncMarkets } from "@/data/markets";
 import { getCurrentPlayerId, hydrateGameState, loadGameState, recalculateLeaderboardWithConfig, setCurrentPlayerId } from "@/lib/local-store";
 import { computePromotionFateByPlayerId } from "@/lib/promotion-fate";
 import { syncPromotionFateByPlayerId } from "@/lib/player-display";
@@ -53,7 +53,7 @@ function applyLeaderboardData(data: LeaderboardResponse, setters: {
 }) {
     const hydrated = hydrateGameState({
         players: data.players,
-        markets: data.markets,
+        markets: syncMarkets(data.markets),
         picks: data.picks,
         config: data.config
     }, { persist: true });

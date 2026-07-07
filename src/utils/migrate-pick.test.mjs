@@ -10,7 +10,7 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const script = `
-import { DEFAULT_MARKETS, migratePickInputsForMarkets, migratePicksForMarkets } from "./src/data/markets.ts";
+import { DEFAULT_MARKETS, marketsCatalogDrift, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "./src/data/markets.ts";
 
 const markets = DEFAULT_MARKETS;
 const playerId = "p-test";
@@ -332,6 +332,22 @@ const m3ArgentinaBracketLegacy = [
 const migratedM3ArgentinaBracket = migratePicksForMarkets(m3ArgentinaBracketLegacy, markets);
 assert(migratedM3ArgentinaBracket.length === 2, "m3 阿根廷/佛得角/埃及 legacy picks should migrate");
 assert(migratedM3ArgentinaBracket.every((p) => p.team === "阿根廷/埃及"), "m3 should drop 佛得角 from bracket option");
+
+const staleStored = DEFAULT_MARKETS.map((market) => {
+  if (market.id === "m3-2") return { ...market, candidates: ["西班牙/葡萄牙", "美国/比利时"] };
+  if (market.id === "m3-5") return { ...market, candidates: ["法国", "摩洛哥", "西班牙/葡萄牙", "美国/比利时"] };
+  if (market.id === "m3-7") {
+    return {
+      ...market,
+      candidates: ["法国", "摩洛哥", "西班牙/葡萄牙", "美国/比利时", "挪威", "英格兰", "阿根廷/埃及", "瑞士/哥伦比亚"]
+    };
+  }
+  return market;
+});
+assert(marketsCatalogDrift(staleStored), "stale stored candidates should be detected");
+const resynced = syncMarkets(staleStored);
+assert(JSON.stringify(resynced.find((m) => m.id === "m3-2")?.candidates) === JSON.stringify(["西班牙", "比利时"]));
+assert(!marketsCatalogDrift(resynced), "resynced markets should match catalog");
 
 console.log("migrate-pick smoke tests passed");
 `;

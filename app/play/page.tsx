@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { PublicFeatureNavLinks } from "@/components/PublicFeatureLinks";
 import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
-import { DOUBLE_STAKE, DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID, MARKET_INLINE_HINT_KEYS, PLAY_SECTION_LABEL_KEYS, PLAY_SECTION_NOTE_KEYS, playMarketSectionIcon, playSectionTheme, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_PAGE3_SEQUOIA_PICKS, MIN_TOTAL_PICKS, isPageLocked, isMarketLocked, isMarketPickFrozen, marketLocksAt, applyLockedMarketPickPreservation, marketsForPage, migratePickInputsForMarkets, minPicksForPage, pageLocksAt, PLAY_PAGES } from "@/data/markets";
+import { DOUBLE_STAKE, DISTRIBUTION_ADJUSTMENT_NOTE_MARKET_ID, MARKET_INLINE_HINT_KEYS, PLAY_SECTION_LABEL_KEYS, PLAY_SECTION_NOTE_KEYS, playMarketSectionIcon, playSectionTheme, MIN_PAGE1_PICKS, MIN_PAGE2_PICKS, MIN_PAGE3_PICKS, MIN_PAGE3_SEQUOIA_PICKS, MIN_TOTAL_PICKS, isPageLocked, isMarketLocked, isMarketPickFrozen, marketLocksAt, applyLockedMarketPickPreservation, marketsForPage, migratePickInputsForMarkets, migratePickTeam, minPicksForPage, pageLocksAt, PLAY_PAGES, syncMarkets } from "@/data/markets";
 import { translateMarketName, formatPlayMarketCandidate } from "@/i18n";
 import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, findPlayerPick, initSelectionMap, isPickTeamValidForMarket, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
@@ -45,6 +45,7 @@ function buildPickInputsForPage(page: PlayPage, markets: Market[], selections: R
 }
 export default function PlayPage() {
     const { ready, markets, picks, config, currentPlayerId, submitPicks, players } = useGame();
+    const catalogMarkets = useMemo(() => syncMarkets(markets.length > 0 ? markets : null), [markets]);
     const { t, locale, playPageLabel, formatDeadline } = useLocale();
     const [step, setStep] = useState<PlayPage>(1);
     const [name, setName] = useState("");
@@ -64,7 +65,7 @@ export default function PlayPage() {
     const activePlayer = findKnownPlayer(players, editingPlayerId ?? currentPlayerId, name);
     const activePlayerId = activePlayer?.id ?? null;
     const isEditing = Boolean(activePlayer);
-    const pageMarkets = useMemo(() => marketsForPage(markets, step), [markets, step]);
+    const pageMarkets = useMemo(() => marketsForPage(catalogMarkets, step), [catalogMarkets, step]);
     const pageLocked = isPageLocked(config, step);
     const pageDeadline = formatDeadline(pageLocksAt(config, step));
     const registrationBlocked = config.registrationClosed && !activePlayer;
@@ -79,7 +80,7 @@ export default function PlayPage() {
         return () => clearInterval(id);
     }, []);
     useEffect(() => {
-        if (!ready || markets.length === 0)
+        if (!ready || catalogMarkets.length === 0)
             return;
         if (prevPlayerIdRef.current !== currentPlayerId) {
             selectionsDirtyRef.current = false;
@@ -87,7 +88,7 @@ export default function PlayPage() {
         }
         if (selectionsDirtyRef.current)
             return;
-        const initial = initSelectionMap(markets);
+        const initial = initSelectionMap(catalogMarkets);
         const initialDoubles: Record<string, boolean> = {};
         if (currentPlayerId) {
             const player = players.find((p) => p.id === currentPlayerId);
@@ -96,7 +97,10 @@ export default function PlayPage() {
                 setEditingPlayerId(currentPlayerId);
                 for (const pick of picks.filter((pick) => pick.playerId === currentPlayerId)) {
                     if (pick.marketId in initial) {
-                        initial[pick.marketId] = pick.team;
+                        const market = catalogMarkets.find((item) => item.id === pick.marketId);
+                        initial[pick.marketId] = market
+                            ? migratePickTeam(pick.marketId, pick.team, market.candidates ?? [])
+                            : pick.team;
                         if (pick.stake === DOUBLE_STAKE)
                             initialDoubles[pick.marketId] = true;
                     }
@@ -108,16 +112,16 @@ export default function PlayPage() {
         }
         setSelections(initial);
         setDoubles(initialDoubles);
-    }, [ready, markets, currentPlayerId, players, picks]);
-    const pickStats = useMemo(() => countSelections(selections, markets), [selections, markets]);
-    const page3SequoiaCount = useMemo(() => page3SequoiaCompletedCount(markets, selections), [markets, selections]);
+    }, [ready, catalogMarkets, currentPlayerId, players, picks]);
+    const pickStats = useMemo(() => countSelections(selections, catalogMarkets), [selections, catalogMarkets]);
+    const page3SequoiaCount = useMemo(() => page3SequoiaCompletedCount(catalogMarkets, selections), [catalogMarkets, selections]);
     const pageDoubleId = useMemo(() => {
-        for (const id of doubleIdsForPage(markets, step)) {
+        for (const id of doubleIdsForPage(catalogMarkets, step)) {
             if (doubles[id])
                 return id;
         }
         return null;
-    }, [doubles, markets, step]);
+    }, [doubles, catalogMarkets, step]);
     useEffect(() => {
         if (message?.type === "error" || message?.type === "warning") {
             bottomMessageRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -138,7 +142,7 @@ export default function PlayPage() {
                 return { ...prev, [doubleId]: false };
             }
             const next = { ...prev };
-            for (const id of doubleIdsForPage(markets, step)) {
+            for (const id of doubleIdsForPage(catalogMarkets, step)) {
                 next[id] = false;
             }
             next[doubleId] = true;
@@ -183,9 +187,9 @@ export default function PlayPage() {
             });
             return;
         }
-        const pageInputs = applyLockedMarketPickPreservation(step, buildPickInputsForPage(step, markets, selections, doubles, config, activePlayerId, picks), markets, activePlayerId, picks);
-        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(step, pageInputs, markets, activePlayerId, picks), markets);
-        const validationError = validatePageSave(step, pickInputs, markets, pageInputs, {
+        const pageInputs = applyLockedMarketPickPreservation(step, buildPickInputsForPage(step, catalogMarkets, selections, doubles, config, activePlayerId, picks), catalogMarkets, activePlayerId, picks);
+        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(step, pageInputs, catalogMarkets, activePlayerId, picks), catalogMarkets);
+        const validationError = validatePageSave(step, pickInputs, catalogMarkets, pageInputs, {
             playerId: activePlayerId,
             config
         });

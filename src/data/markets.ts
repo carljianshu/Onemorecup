@@ -1521,3 +1521,16 @@ export function syncMarkets(stored: Market[] | null): Market[] {
     }
     return ensureMarketShape(stored);
 }
+
+/** 缓存/服务端里存的 candidates 是否与当前代码目录不一致（winner 不变时也要重同步）。 */
+export function marketsCatalogDrift(stored: Market[] | null, synced: Market[] = syncMarkets(stored)): boolean {
+    if (!stored || stored.length !== synced.length)
+        return true;
+    const storedById = new Map(stored.map((market) => [market.id, market]));
+    return synced.some((market) => {
+        const previous = storedById.get(market.id);
+        if (!previous)
+            return true;
+        return JSON.stringify(previous.candidates ?? []) !== JSON.stringify(market.candidates ?? []);
+    });
+}

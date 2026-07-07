@@ -1,6 +1,6 @@
 import { setPhase12EarningsDeductions as setPhase12EarningsDeductionsInStore, setPage3EarningsDeductions as setPage3EarningsDeductionsInStore, setRankLockApplied as setRankLockAppliedInStore, hydrateGameState, migrateStoredAnswers, savePlayerPicks, setPageLocked, setPlayerHu, setPlayerInGroup, snapshotFromState, updateMarketWinner, updatePublicFeature, type GameSnapshot } from "@/lib/local-store";
 import { mergePickInputsForPageSave } from "@/lib/market-helpers";
-import { migratePickInputsForMarkets } from "@/data/markets";
+import { migratePickInputsForMarkets, marketsCatalogDrift } from "@/data/markets";
 import { assertRegistrationAllowed } from "@/lib/invite-code";
 import { removePlayerFromRankLockSnapshot } from "@/lib/rank-lock";
 import { removePlayerFromPromotionSnapshot } from "@/lib/promotion";
@@ -63,7 +63,10 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
         }), stored.version);
     }
     const hydrated = hydrateGameState(stored.payload, { persist: false });
-    if (hydrated.configChanged) {
+    const catalogDrift = migratedAnswers.changed
+        ? false
+        : marketsCatalogDrift(stored.payload.markets, hydrated.markets);
+    if (hydrated.configChanged || catalogDrift) {
         stored = await mutateStoredGame(() => ({
             players: hydrated.players,
             markets: hydrated.markets,

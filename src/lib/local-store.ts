@@ -1,4 +1,4 @@
-import { DOUBLE_STAKE, STAKE_PER_PICK, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
+import { DOUBLE_STAKE, STAKE_PER_PICK, marketsCatalogDrift, migratePickInputsForMarkets, migratePicksForMarkets, syncMarkets } from "@/data/markets";
 import { applyManualPageLock, defaultPageLockSchedule, isPageLocked, migratePageLockSchedule } from "@/lib/page-lock";
 import { defaultAnswersPageSchedule, migrateAnswersPageSchedule, migrateAnswersScheduleOpenApplied, patchAnswersPageSchedule } from "@/lib/public-features";
 import { assertRegistrationAllowed, findKnownPlayer } from "@/lib/invite-code";
@@ -161,11 +161,12 @@ export function migrateStoredAnswers(snapshot: GameSnapshot): {
     const normalizedPicks = normalizePicks(snapshot.picks);
     const picks = migratePicksForMarkets(normalizedPicks, markets);
     const picksChanged = pickSnapshotKey(normalizedPicks) !== pickSnapshotKey(picks);
-    const marketsChanged = markets.some((market) => {
+    const winnersChanged = markets.some((market) => {
         const previous = snapshot.markets?.find((item) => item.id === market.id);
         return (previous?.winner ?? null) !== (market.winner ?? null);
     });
-    return { markets, picks, changed: picksChanged || marketsChanged };
+    const catalogDrift = marketsCatalogDrift(snapshot.markets, markets);
+    return { markets, picks, changed: picksChanged || winnersChanged || catalogDrift };
 }
 export function loadGameState() {
     const rawPlayers = read<Player[]>(KEYS.players, []);
