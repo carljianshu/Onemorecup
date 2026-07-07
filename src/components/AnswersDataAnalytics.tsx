@@ -257,7 +257,7 @@ function MaxColdWinBlock({
   sectionNumber: number;
   label: string;
   rows: MaxColdWinRow[];
-  markets: { id: string; name: string; candidates?: string[] }[];
+  markets: Market[];
   players: Player[];
   picks: Pick[];
   config?: GameConfig | null;

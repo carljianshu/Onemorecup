@@ -1,6 +1,6 @@
 import { isPage3Market } from "@/data/markets";
 import { promotionCutoffCount } from "@/lib/promotion";
-import type { GameConfig, LeaderboardEntry, Market, Pick, PlayPage } from "@/types";
+import type { GameConfig, LeaderboardEntry, Market, Pick as PlayerPick, PlayPage } from "@/types";
 
 export type ParimutuelMarketRef = Pick<Market, "id" | "page">;
 
@@ -40,9 +40,9 @@ export function parimutuelPoolUsesTopTierOnly(
 }
 
 export function filterPicksForParimutuelPool(
-  groupPicks: Pick[],
+  groupPicks: PlayerPick[],
   options?: ParimutuelPoolOptions
-): Pick[] {
+): PlayerPick[] {
   if (!parimutuelPoolUsesTopTierOnly(options?.config, options?.market, options?.viewerPlayerId))
     return groupPicks;
   const topIds = new Set(options!.config!.rankLockTopPlayerIds ?? []);
