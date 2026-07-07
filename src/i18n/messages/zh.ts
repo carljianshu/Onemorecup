@@ -103,6 +103,7 @@ export const zh = {
         page2DoubleRule: "1/8决赛可以选择一场double。",
         page3DoubleRule: "1/4决赛及以后可以选择一场double。",
         page3NotPromoted: "你未进入晋级区，无法作答1/4决赛及以后的题目。请在排行榜中保持前 {cutoff}/{total} 名。",
+        page3RankLockBottomTier: "很遗憾，两阶段后您未排名前2/3，已被淘汰。但您仍然可以参与1/4及之后轮次的竞猜，只是排名将会锁定在后1/3。",
         yourName: "你的名字",
         namePlaceholder: "输入昵称",
         inviteCode: "邀请码",

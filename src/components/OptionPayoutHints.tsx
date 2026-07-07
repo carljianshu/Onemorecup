@@ -4,7 +4,8 @@ import { useMemo } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { formatScorePlain, roundScore } from "@/lib/score-format";
 import { computeOptionPayoutHints } from "@/lib/scoring";
-import type { Pick } from "@/types";
+import type { ParimutuelMarketRef } from "@/lib/rank-lock";
+import type { GameConfig, Market, Pick as PlayerPick } from "@/types";
 
 export function OptionPayoutHints({
   option,
@@ -12,20 +13,31 @@ export function OptionPayoutHints({
   questionPicks,
   marketId,
   className,
-  slotMultiplier = 1
+  slotMultiplier = 1,
+  config,
+  market,
+  viewerPlayerId
 }: {
   option: string;
   candidates: string[];
-  questionPicks: Pick[];
+  questionPicks: PlayerPick[];
   marketId?: string;
   className?: string;
   /** Double 为 2 个计分位，展示该玩家本题总得失。 */
   slotMultiplier?: number;
+  config?: GameConfig | null;
+  market?: ParimutuelMarketRef | null;
+  viewerPlayerId?: string | null;
 }) {
   const { t } = useLocale();
   const hints = useMemo(
-    () => computeOptionPayoutHints(option, candidates, questionPicks, marketId),
-    [option, candidates, questionPicks, marketId]
+    () =>
+      computeOptionPayoutHints(option, candidates, questionPicks, marketId, {
+        config,
+        market,
+        viewerPlayerId
+      }),
+    [option, candidates, questionPicks, marketId, config, market, viewerPlayerId]
   );
 
   if (hints.isVoid) return null;

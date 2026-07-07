@@ -3,8 +3,8 @@
 import { useMemo, type CSSProperties } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { formatMarketMatchup, translateMarketCandidate } from "@/i18n";
-import { computePage1PickDistribution, computePage2PickDistribution, type AnalyticsPage } from "@/lib/answers-analytics";
-import type { Market, Pick } from "@/types";
+import { computePage1PickDistribution, computePage2PickDistribution, computePage3PickDistribution, type AnalyticsPage } from "@/lib/answers-analytics";
+import type { GameConfig, Market, Pick } from "@/types";
 
 /** 柱状图轨道按满员计分位设计（约 35 人规模，含少量 Double）。 */
 export const PAGE1_PICK_CHART_MAX_SLOTS = 35;
@@ -38,18 +38,22 @@ function segmentClass(
 export function AnswersPickStackChart({
   markets,
   picks,
-  page = 1
+  page = 1,
+  config
 }: {
   markets: Market[];
   picks: Pick[];
   page?: AnalyticsPage;
+  config?: GameConfig | null;
 }) {
   const { locale, t } = useLocale();
   const rows = useMemo(
-    () => (page === 2
-      ? computePage2PickDistribution(markets, picks)
-      : computePage1PickDistribution(markets, picks)),
-    [markets, picks, page]
+    () => (page === 3
+      ? computePage3PickDistribution(markets, picks, config)
+      : page === 2
+        ? computePage2PickDistribution(markets, picks)
+        : computePage1PickDistribution(markets, picks)),
+    [markets, picks, page, config]
   );
 
   const maxSlotsInData = useMemo(
@@ -77,7 +81,11 @@ export function AnswersPickStackChart({
     >
       <div className="answers-pick-stack-chart-header">
         <h3 className="answers-pick-stack-chart-title">
-          {t(page === 2 ? "answers.analyticsPickChartTitlePage2" : "answers.analyticsPickChartTitle")}
+          {t(page === 2
+            ? "answers.analyticsPickChartTitlePage2"
+            : page === 3
+              ? "answers.analyticsPickChartTitlePage2"
+              : "answers.analyticsPickChartTitle")}
         </h3>
         <p className="answers-pick-stack-chart-note">
           {t("answers.analyticsPickChartNote")}

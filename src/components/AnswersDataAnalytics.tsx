@@ -24,7 +24,7 @@ import {
   type Page1SidePickRow,
   type Page1SidePickStats
 } from "@/lib/answers-analytics";
-import type { Market, Pick, Player } from "@/types";
+import type { GameConfig, Market, Pick, Player } from "@/types";
 
 type AnalyticsEmptyKey =
   | "answers.analyticsPopularEmpty"
@@ -158,6 +158,8 @@ function PickBalanceCards({
   rows,
   players,
   picks,
+  markets,
+  config,
   cardClass,
   showColdPickers = false,
   showStake = false
@@ -167,15 +169,25 @@ function PickBalanceCards({
   rows: Page1MarketPickBalanceRow[];
   players: Player[];
   picks: Pick[];
+  markets: Market[];
+  config?: GameConfig | null;
   cardClass: "answers-analytics-gap-card-max" | "answers-analytics-gap-card-min";
   showColdPickers?: boolean;
   showStake?: boolean;
 }) {
   const { locale, t } = useLocale();
   const nameSeparator = locale === "zh" ? "、" : ", ";
+  const marketById = useMemo(() => new Map(markets.map((market) => [market.id, market])), [markets]);
 
   const formatPickerNames = (marketId: string, coldTeam: string) => {
-    const pickers = coldSidePickersForMarket(marketId, coldTeam, players, picks);
+    const pickers = coldSidePickersForMarket(
+      marketId,
+      coldTeam,
+      players,
+      picks,
+      marketById.get(marketId),
+      config
+    );
     if (pickers.length === 0)
       return null;
     return pickers
@@ -239,7 +251,8 @@ function MaxColdWinBlock({
   rows,
   markets,
   players,
-  picks
+  picks,
+  config
 }: {
   sectionNumber: number;
   label: string;
@@ -247,6 +260,7 @@ function MaxColdWinBlock({
   markets: { id: string; name: string; candidates?: string[] }[];
   players: Player[];
   picks: Pick[];
+  config?: GameConfig | null;
 }) {
   const { locale, t } = useLocale();
   const nameSeparator = locale === "zh" ? "、" : ", ";
@@ -271,7 +285,14 @@ function MaxColdWinBlock({
           const winner = translateMarketCandidate(locale, row.winnerTeam);
           const hotTeam = translateMarketCandidate(locale, row.hotTeam);
           const coldTeam = translateMarketCandidate(locale, row.coldTeam);
-          const winnerPickers = coldSidePickersForMarket(row.marketId, row.winnerTeam, players, picks)
+          const winnerPickers = coldSidePickersForMarket(
+            row.marketId,
+            row.winnerTeam,
+            players,
+            picks,
+            market ?? undefined,
+            config
+          )
             .map((picker) =>
               `${picker.playerName}${picker.isDouble ? t("answers.analyticsMaxWinDoubleNote") : ""}`
             )
@@ -384,11 +405,13 @@ function MaxWinBlock({
 function AnalyticsSection({
   players,
   markets,
-  picks
+  picks,
+  config
 }: {
   players: Player[];
   markets: Market[];
   picks: Pick[];
+  config?: GameConfig | null;
 }) {
   const { t } = useLocale();
 
@@ -405,16 +428,16 @@ function AnalyticsSection({
     [markets, picks]
   );
   const maxWinStats = useMemo(
-    () => computeMaxSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES),
-    [players, markets, picks]
+    () => computeMaxSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES, config),
+    [players, markets, picks, config]
   );
   const maxColdWinStats = useMemo(
-    () => computeMaxColdWinStats(markets, picks, PHASE12_ANALYTICS_PAGES),
-    [markets, picks]
+    () => computeMaxColdWinStats(markets, picks, PHASE12_ANALYTICS_PAGES, config),
+    [markets, picks, config]
   );
   const pickBalanceStats = useMemo(
-    () => computePhase12MarketPickBalanceStats(markets, picks),
-    [markets, picks]
+    () => computePhase12MarketPickBalanceStats(markets, picks, config),
+    [markets, picks, config]
   );
   const correctPickStats = useMemo(
     () => computePhase12CorrectPickStats(players, markets, picks),
@@ -425,8 +448,8 @@ function AnalyticsSection({
     [players, markets, picks]
   );
   const maxDoubleWinStats = useMemo(
-    () => computeMaxDoubleSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES),
-    [players, markets, picks]
+    () => computeMaxDoubleSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES, config),
+    [players, markets, picks, config]
   );
 
   const formatRate = (value: number) => `${value.toFixed(1)}%`;
@@ -532,6 +555,8 @@ function AnalyticsSection({
             rows={pickBalanceStats.mostLopsidedRows}
             players={players}
             picks={picks}
+            markets={markets}
+            config={config}
             cardClass="answers-analytics-gap-card-max"
             showColdPickers
           />
@@ -541,6 +566,8 @@ function AnalyticsSection({
             rows={pickBalanceStats.mostBalancedRows}
             players={players}
             picks={picks}
+            markets={markets}
+            config={config}
             cardClass="answers-analytics-gap-card-min"
             showStake
           />
@@ -595,6 +622,7 @@ function AnalyticsSection({
           markets={markets}
           players={players}
           picks={picks}
+          config={config}
         />
       )}
     </section>
@@ -602,7 +630,7 @@ function AnalyticsSection({
 }
 
 export function AnswersDataAnalytics() {
-  const { players, markets, picks } = useGame();
+  const { players, markets, picks, config } = useGame();
   const { t } = useLocale();
 
   if (players.length === 0) {
@@ -615,7 +643,7 @@ export function AnswersDataAnalytics() {
 
   return (
     <div className="answers-analytics-stack">
-      <AnalyticsSection players={players} markets={markets} picks={picks} />
+      <AnalyticsSection players={players} markets={markets} picks={picks} config={config} />
     </div>
   );
 }

@@ -57,7 +57,9 @@ export const PAGE2_SETTLEMENT_ORDER = [
   "m2-2",
   "m2-1",
   "m2-5",
-  "m2-6"
+  "m2-6",
+  "m2-3",
+  "m2-4"
 ] as const;
 
 function page1SettlementIndex(marketId: string): number {

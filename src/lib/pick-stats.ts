@@ -17,7 +17,7 @@ import {
   page3SequoiaCompletedCount,
   playerAnswersFromPicks
 } from "@/lib/market-helpers";
-import type { Market, Pick, PickStats, PlayerPickInput, PlayPage } from "@/types";
+import type { GameConfig, Market, Pick, PickStats, PlayerPickInput, PlayPage } from "@/types";
 
 export function computePickStats(playerPicks: Pick[], markets: Market[]): PickStats {
   const answers = playerAnswersFromPicks(playerPicks);
@@ -53,7 +53,8 @@ export function validatePageSave(
   page: PlayPage,
   mergedPickInputs: PlayerPickInput[],
   markets: Market[],
-  pagePickInputs: PlayerPickInput[]
+  pagePickInputs: PlayerPickInput[],
+  _options?: { playerId?: string | null; config?: GameConfig | null }
 ): PageSaveError | null {
   if (page === 1) {
     const answers: Record<string, string | null> = {};

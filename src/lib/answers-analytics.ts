@@ -3,7 +3,7 @@ import { PAGE1_REAL_WORLD_RATES, type Page1RealWorldRate } from "@/data/page1-re
 import { PAGE2_REAL_WORLD_RATES, type Page2RealWorldRate } from "@/data/page2-real-world-rates";
 import { playerDisplayName } from "@/lib/player-display";
 
-export type AnalyticsPage = 1 | 2;
+export type AnalyticsPage = 1 | 2 | 3;
 
 /** 数据分析 tab：M1 + M2 合并统计。 */
 export const PHASE12_ANALYTICS_PAGES: readonly AnalyticsPage[] = [1, 2];
@@ -13,8 +13,9 @@ export const PHASE12_REAL_WORLD_RATES = [
   ...PAGE2_REAL_WORLD_RATES
 ] as const;
 import { roundScore } from "@/lib/score-format";
+import { filterPicksForParimutuelPool } from "@/lib/rank-lock";
 import { computeParimutuelBreakdown, computeProjectedStakeBreakdown } from "@/lib/scoring";
-import type { Market, Pick, Player } from "@/types";
+import type { GameConfig, Market, Pick, Player } from "@/types";
 
 function pickSlotWeight(stake: number): number {
   return stake === DOUBLE_STAKE ? 2 : 1;
@@ -22,13 +23,18 @@ function pickSlotWeight(stake: number): number {
 
 export function teamSlotCountsForMarket(
   market: Market,
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig | null
 ): Map<string, number> {
   const counts = new Map<string, number>();
   for (const team of market.candidates ?? []) {
     counts.set(team, 0);
   }
-  for (const pick of picks.filter((item) => item.marketId === market.id)) {
+  const marketPicks = filterPicksForParimutuelPool(
+    picks.filter((item) => item.marketId === market.id),
+    { config, market, viewerPlayerId: null }
+  );
+  for (const pick of marketPicks) {
     if (!counts.has(pick.team))
       continue;
     counts.set(pick.team, (counts.get(pick.team) ?? 0) + pickSlotWeight(pick.stake));
@@ -36,12 +42,24 @@ export function teamSlotCountsForMarket(
   return counts;
 }
 
+function marketPicksForStats(
+  market: Market,
+  picks: Pick[],
+  config?: GameConfig | null
+): Pick[] {
+  return filterPicksForParimutuelPool(
+    picks.filter((item) => item.marketId === market.id),
+    { config, market, viewerPlayerId: null }
+  );
+}
+
 /** 各队支持率（百分数）；无作答返回 null。 */
 export function teamSupportRatesForMarket(
   market: Market,
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig | null
 ): Map<string, number> | null {
-  const slotCounts = teamSlotCountsForMarket(market, picks);
+  const slotCounts = teamSlotCountsForMarket(market, picks, config);
   const total = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
   if (total === 0)
     return null;
@@ -104,7 +122,8 @@ function computeRealWorldComparisonForPages(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[],
-  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate)[]
+  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate)[],
+  config?: GameConfig | null
 ): Page1RealWorldComparisonStats {
   const rows: Page1RealWorldComparisonRow[] = [];
 
@@ -118,9 +137,9 @@ function computeRealWorldComparisonForPages(
     if (!market)
       continue;
 
-    const slotCounts = teamSlotCountsForMarket(market, picks);
+    const slotCounts = teamSlotCountsForMarket(market, picks, config);
     const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
-    const playerRates = teamSupportRatesForMarket(market, picks);
+    const playerRates = teamSupportRatesForMarket(market, picks, config);
     if (!playerRates || totalSlots === 0)
       continue;
 
@@ -185,9 +204,10 @@ export function computePhase12RealWorldComparison(
 /** 某题按计分位统计后，人数较多的一方；平局则无数。 */
 export function majorityTeamForMarket(
   market: Market,
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig | null
 ): string | null {
-  const marketPicks = picks.filter((pick) => pick.marketId === market.id);
+  const marketPicks = marketPicksForStats(market, picks, config);
   if (marketPicks.length === 0)
     return null;
 
@@ -228,9 +248,10 @@ export function majorityTeamForMarket(
 /** 某题按计分位统计后，人数较少的一方；平局则无数。 */
 export function minorityTeamForMarket(
   market: Market,
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig | null
 ): string | null {
-  const majorityTeam = majorityTeamForMarket(market, picks);
+  const majorityTeam = majorityTeamForMarket(market, picks, config);
   if (!majorityTeam)
     return null;
 
@@ -239,7 +260,7 @@ export function minorityTeamForMarket(
     return candidates.find((team) => team !== majorityTeam) ?? null;
   }
 
-  const marketPicks = picks.filter((pick) => pick.marketId === market.id);
+  const marketPicks = marketPicksForStats(market, picks, config);
   const slotCounts = new Map<string, number>();
   for (const pick of marketPicks) {
     const weight = pickSlotWeight(pick.stake);
@@ -279,7 +300,8 @@ function buildSidePickStatsForPages(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[],
-  sideTeamForMarket: (market: Market, picks: Pick[]) => string | null
+  sideTeamForMarket: (market: Market, picks: Pick[], config?: GameConfig | null) => string | null,
+  config?: GameConfig | null
 ): Page1SidePickStats {
   const pageMarkets = markets.filter((market) =>
     pages.includes(market.page as AnalyticsPage)
@@ -291,11 +313,11 @@ function buildSidePickStatsForPages(
   }
 
   for (const market of pageMarkets) {
-    const sideTeam = sideTeamForMarket(market, picks);
+    const sideTeam = sideTeamForMarket(market, picks, config);
     if (!sideTeam)
       continue;
 
-    for (const pick of picks.filter((item) => item.marketId === market.id)) {
+    for (const pick of marketPicksForStats(market, picks, config)) {
       if (pick.team !== sideTeam)
         continue;
       matchCountByPlayer.set(
@@ -396,7 +418,8 @@ function buildSettledResultStatsForPages(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[],
-  mode: "correct" | "incorrect"
+  mode: "correct" | "incorrect",
+  config?: GameConfig | null
 ): Page1SidePickStats {
   const marketById = new Map(
     markets
@@ -415,6 +438,15 @@ function buildSettledResultStatsForPages(
   for (const pick of picks) {
     const market = marketById.get(pick.marketId);
     if (!market?.winner)
+      continue;
+
+    if (!marketPicksForStats(market, picks, config).some(
+      (item) =>
+        item.playerId === pick.playerId &&
+        item.marketId === pick.marketId &&
+        item.team === pick.team &&
+        item.stake === pick.stake
+    ))
       continue;
 
     const isCorrect = pick.team === market.winner;
@@ -513,7 +545,8 @@ export function computeMaxDoubleSingleMatchWinStats(
   players: Player[],
   markets: Market[],
   picks: Pick[],
-  pages: readonly AnalyticsPage[] = [1]
+  pages: readonly AnalyticsPage[] = [1],
+  config?: GameConfig | null
 ): MaxSingleMatchWinStats {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const marketById = new Map(markets.map((market) => [market.id, market]));
@@ -533,7 +566,11 @@ export function computeMaxDoubleSingleMatchWinStats(
       continue;
 
     const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
-    const breakdown = computeParimutuelBreakdown(market.winner, questionPicks, pick.marketId);
+    const breakdown = computeParimutuelBreakdown(market.winner, questionPicks, pick.marketId, {
+      config,
+      market,
+      viewerPlayerId: pick.playerId
+    });
     if (!breakdown || breakdown.isVoid)
       continue;
 
@@ -581,7 +618,8 @@ export function computeMaxSingleMatchWinStats(
   players: Player[],
   markets: Market[],
   picks: Pick[],
-  pages: readonly AnalyticsPage[] = [1]
+  pages: readonly AnalyticsPage[] = [1],
+  config?: GameConfig | null
 ): MaxSingleMatchWinStats {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const marketById = new Map(markets.map((market) => [market.id, market]));
@@ -595,7 +633,11 @@ export function computeMaxSingleMatchWinStats(
       continue;
 
     const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
-    const breakdown = computeParimutuelBreakdown(market.winner, questionPicks, pick.marketId);
+    const breakdown = computeParimutuelBreakdown(market.winner, questionPicks, pick.marketId, {
+      config,
+      market,
+      viewerPlayerId: pick.playerId
+    });
     if (!breakdown || breakdown.isVoid)
       continue;
 
@@ -646,10 +688,15 @@ export function coldSidePickersForMarket(
   marketId: string,
   coldTeam: string,
   players: Player[],
-  picks: Pick[]
+  picks: Pick[],
+  market?: Market | null,
+  config?: GameConfig | null
 ): ColdSidePickerRow[] {
   const playerById = new Map(players.map((player) => [player.id, player]));
-  return picks
+  const sourcePicks = market
+    ? marketPicksForStats(market, picks, config)
+    : picks.filter((pick) => pick.marketId === marketId);
+  return sourcePicks
     .filter((pick) => pick.marketId === marketId && pick.team === coldTeam)
     .map((pick) => ({
       playerId: pick.playerId,
@@ -690,14 +737,15 @@ export function bottomTierByScore<T>(
 function computeMarketPickBalanceStatsForPages(
   markets: Market[],
   picks: Pick[],
-  pages: readonly AnalyticsPage[]
+  pages: readonly AnalyticsPage[],
+  config?: GameConfig | null
 ): Page1MarketPickBalanceStats {
   const rows: Page1MarketPickBalanceRow[] = [];
 
   for (const market of markets.filter((item) =>
     pages.includes(item.page as AnalyticsPage)
   )) {
-    const slotCounts = teamSlotCountsForMarket(market, picks);
+    const slotCounts = teamSlotCountsForMarket(market, picks, config);
     const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
     if (totalSlots === 0)
       continue;
@@ -713,8 +761,12 @@ function computeMarketPickBalanceStatsForPages(
     const { hotTeam, coldTeam, hotSlots, coldSlots } = sides;
     const teamA = candidates[0]!;
     const teamB = candidates[1]!;
-    const groupPicks = picks.filter((pick) => pick.marketId === market.id);
-    const stakeBreakdown = computeProjectedStakeBreakdown(groupPicks, market.id);
+    const groupPicks = marketPicksForStats(market, picks, config);
+    const stakeBreakdown = computeProjectedStakeBreakdown(groupPicks, market.id, {
+      config,
+      market,
+      viewerPlayerId: null
+    });
 
     rows.push({
       marketId: market.id,
@@ -756,9 +808,54 @@ export function computePage2MarketPickBalanceStats(
 
 export function computePhase12MarketPickBalanceStats(
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig | null
 ): Page1MarketPickBalanceStats {
-  return computeMarketPickBalanceStatsForPages(markets, picks, PHASE12_ANALYTICS_PAGES);
+  return computeMarketPickBalanceStatsForPages(markets, picks, PHASE12_ANALYTICS_PAGES, config);
+}
+
+export function computePage3MarketPickBalanceStats(
+  markets: Market[],
+  picks: Pick[],
+  config?: GameConfig | null
+): Page1MarketPickBalanceStats {
+  return computeMarketPickBalanceStatsForPages(markets, picks, [3], config);
+}
+
+export function computePage3PopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config?: GameConfig | null
+): Page1SidePickStats {
+  return buildSidePickStatsForPages(players, markets, picks, [3], majorityTeamForMarket, config);
+}
+
+export function computePage3UnpopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config?: GameConfig | null
+): Page1SidePickStats {
+  return buildSidePickStatsForPages(players, markets, picks, [3], minorityTeamForMarket, config);
+}
+
+export function computePage3CorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config?: GameConfig | null
+): Page1SidePickStats {
+  return buildSettledResultStatsForPages(players, markets, picks, [3], "correct", config);
+}
+
+export function computePage3IncorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config?: GameConfig | null
+): Page1SidePickStats {
+  return buildSettledResultStatsForPages(players, markets, picks, [3], "incorrect", config);
 }
 
 export interface MaxColdWinRow {
@@ -779,9 +876,10 @@ export interface MaxColdWinStats {
 export function computeMaxColdWinStats(
   markets: Market[],
   picks: Pick[],
-  pages: readonly AnalyticsPage[] = [1]
+  pages: readonly AnalyticsPage[] = [1],
+  config?: GameConfig | null
 ): MaxColdWinStats {
-  const balance = computeMarketPickBalanceStatsForPages(markets, picks, pages);
+  const balance = computeMarketPickBalanceStatsForPages(markets, picks, pages, config);
   const marketById = new Map(markets.map((market) => [market.id, market]));
   const upsets: MaxColdWinRow[] = [];
 
@@ -870,7 +968,8 @@ function hotColdSlotCounts(
 function computePickDistributionForPage(
   markets: Market[],
   picks: Pick[],
-  page: AnalyticsPage
+  page: AnalyticsPage,
+  config?: GameConfig | null
 ): Page1PickDistributionRow[] {
   const rows: Page1PickDistributionRow[] = [];
 
@@ -879,7 +978,7 @@ function computePickDistributionForPage(
     if (candidates.length < 2)
       continue;
 
-    const slotCounts = teamSlotCountsForMarket(market, picks);
+    const slotCounts = teamSlotCountsForMarket(market, picks, config);
     const sides = hotColdSlotCounts(candidates, slotCounts);
     if (!sides)
       continue;
@@ -906,6 +1005,14 @@ function computePickDistributionForPage(
     (a, b) =>
       a.marketId.localeCompare(b.marketId, undefined, { numeric: true })
   );
+}
+
+export function computePage3PickDistribution(
+  markets: Market[],
+  picks: Pick[],
+  config?: GameConfig | null
+): Page1PickDistributionRow[] {
+  return computePickDistributionForPage(markets, picks, 3, config);
 }
 
 export function computePage1PickDistribution(

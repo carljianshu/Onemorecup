@@ -11,6 +11,7 @@ import { translatePageSaveError } from "@/i18n/validation";
 import { doubleIdsForPage, findPlayerPick, initSelectionMap, isPickTeamValidForMarket, mergePickInputsForPageSave, page3SequoiaCompletedCount } from "@/lib/market-helpers";
 import { countSelections, validatePageSave } from "@/lib/pick-stats";
 import { isValidInviteCode, findKnownPlayer } from "@/lib/invite-code";
+import { isPlayerInRankLockBottomTier, isRankLockApplied } from "@/lib/rank-lock";
 import type { GameConfig, Market, Pick, PlayerPickInput, PlayPage } from "@/types";
 function buildPickInputsForPage(page: PlayPage, markets: Market[], selections: Record<string, string | null>, doubles: Record<string, boolean>, config: GameConfig, editingPlayerId: string | null, picks: Pick[]): PlayerPickInput[] {
     const result: PlayerPickInput[] = [];
@@ -68,6 +69,10 @@ export default function PlayPage() {
     const pageDeadline = formatDeadline(pageLocksAt(config, step));
     const registrationBlocked = config.registrationClosed && !activePlayer;
     const pageInputBlocked = pageLocked || registrationBlocked;
+    const showPage3RankLockBottomTierNotice =
+        step === 3 &&
+        isRankLockApplied(config) &&
+        isPlayerInRankLockBottomTier(config, activePlayerId);
     void scheduleTick;
     useEffect(() => {
         const id = window.setInterval(() => setScheduleTick((tick) => tick + 1), 30000);
@@ -180,7 +185,10 @@ export default function PlayPage() {
         }
         const pageInputs = applyLockedMarketPickPreservation(step, buildPickInputsForPage(step, markets, selections, doubles, config, activePlayerId, picks), markets, activePlayerId, picks);
         const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(step, pageInputs, markets, activePlayerId, picks), markets);
-        const validationError = validatePageSave(step, pickInputs, markets, pageInputs);
+        const validationError = validatePageSave(step, pickInputs, markets, pageInputs, {
+            playerId: activePlayerId,
+            config
+        });
         if (validationError) {
             setMessage({ type: "error", text: translatePageSaveError(t, validationError) });
             return;
@@ -283,6 +291,12 @@ export default function PlayPage() {
 
       {pageLocked && (<div className="message warning">{t("play.pageLocked", { page: playPageLabel(step) })}</div>)}
 
+      {showPage3RankLockBottomTierNotice && (
+        <div className="message warning" role="status">
+          {t("play.page3RankLockBottomTier")}
+        </div>
+      )}
+
       {(step === 1 || config.registrationClosed) && (<>
           <div className="field">
             <label htmlFor="name">{t("play.yourName")}</label>
@@ -326,13 +340,17 @@ export default function PlayPage() {
       </div>
 
       <p className="pick-stats-penalty-note">
-        {step === 3 ? (<>
+        {step === 3 ? (showPage3RankLockBottomTierNotice ? (<>
+            {t("play.page3MinNote")}
+            <br />
+            {t("play.page3DoubleRule")}
+          </>) : (<>
             {t("play.page3MinNote")}
             <br />
             {t("play.page3DoubleRule")}
             <br />
             {t("play.page3PenaltyNote")}
-          </>) : step === 2 ? (<>
+          </>)) : step === 2 ? (<>
             {t("play.phase12MinNote")}
             <br />
             {t("play.page2DoubleRule")}

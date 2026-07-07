@@ -46,7 +46,7 @@ export default function MarketResultsPage() {
         }
     }, [ready, filter, config, visiblePages]);
     const sections = useMemo(() => {
-        const all = buildMarketResultSections(markets, picks, players, publicMarketIds, locale);
+        const all = buildMarketResultSections(markets, picks, players, publicMarketIds, locale, config);
         if (filter === "all")
             return all;
         return all.filter((section) => section.page === filter);
@@ -154,7 +154,7 @@ export default function MarketResultsPage() {
                                 ? t("marketResults.optionPickCountDouble", { count: playerCount, doubleCount })
                                 : t("marketResults.optionPickCount", { count: playerCount })}
                           </span>
-                          <OptionPayoutHints option={option} candidates={section.options.map((item) => item.option)} questionPicks={picks.filter((pick) => pick.marketId === section.id)} marketId={section.id} className="market-result-option-payout"/>
+                          <OptionPayoutHints option={option} candidates={section.options.map((item) => item.option)} questionPicks={picks.filter((pick) => pick.marketId === section.id)} marketId={section.id} config={config} market={{ id: section.id, page: section.page }} className="market-result-option-payout"/>
                           {isWinner && (<span className="market-result-winner-badge">{t("marketResults.winner")}</span>)}
                         </h3>
                       </div>
@@ -167,7 +167,7 @@ export default function MarketResultsPage() {
                                             ? "market-result-player pick-double"
                                             : "market-result-player"}>
                                 <span className="market-result-player-name">{pick.playerName}</span>
-                                {pick.isDouble ? (<OptionPayoutHints option={option} candidates={candidates} questionPicks={questionPicks} marketId={section.id} slotMultiplier={2} className="market-result-player-payout"/>) : null}
+                                {pick.isDouble ? (<OptionPayoutHints option={option} candidates={candidates} questionPicks={questionPicks} marketId={section.id} slotMultiplier={2} config={config} market={{ id: section.id, page: section.page }} viewerPlayerId={pick.playerId} className="market-result-player-payout"/>) : null}
                               </li>);
                                 })}
                         </ul>)}

@@ -86,12 +86,13 @@ export function saveAdminBackup(input: {
 }
 
 export function buildAdminBackupExport(snapshot: AdminBackupSnapshot): AdminBackupExport {
-  const leaderboard = buildLeaderboard(snapshot.players, snapshot.markets, snapshot.picks);
+  const leaderboard = buildLeaderboard(snapshot.players, snapshot.markets, snapshot.picks, snapshot.config);
   const rankById = new Map(leaderboard.map((entry) => [entry.playerId, entry.rank]));
   const promotionFateByPlayerId = computePromotionFateByPlayerId(
     snapshot.players,
     snapshot.markets,
-    snapshot.picks
+    snapshot.picks,
+    snapshot.config
   );
   return {
     ...snapshot,

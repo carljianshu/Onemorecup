@@ -104,6 +104,7 @@ export const en: Messages = {
         page2DoubleRule: "Round of 16: you may mark one pick as Double.",
         page3DoubleRule: "Quarter-finals and later: you may mark one pick as Double.",
         page3NotPromoted: "You are below the advancing cutoff and cannot submit quarter-finals picks. Stay in the top {cutoff}/{total} on the leaderboard.",
+        page3RankLockBottomTier: "Unfortunately, after the first two phases you did not finish in the top two-thirds and have been eliminated from advancement. You may still submit quarter-finals and later picks; your rank will remain locked in the bottom third.",
         yourName: "Your name",
         namePlaceholder: "Nickname",
         inviteCode: "Invite code",

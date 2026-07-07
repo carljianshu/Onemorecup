@@ -2,7 +2,7 @@ import { roundScore } from "@/lib/score-format";
 import { DOUBLE_STAKE, marketStakePerPick, marketUsesDistributionAdjustment, PAGE3_STAKE_PER_PICK, STAKE_PER_PICK } from "@/data/markets";
 import { computePickStats } from "@/lib/pick-stats";
 import { countPlayerGuessedItems } from "@/lib/market-helpers";
-import { applyRankLockTierSort, isRankLockApplied } from "@/lib/rank-lock";
+import { applyRankLockTierSort, filterPicksForParimutuelPool, isRankLockApplied, resolveParimutuelPoolOptions, usesRankLockPage3Pool, type ParimutuelPoolOptions } from "@/lib/rank-lock";
 import type { GameConfig, LeaderboardEntry, Market, Pick, Player } from "@/types";
 
 export { roundScore } from "@/lib/score-format";
@@ -158,9 +158,15 @@ export interface ProjectedStakeBreakdown {
 /** 按当前作答分布推算每计分位本金（与竞猜页展示规则一致，不依赖赛果）。 */
 export function computeProjectedStakeBreakdown(
   groupPicks: Pick[],
-  marketId: string
+  marketId: string,
+  poolOptions?: ParimutuelPoolOptions
 ): ProjectedStakeBreakdown | null {
-  const answeredPicks = groupPicks.filter((pick) => pick.team !== null);
+  const options = resolveParimutuelPoolOptions(marketId, poolOptions);
+  const poolPicks = filterPicksForParimutuelPool(groupPicks, {
+    ...options,
+    viewerPlayerId: poolOptions?.viewerPlayerId ?? null
+  });
+  const answeredPicks = poolPicks.filter((pick) => pick.team !== null);
   if (answeredPicks.length === 0)
     return null;
 
@@ -489,9 +495,15 @@ function settleParimutuel(
 export function computeParimutuelBreakdown(
   winner: string,
   groupPicks: Pick[],
-  marketId?: string
+  marketId?: string,
+  poolOptions?: ParimutuelPoolOptions
 ): ParimutuelBreakdown | null {
-  const result = settleParimutuel(winner, groupPicks, marketId);
+  const options = resolveParimutuelPoolOptions(marketId, poolOptions);
+  const poolPicks = filterPicksForParimutuelPool(groupPicks, {
+    ...options,
+    viewerPlayerId: poolOptions?.viewerPlayerId ?? null
+  });
+  const result = settleParimutuel(winner, poolPicks, marketId);
   if (!result) return null;
   return {
     std: result.scoreStd,
@@ -522,7 +534,8 @@ function lossStakeIfWrong(
   option: string,
   candidates: string[],
   groupPicks: Pick[],
-  marketId?: string
+  marketId?: string,
+  poolOptions?: ParimutuelPoolOptions
 ): number {
   const others = candidates.filter((candidate) => candidate !== option);
   if (others.length === 0) return 0;
@@ -538,7 +551,7 @@ function lossStakeIfWrong(
     }
   }
 
-  return computeParimutuelBreakdown(rival, groupPicks, marketId)?.stakePerSlot ?? 0;
+  return computeParimutuelBreakdown(rival, groupPicks, marketId, poolOptions)?.stakePerSlot ?? 0;
 }
 
 /** 每个竞猜选项旁展示：猜对每计分位得分、猜错每计分位扣分（第二遍结算结果）。 */
@@ -546,20 +559,23 @@ export function computeOptionPayoutHints(
   option: string,
   candidates: string[],
   groupPicks: Pick[],
-  marketId?: string
+  marketId?: string,
+  poolOptions?: ParimutuelPoolOptions
 ): OptionPayoutHints {
-  if (groupPicks.length === 0) {
+  const options = resolveParimutuelPoolOptions(marketId, poolOptions);
+  const poolPicks = filterPicksForParimutuelPool(groupPicks, options);
+  if (poolPicks.length === 0) {
     return { gainPerSlot: 0, lossPerSlot: 0, isVoid: true };
   }
 
-  const correct = computeParimutuelBreakdown(option, groupPicks, marketId);
+  const correct = computeParimutuelBreakdown(option, poolPicks, marketId, options);
   if (!correct || correct.isVoid) {
     return { gainPerSlot: 0, lossPerSlot: 0, isVoid: true };
   }
 
   return {
     gainPerSlot: correct.gainPerWinningSlot,
-    lossPerSlot: roundScore(lossStakeIfWrong(option, candidates, groupPicks, marketId)),
+    lossPerSlot: roundScore(lossStakeIfWrong(option, candidates, poolPicks, marketId, options)),
     isVoid: false
   };
 }
@@ -572,9 +588,28 @@ export function singleCorrectSlotBonus(winner: string, groupPicks: Pick[]): numb
 export function settlePickGroup(
   winner: string,
   groupPicks: Pick[],
-  marketId?: string
+  marketId?: string,
+  poolOptions?: ParimutuelPoolOptions
 ): Record<string, number> {
-  return settleParimutuel(winner, groupPicks, marketId)?.scores ?? {};
+  const options = resolveParimutuelPoolOptions(marketId, poolOptions);
+  const market = options.market;
+  if (!usesRankLockPage3Pool(options.config, market))
+    return settleParimutuel(winner, groupPicks, marketId)?.scores ?? {};
+
+  const topIds = new Set(options.config!.rankLockTopPlayerIds ?? []);
+  const topPicks = groupPicks.filter((pick) => topIds.has(pick.playerId));
+  const topScores = settleParimutuel(winner, topPicks, marketId)?.scores ?? {};
+  const allScores = settleParimutuel(winner, groupPicks, marketId)?.scores ?? {};
+  const scores: Record<string, number> = {};
+
+  for (const pick of groupPicks) {
+    const source = topIds.has(pick.playerId) ? topScores : allScores;
+    const score = source[pick.playerId];
+    if (score !== undefined)
+      scores[pick.playerId] = score;
+  }
+
+  return scores;
 }
 
 export function settleMarket(market: Market, marketPicks: Pick[]) {
@@ -585,7 +620,8 @@ export function settleMarket(market: Market, marketPicks: Pick[]) {
 export function computePlayerScores(
   players: Player[],
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig
 ): Map<string, { totalScore: number; settledCount: number; marketScores: Record<string, number> }> {
   const result = new Map<string, { totalScore: number; settledCount: number; marketScores: Record<string, number> }>();
 
@@ -596,7 +632,10 @@ export function computePlayerScores(
   for (const market of markets) {
     if (!market.winner) continue;
     const marketPicks = picks.filter((p) => p.marketId === market.id);
-    const settled = settlePickGroup(market.winner, marketPicks, market.id);
+    const settled = settlePickGroup(market.winner, marketPicks, market.id, {
+      config,
+      market: { id: market.id, page: market.page }
+    });
 
     for (const player of players) {
       const score = settled[player.id];
@@ -617,7 +656,7 @@ export function buildLeaderboard(
   picks: Pick[],
   config?: GameConfig
 ): LeaderboardEntry[] {
-  const scores = computePlayerScores(players, markets, picks);
+  const scores = computePlayerScores(players, markets, picks, config);
 
   const entries = players.map((player) => {
     const computed = scores.get(player.id) ?? { totalScore: 0, settledCount: 0, marketScores: {} };

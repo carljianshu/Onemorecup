@@ -1,8 +1,78 @@
+import { isPage3Market } from "@/data/markets";
 import { promotionCutoffCount } from "@/lib/promotion";
-import type { GameConfig, LeaderboardEntry } from "@/types";
+import type { GameConfig, LeaderboardEntry, Market, Pick, PlayPage } from "@/types";
+
+export type ParimutuelMarketRef = Pick<Market, "id" | "page">;
+
+export interface ParimutuelPoolOptions {
+  config?: GameConfig | null;
+  market?: ParimutuelMarketRef | null;
+  viewerPlayerId?: string | null;
+}
+
+export function marketRefFromId(marketId: string, page?: PlayPage): ParimutuelMarketRef {
+  if (page != null)
+    return { id: marketId, page };
+  if (isPage3Market(marketId))
+    return { id: marketId, page: 3 };
+  if (marketId.startsWith("m2-"))
+    return { id: marketId, page: 2 };
+  return { id: marketId, page: 1 };
+}
+
+export function usesRankLockPage3Pool(
+  config: GameConfig | null | undefined,
+  market: ParimutuelMarketRef | null | undefined
+): boolean {
+  return Boolean(isRankLockApplied(config) && market && market.page === 3);
+}
+
+export function parimutuelPoolUsesTopTierOnly(
+  config: GameConfig | null | undefined,
+  market: ParimutuelMarketRef | null | undefined,
+  viewerPlayerId?: string | null
+): boolean {
+  if (!usesRankLockPage3Pool(config, market))
+    return false;
+  if (!viewerPlayerId)
+    return true;
+  return (config!.rankLockTopPlayerIds ?? []).includes(viewerPlayerId);
+}
+
+export function filterPicksForParimutuelPool(
+  groupPicks: Pick[],
+  options?: ParimutuelPoolOptions
+): Pick[] {
+  if (!parimutuelPoolUsesTopTierOnly(options?.config, options?.market, options?.viewerPlayerId))
+    return groupPicks;
+  const topIds = new Set(options!.config!.rankLockTopPlayerIds ?? []);
+  return groupPicks.filter((pick) => topIds.has(pick.playerId));
+}
+
+export function resolveParimutuelPoolOptions(
+  marketId: string | undefined,
+  options?: ParimutuelPoolOptions,
+  page?: PlayPage
+): ParimutuelPoolOptions {
+  if (!marketId)
+    return options ?? {};
+  return {
+    ...options,
+    market: options?.market ?? marketRefFromId(marketId, page)
+  };
+}
 
 export function isRankLockApplied(config: GameConfig | null | undefined): boolean {
   return Boolean(config?.rankLockApplied && config.rankLockTopPlayerIds?.length);
+}
+
+export function isPlayerInRankLockBottomTier(
+  config: GameConfig | null | undefined,
+  playerId: string | null | undefined
+): boolean {
+  if (!isRankLockApplied(config) || !playerId)
+    return false;
+  return (config!.rankLockBottomPlayerIds ?? []).includes(playerId);
 }
 
 export function computeRankLockSnapshot(

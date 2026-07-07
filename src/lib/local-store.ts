@@ -483,7 +483,12 @@ export function setPage3EarningsDeductions(state: {
                 computePickStats(state.picks.filter((pick) => pick.playerId === player.id), state.markets);
             return {
                 ...player,
-                pickPenaltyPage3: calculatePage3PickPenalty(pickStats, isPlayerPromoted(rebuilt.leaderboard, player.id, state.config))
+                pickPenaltyPage3: calculatePage3PickPenalty(
+                    pickStats,
+                    isPlayerPromoted(rebuilt.leaderboard, player.id, state.config),
+                    player.id,
+                    state.config
+                )
             };
         })
         : state.players.map((player) => ({ ...player, pickPenaltyPage3: 0 }));
@@ -492,6 +497,30 @@ export function setPage3EarningsDeductions(state: {
     saveConfig(config);
     const next = refreshLeaderboardWithConfig(players, state.markets, state.picks, config);
     return { players, config: next.config, leaderboard: next.leaderboard };
+}
+
+function recomputePage3PenaltiesIfEnabled(
+    players: Player[],
+    markets: Market[],
+    picks: Pick[],
+    config: GameConfig,
+    leaderboard: LeaderboardEntry[]
+): Player[] {
+    if (!config.page3EarningsDeductionsApplied)
+        return players;
+    return players.map((player) => {
+        const pickStats = player.pickStats ??
+            computePickStats(picks.filter((pick) => pick.playerId === player.id), markets);
+        return {
+            ...player,
+            pickPenaltyPage3: calculatePage3PickPenalty(
+                pickStats,
+                isPlayerPromoted(leaderboard, player.id, config),
+                player.id,
+                config
+            )
+        };
+    });
 }
 
 export function setRankLockApplied(state: {
@@ -510,7 +539,16 @@ export function setRankLockApplied(state: {
         };
         saveConfig(config);
         const rebuilt = refreshLeaderboardWithConfig(state.players, state.markets, state.picks, config);
-        return { config: rebuilt.config, leaderboard: rebuilt.leaderboard };
+        const players = recomputePage3PenaltiesIfEnabled(
+            state.players,
+            state.markets,
+            state.picks,
+            rebuilt.config,
+            rebuilt.leaderboard
+        );
+        if (rebuilt.config.page3EarningsDeductionsApplied)
+            savePlayers(players);
+        return { players, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
     }
 
     const preLockLeaderboard = buildLeaderboard(state.players, state.markets, state.picks);
@@ -521,7 +559,16 @@ export function setRankLockApplied(state: {
     };
     saveConfig(config);
     const rebuilt = refreshLeaderboardWithConfig(state.players, state.markets, state.picks, config);
-    return { config: rebuilt.config, leaderboard: rebuilt.leaderboard };
+    const players = recomputePage3PenaltiesIfEnabled(
+        state.players,
+        state.markets,
+        state.picks,
+        rebuilt.config,
+        rebuilt.leaderboard
+    );
+    if (rebuilt.config.page3EarningsDeductionsApplied)
+        savePlayers(players);
+    return { players, config: rebuilt.config, leaderboard: rebuilt.leaderboard };
 }
 
 /** @deprecated Use setPhase12EarningsDeductions */

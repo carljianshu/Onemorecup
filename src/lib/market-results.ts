@@ -2,9 +2,10 @@ import { DOUBLE_STAKE } from "@/data/markets";
 import { allPickColumns, type PickColumn } from "@/lib/market-helpers";
 import { translate, type Locale } from "@/i18n";
 import { playerDisplayName } from "@/lib/player-display";
+import { filterPicksForParimutuelPool, type ParimutuelPoolOptions } from "@/lib/rank-lock";
 import { formatScore, roundScore } from "@/lib/score-format";
-import { computeParimutuelBreakdown, type AdjustmentSequenceSummary } from "@/lib/scoring";
-import type { Market, Pick, Player, PlayPage } from "@/types";
+import { computeParimutuelBreakdown, settlePickGroup, type AdjustmentSequenceSummary } from "@/lib/scoring";
+import type { GameConfig, Market, Pick, Player, PlayPage } from "@/types";
 
 export interface MarketResultPick {
   playerId: string;
@@ -67,7 +68,8 @@ export function buildMarketResultSections(
   picks: Pick[],
   players: Player[],
   publicMarketIds: Set<string>,
-  locale: Locale = "zh"
+  locale: Locale = "zh",
+  config?: GameConfig | null
 ): MarketResultSection[] {
   const playerById = new Map(players.map((p) => [p.id, p]));
   const unknownPlayer = translate(locale, "common.unknownPlayer");
@@ -76,14 +78,28 @@ export function buildMarketResultSections(
   return columns.map((col) => {
     const candidates = candidatesForColumn(markets, col);
     const winner = winnerForColumn(markets, col);
+    const market = markets.find((item) => item.id === col.id);
+    const poolOptions: ParimutuelPoolOptions = {
+      config,
+      market: market ? { id: market.id, page: market.page } : { id: col.id, page: col.page }
+    };
     const questionPicks = picks.filter((pick) => pick.marketId === col.id);
-    const slotCount = questionPicks.reduce(
+    const displayPicks = filterPicksForParimutuelPool(questionPicks, {
+      ...poolOptions,
+      viewerPlayerId: null
+    });
+    const slotCount = displayPicks.reduce(
       (sum, pick) => sum + (pick.stake === DOUBLE_STAKE ? 2 : 1),
       0
     );
 
     const actualBreakdown =
-      winner !== null ? computeParimutuelBreakdown(winner, questionPicks, col.id) : null;
+      winner !== null ? computeParimutuelBreakdown(winner, displayPicks, col.id, poolOptions) : null;
+
+    const settledScores =
+      winner !== null
+        ? settlePickGroup(winner, questionPicks, col.id, poolOptions)
+        : {};
 
     const actualScores: MarketResultPlayerScore[] = questionPicks
       .map((pick) => ({
@@ -91,15 +107,15 @@ export function buildMarketResultSections(
         playerName: playerDisplayName(playerById.get(pick.playerId), unknownPlayer),
         team: pick.team,
         isDouble: pick.stake === DOUBLE_STAKE,
-        score: roundScore(actualBreakdown?.scores[pick.playerId] ?? 0)
+        score: roundScore(settledScores[pick.playerId] ?? 0)
       }))
       .sort((a, b) => a.playerName.localeCompare(b.playerName, "zh-CN"));
 
     const options: MarketOptionResult[] = candidates.map((option) => {
-      const breakdown = computeParimutuelBreakdown(option, questionPicks, col.id);
+      const breakdown = computeParimutuelBreakdown(option, displayPicks, col.id, poolOptions);
       const hypotheticalScores = breakdown?.scores ?? {};
 
-      const optionQuestionPicks = questionPicks.filter((pick) => pick.team === option);
+      const optionQuestionPicks = displayPicks.filter((pick) => pick.team === option);
 
       return {
         option,
@@ -115,10 +131,15 @@ export function buildMarketResultSections(
             playerId: pick.playerId,
             playerName: playerDisplayName(playerById.get(pick.playerId), unknownPlayer),
             isDouble: pick.stake === DOUBLE_STAKE,
-            ifCorrectPayout: roundScore(hypotheticalScores[pick.playerId] ?? 0),
+            ifCorrectPayout: roundScore(
+              computeParimutuelBreakdown(option, questionPicks, col.id, {
+                ...poolOptions,
+                viewerPlayerId: pick.playerId
+              })?.scores[pick.playerId] ?? hypotheticalScores[pick.playerId] ?? 0
+            ),
             actualPayout:
               winner !== null && option === winner
-                ? roundScore(actualBreakdown?.scores[pick.playerId] ?? 0)
+                ? roundScore(settledScores[pick.playerId] ?? 0)
                 : null
           }))
           .sort((a, b) => a.playerName.localeCompare(b.playerName, "zh-CN")),
@@ -131,7 +152,7 @@ export function buildMarketResultSections(
       page: col.page,
       title: col.fullLabel,
       options,
-      totalPicks: questionPicks.length,
+      totalPicks: displayPicks.length,
       slotCount,
       winner,
       settled: winner !== null,

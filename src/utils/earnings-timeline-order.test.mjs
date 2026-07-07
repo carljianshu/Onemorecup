@@ -73,14 +73,16 @@ assert(
 assert(m2Order.indexOf("m2-2") < m2Order.indexOf("m2-1"), "m2-2 should settle before m2-1");
 assert(m2Order.indexOf("m2-1") < m2Order.indexOf("m2-5"), "m2-1 should settle before m2-5");
 assert(m2Order.indexOf("m2-5") < m2Order.indexOf("m2-6"), "m2-5 should settle before m2-6");
+assert(m2Order.indexOf("m2-6") < m2Order.indexOf("m2-3"), "m2-6 should settle before m2-3");
+assert(m2Order.indexOf("m2-3") < m2Order.indexOf("m2-4"), "m2-3 should settle before m2-4");
 
 const crossPage = sortMarketsBySettlementOrder([
   ...settledM2,
   { id: "m1-15", page: 1, winner: "A", candidates: ["A", "B"] }
 ]).map((m) => m.id);
 assert(
-  crossPage.join(",") === "m1-15,m2-2,m2-1,m2-5,m2-6",
-  "M1 should precede M2; after m1-15 comes m2-2 then m2-1 then m2-5 then m2-6"
+  crossPage.join(",") === "m1-15,m2-2,m2-1,m2-5,m2-6,m2-3,m2-4",
+  "M1 should precede M2; after m1-15 comes m2-2 then m2-1 then m2-5 then m2-6 then m2-3 then m2-4"
 );
 
 const allSettled = ensureMarketShape(

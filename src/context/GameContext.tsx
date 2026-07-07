@@ -330,12 +330,13 @@ export function GameProvider({ children }: {
         }
         const { setRankLockApplied: setLocal } = await import("@/lib/local-store");
         const result = setLocal({ players, markets, picks, config }, enabled);
+        setPlayers(result.players);
         setConfig(result.config);
         setLeaderboard(result.leaderboard);
     }, [apiSync, players, markets, picks, config, applyResponse]);
     const promotionFateByPlayerId = useMemo(
-        () => computePromotionFateByPlayerId(players, markets, picks),
-        [players, markets, picks]
+        () => computePromotionFateByPlayerId(players, markets, picks, config),
+        [players, markets, picks, config]
     );
     useEffect(() => {
         syncPromotionFateByPlayerId(promotionFateByPlayerId);

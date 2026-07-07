@@ -89,8 +89,18 @@ function assertPageUnlocked(config: GameConfig, page: PlayPage) {
     if (isPageLocked(config, page))
         throw new Error("PAGE_LOCKED");
 }
-function validatePlayerSave(page: PlayPage, pickInputs: PlayerPickInput[], pagePickInputs: PlayerPickInput[], markets: LeaderboardResponse["markets"]) {
-    const validationError = validatePageSave(page, pickInputs, markets, pagePickInputs);
+function validatePlayerSave(
+    page: PlayPage,
+    pickInputs: PlayerPickInput[],
+    pagePickInputs: PlayerPickInput[],
+    markets: LeaderboardResponse["markets"],
+    playerId: string | null | undefined,
+    config: GameConfig
+) {
+    const validationError = validatePageSave(page, pickInputs, markets, pagePickInputs, {
+        playerId,
+        config
+    });
     if (validationError)
         throw new Error(validationError.code);
 }
@@ -108,7 +118,7 @@ export async function registerPlayer(body: {
         assertPageUnlocked(state.config, body.page);
         const pagePickInputs = applyLockedMarketPickPreservation(body.page, body.pagePickInputs, state.markets, body.playerId ?? null, state.picks);
         const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(body.page, pagePickInputs, state.markets, body.playerId ?? null, state.picks), state.markets);
-        validatePlayerSave(body.page, pickInputs, pagePickInputs, state.markets);
+        validatePlayerSave(body.page, pickInputs, pagePickInputs, state.markets, body.playerId ?? null, state.config);
         assertRegistrationAllowed(
             body.name,
             body.playerId ?? null,
@@ -316,7 +326,7 @@ export function setRankLockApplied(enabled: boolean, expectedVersion?: number) {
             config: state.config
         }, enabled);
         return snapshotFromState({
-            players: state.players,
+            players: result.players,
             markets: state.markets,
             picks: state.picks,
             config: result.config

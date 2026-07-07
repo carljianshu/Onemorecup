@@ -1,6 +1,6 @@
 import { promotionCutoffCount } from "@/lib/promotion";
 import { buildLeaderboard } from "@/lib/scoring";
-import type { Market, Pick, Player } from "@/types";
+import type { GameConfig, Market, Pick, Player } from "@/types";
 
 export type PromotionFateTag = "A" | "E";
 
@@ -8,7 +8,8 @@ export type PromotionFateTag = "A" | "E";
 export function computePromotionFateByPlayerId(
   players: Player[],
   markets: Market[],
-  picks: Pick[]
+  picks: Pick[],
+  config?: GameConfig | null
 ): ReadonlyMap<string, PromotionFateTag> {
   const unsettled = markets.filter((market) => !market.winner);
   const result = new Map<string, PromotionFateTag>();
@@ -32,7 +33,7 @@ export function computePromotionFateByPlayerId(
       market.winner = candidates[(mask >> index) & 1]!;
     }
 
-    const leaderboard = buildLeaderboard(players, scenarioMarkets, picks);
+    const leaderboard = buildLeaderboard(players, scenarioMarkets, picks, config ?? undefined);
     leaderboard.forEach((entry, index) => {
       if (index < cutoff) {
         promoCounts.set(entry.playerId, (promoCounts.get(entry.playerId) ?? 0) + 1);
