@@ -9,11 +9,13 @@ import assert from "node:assert/strict";
 import {
   applyRankLockTierSort,
   computeRankLockSnapshot,
+  filterPicksForPage3MarketResultsDisplay,
   filterPicksForParimutuelPool,
   isPlayerInRankLockBottomTier,
   isRankLockApplied,
   parimutuelPoolUsesTopTierOnly
 } from "./src/lib/rank-lock.ts";
+import { buildMarketResultSections } from "./src/lib/market-results.ts";
 import { promotionCutoffCount } from "./src/lib/promotion.ts";
 import {
   buildLeaderboard,
@@ -183,6 +185,22 @@ assert.notEqual(
   null,
   "bottom tier still cannot save page 3 without minimum picks"
 );
+
+const m3Picks = [
+  { playerId: topId, marketId: "m3-1", team: "法国", stake: 1 },
+  { playerId: bottomId, marketId: "m3-1", team: "摩洛哥", stake: 1 },
+];
+const m3Sections = buildMarketResultSections(
+  [{ id: "m3-1", round: "M3", name: "test", candidates: ["法国", "摩洛哥"], winner: null, page: 3 }],
+  m3Picks,
+  players,
+  new Set(["m3-1"]),
+  "zh",
+  config
+);
+assert.equal(m3Sections[0].totalPicks, 1, "page-3 market results should only count top-tier picks");
+assert.equal(m3Sections[0].options.flatMap((o) => o.picks).length, 1);
+assert.equal(m3Sections[0].options.flatMap((o) => o.picks)[0].playerId, topId);
 
 console.log("rank-lock smoke tests passed");
 `;

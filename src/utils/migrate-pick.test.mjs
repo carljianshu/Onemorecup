@@ -114,7 +114,7 @@ const migratedM3MoroccoCanadaDirect = migratePicksForMarkets(m3MoroccoCanadaDire
 assert(migratedM3MoroccoCanadaDirect.every((p) => p.team === "摩洛哥"), "m3 摩洛哥/加拿大 should become 摩洛哥");
 assert(migratedM3.filter((p) => p.marketId === "m3-2").every((p) => p.team === "西班牙"));
 assert(migratedM3.find((p) => p.marketId === "m3-3")?.team === "英格兰");
-assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士/哥伦比亚");
+assert(migratedM3.find((p) => p.marketId === "m3-4")?.team === "瑞士");
 assert(migratedM3.find((p) => p.marketId === "m3-5")?.team === "比利时");
 
 const m3BrazilLegacy = [
@@ -283,7 +283,7 @@ const m3SwitzerlandBracketLegacy = [
 ];
 const migratedM3SwitzerlandBracket = migratePicksForMarkets(m3SwitzerlandBracketLegacy, markets);
 assert(migratedM3SwitzerlandBracket.length === 2, "m3 瑞士/阿尔及利亚/哥伦比亚/加纳 legacy picks should migrate");
-assert(migratedM3SwitzerlandBracket.every((p) => p.team === "瑞士/哥伦比亚"), "m3 should drop 阿尔及利亚 from bracket option");
+assert(migratedM3SwitzerlandBracket.every((p) => p.team === "瑞士"), "m3 should drop 阿尔及利亚 from bracket option");
 
 const m28ColombiaLegacy = [
   { playerId, marketId: "m2-8", team: "哥伦比亚/加纳", stake: 1 },
@@ -299,7 +299,7 @@ const m3ColombiaBracketLegacy = [
 ];
 const migratedM3ColombiaBracket = migratePicksForMarkets(m3ColombiaBracketLegacy, markets);
 assert(migratedM3ColombiaBracket.length === 2, "m3 瑞士/哥伦比亚/加纳 legacy picks should migrate");
-assert(migratedM3ColombiaBracket.every((p) => p.team === "瑞士/哥伦比亚"), "m3 should drop 加纳 from bracket option");
+assert(migratedM3ColombiaBracket.every((p) => p.team === "瑞士"), "m3 should drop 加纳 from bracket option");
 
 const m27EgyptLegacy = [
   { playerId, marketId: "m2-7", team: "澳大利亚/埃及", stake: 1 },
@@ -315,7 +315,7 @@ const m3ArgentinaEgyptLegacy = [
 ];
 const migratedM3ArgentinaEgypt = migratePicksForMarkets(m3ArgentinaEgyptLegacy, markets);
 assert(migratedM3ArgentinaEgypt.length === 2, "m3 阿根廷/佛得角/澳大利亚/埃及 legacy picks should migrate");
-assert(migratedM3ArgentinaEgypt.every((p) => p.team === "阿根廷/埃及"), "m3 should drop 澳大利亚 from bracket option");
+assert(migratedM3ArgentinaEgypt.every((p) => p.team === "阿根廷"), "m3 should drop 澳大利亚 from bracket option");
 
 const m27ArgentinaLegacy = [
   { playerId, marketId: "m2-7", team: "阿根廷/佛得角", stake: 1 },
@@ -331,7 +331,7 @@ const m3ArgentinaBracketLegacy = [
 ];
 const migratedM3ArgentinaBracket = migratePicksForMarkets(m3ArgentinaBracketLegacy, markets);
 assert(migratedM3ArgentinaBracket.length === 2, "m3 阿根廷/佛得角/埃及 legacy picks should migrate");
-assert(migratedM3ArgentinaBracket.every((p) => p.team === "阿根廷/埃及"), "m3 should drop 佛得角 from bracket option");
+assert(migratedM3ArgentinaBracket.every((p) => p.team === "阿根廷"), "m3 should drop 佛得角 from bracket option");
 
 const staleStored = DEFAULT_MARKETS.map((market) => {
   if (market.id === "m3-2") return { ...market, candidates: ["西班牙/葡萄牙", "美国/比利时"] };

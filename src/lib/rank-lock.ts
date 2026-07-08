@@ -39,6 +39,17 @@ export function parimutuelPoolUsesTopTierOnly(
   return (config!.rankLockTopPlayerIds ?? []).includes(viewerPlayerId);
 }
 
+/** 单场竞猜结果页第三页：排名锁定后仅展示上档玩家。 */
+export function filterPicksForPage3MarketResultsDisplay(
+  picks: PlayerPick[],
+  config: GameConfig | null | undefined
+): PlayerPick[] {
+  if (!isRankLockApplied(config))
+    return picks;
+  const topIds = new Set(config!.rankLockTopPlayerIds ?? []);
+  return picks.filter((pick) => topIds.has(pick.playerId));
+}
+
 export function filterPicksForParimutuelPool(
   groupPicks: PlayerPick[],
   options?: ParimutuelPoolOptions

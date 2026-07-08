@@ -7,6 +7,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { useGame } from "@/context/GameContext";
 import { formatMarketHeading, formatPlayMarketCandidate } from "@/i18n";
 import { buildMarketResultSections } from "@/lib/market-results";
+import { filterPicksForPage3MarketResultsDisplay } from "@/lib/rank-lock";
 import { formatScorePlain, roundScore } from "@/lib/score-format";
 import { isAnswersAnyPublic, isAnswersPagePublic, listPublicAnswerMarketIds } from "@/lib/public-features";
 import type { PlayPage } from "@/types";
@@ -111,6 +112,10 @@ export default function MarketResultsPage() {
                 const sectionTitle = market
                     ? formatMarketHeading(locale, market.id, market.name)
                     : section.title;
+                const rawSectionPicks = picks.filter((pick) => pick.marketId === section.id);
+                const sectionPicks = section.page === 3
+                    ? filterPicksForPage3MarketResultsDisplay(rawSectionPicks, config)
+                    : rawSectionPicks;
                 return (<section key={section.id} className="card market-result-card">
               <div className="market-result-header">
                 <h2 className="market-result-title">{sectionTitle}</h2>
@@ -154,20 +159,19 @@ export default function MarketResultsPage() {
                                 ? t("marketResults.optionPickCountDouble", { count: playerCount, doubleCount })
                                 : t("marketResults.optionPickCount", { count: playerCount })}
                           </span>
-                          <OptionPayoutHints option={option} candidates={section.options.map((item) => item.option)} questionPicks={picks.filter((pick) => pick.marketId === section.id)} marketId={section.id} config={config} market={{ id: section.id, page: section.page }} className="market-result-option-payout"/>
+                          <OptionPayoutHints option={option} candidates={section.options.map((item) => item.option)} questionPicks={sectionPicks} marketId={section.id} config={config} market={{ id: section.id, page: section.page }} className="market-result-option-payout"/>
                           {isWinner && (<span className="market-result-winner-badge">{t("marketResults.winner")}</span>)}
                         </h3>
                       </div>
 
                       {optionPicks.length === 0 ? (<p className="market-result-empty">{t("common.empty")}</p>) : (<ul className="market-result-players">
                           {optionPicks.map((pick) => {
-                                    const questionPicks = picks.filter((item) => item.marketId === section.id);
                                     const candidates = section.options.map((item) => item.option);
                                     return (<li key={pick.playerId} className={pick.isDouble
                                             ? "market-result-player pick-double"
                                             : "market-result-player"}>
                                 <span className="market-result-player-name">{pick.playerName}</span>
-                                {pick.isDouble ? (<OptionPayoutHints option={option} candidates={candidates} questionPicks={questionPicks} marketId={section.id} slotMultiplier={2} config={config} market={{ id: section.id, page: section.page }} viewerPlayerId={pick.playerId} className="market-result-player-payout"/>) : null}
+                                {pick.isDouble ? (<OptionPayoutHints option={option} candidates={candidates} questionPicks={sectionPicks} marketId={section.id} slotMultiplier={2} config={config} market={{ id: section.id, page: section.page }} viewerPlayerId={pick.playerId} className="market-result-player-payout"/>) : null}
                               </li>);
                                 })}
                         </ul>)}

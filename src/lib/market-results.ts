@@ -2,7 +2,11 @@ import { DOUBLE_STAKE } from "@/data/markets";
 import { allPickColumns, type PickColumn } from "@/lib/market-helpers";
 import { translate, type Locale } from "@/i18n";
 import { playerDisplayName } from "@/lib/player-display";
-import { filterPicksForParimutuelPool, type ParimutuelPoolOptions } from "@/lib/rank-lock";
+import {
+  filterPicksForPage3MarketResultsDisplay,
+  filterPicksForParimutuelPool,
+  type ParimutuelPoolOptions
+} from "@/lib/rank-lock";
 import { formatScore, roundScore } from "@/lib/score-format";
 import { computeParimutuelBreakdown, settlePickGroup, type AdjustmentSequenceSummary } from "@/lib/scoring";
 import type { GameConfig, Market, Pick, Player, PlayPage } from "@/types";
@@ -83,7 +87,9 @@ export function buildMarketResultSections(
       config,
       market: market ? { id: market.id, page: market.page } : { id: col.id, page: col.page }
     };
-    const questionPicks = picks.filter((pick) => pick.marketId === col.id);
+    let questionPicks = picks.filter((pick) => pick.marketId === col.id);
+    if (col.page === 3)
+      questionPicks = filterPicksForPage3MarketResultsDisplay(questionPicks, config);
     const displayPicks = filterPicksForParimutuelPool(questionPicks, {
       ...poolOptions,
       viewerPlayerId: null
