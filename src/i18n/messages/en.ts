@@ -179,7 +179,11 @@ export const en: Messages = {
         promotionZone: "Advancing",
         earning: "Net earnings",
         penaltyPhase12: "Earnings hit (R32·R16)",
-        penaltyPage3: "Earnings hit (QF+)"
+        penaltyPage3: "Earnings hit (QF+)",
+        bestPossibleRank: "Best possible",
+        bestPossibleRankNote: "After quarter-finals lock, best rank each top-tier player can still reach across {count} remaining knockout paths.",
+        sharpeRatio: "Sharpe ratio",
+        sharpeRatioNote: "Sum of settled per-match parimutuel earnings ÷ standard deviation; missed settled matches count as 0."
     },
     answers: {
         title: "All picks",
@@ -244,12 +248,15 @@ export const en: Messages = {
         analyticsMaxColdWinEmptyPage2: "No settled Round of 16 matches won by the minority side yet.",
         analyticsPickChartTitle: "Round of 32 pick distribution",
         analyticsPickChartTitlePage2: "Round of 16 pick distribution",
+        analyticsPickChartPage3Locked: "Quarter-finals and later pick bar charts open after page 3 locks.",
         analyticsPickChartNote: "By scoring slot (Double = 2); hot left, cold right",
         analyticsPickChartLegendHot: "Popular (left)",
         analyticsPickChartLegendCold: "Unpopular (right)",
         analyticsPickChartLegendWinner: "Published winner",
         analyticsPickChartAxis: "Equal width per scoring slot",
         analyticsPickChartBarAria: "{market} hot {hotTeam} {hotSlots} slots, cold {coldTeam} {coldSlots} slots",
+        analyticsPickChartOptionAria: "{team} {slots} slots",
+        analyticsPickChartMultiBarAria: "{market}: {detail}",
         closedTitle: "All picks not public yet",
         closedDesc: "An admin will open Round of 32 and/or Round of 16 picks when ready.",
         lead: "Every player's picks across all questions; scroll horizontally to see all columns.",

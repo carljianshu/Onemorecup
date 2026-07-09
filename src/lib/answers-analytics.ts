@@ -1,6 +1,8 @@
-import { DOUBLE_STAKE } from "@/data/markets";
+import { DOUBLE_STAKE, MULTI_OPTION_FINAL_MARKET_IDS, PAGE3_CANYON_MARKET_IDS } from "@/data/markets";
 import { PAGE1_REAL_WORLD_RATES, type Page1RealWorldRate } from "@/data/page1-real-world-rates";
 import { PAGE2_REAL_WORLD_RATES, type Page2RealWorldRate } from "@/data/page2-real-world-rates";
+import { PAGE3_REAL_WORLD_RATES, isPage3MultiOptionRealWorldRate, type Page3RealWorldRate } from "@/data/page3-real-world-rates";
+import { isPageLocked } from "@/lib/page-lock";
 import { playerDisplayName } from "@/lib/player-display";
 
 export type AnalyticsPage = 1 | 2 | 3;
@@ -8,12 +10,20 @@ export type AnalyticsPage = 1 | 2 | 3;
 /** 数据分析 tab：M1 + M2 合并统计。 */
 export const PHASE12_ANALYTICS_PAGES: readonly AnalyticsPage[] = [1, 2];
 
+export const LOCKED_ANALYTICS_PAGES: readonly AnalyticsPage[] = [1, 2, 3];
+
 export const PHASE12_REAL_WORLD_RATES = [
   ...PAGE1_REAL_WORLD_RATES,
   ...PAGE2_REAL_WORLD_RATES
 ] as const;
+
+export const LOCKED_ANALYTICS_REAL_WORLD_RATES = [
+  ...PHASE12_REAL_WORLD_RATES,
+  ...PAGE3_REAL_WORLD_RATES
+] as const;
+
 import { roundScore } from "@/lib/score-format";
-import { filterPicksForParimutuelPool } from "@/lib/rank-lock";
+import { filterPicksForParimutuelPool, isRankLockApplied } from "@/lib/rank-lock";
 import { computeParimutuelBreakdown, computeProjectedStakeBreakdown } from "@/lib/scoring";
 import type { GameConfig, Market, Pick, Player } from "@/types";
 
@@ -96,6 +106,8 @@ export interface Page1RealWorldComparisonRow {
   maxDeviation: number;
   pattern: string;
   totalSlots: number;
+  isMultiOption?: boolean;
+  marketLabel?: string;
 }
 
 export interface Page1RealWorldComparisonStats {
@@ -122,12 +134,63 @@ function computeRealWorldComparisonForPages(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[],
-  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate)[],
+  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate | Page3RealWorldRate)[],
   config?: GameConfig | null
 ): Page1RealWorldComparisonStats {
   const rows: Page1RealWorldComparisonRow[] = [];
 
   for (const benchmark of benchmarks) {
+    if (isPage3MultiOptionRealWorldRate(benchmark)) {
+      const market = markets.find(
+        (item) =>
+          item.id === benchmark.marketId &&
+          pages.includes(item.page as AnalyticsPage)
+      );
+      if (!market)
+        continue;
+
+      const playerRates = teamSupportRatesForMarket(market, picks, config);
+      const totalSlots = [...teamSlotCountsForMarket(market, picks, config).values()].reduce(
+        (sum, count) => sum + count,
+        0
+      );
+      if (!playerRates || totalSlots === 0)
+        continue;
+
+      let maxDeviation = 0;
+      let highlightTeam = benchmark.optionRates[0]!.team;
+      let highlightRealRate = benchmark.optionRates[0]!.rate;
+      let highlightPlayerRate = playerRates.get(highlightTeam) ?? 0;
+
+      for (const option of benchmark.optionRates) {
+        const playerRate = playerRates.get(option.team) ?? 0;
+        const deviation = Math.abs(playerRate - option.rate);
+        if (deviation > maxDeviation) {
+          maxDeviation = deviation;
+          highlightTeam = option.team;
+          highlightRealRate = option.rate;
+          highlightPlayerRate = playerRate;
+        }
+      }
+
+      const sortedOptions = [...benchmark.optionRates].sort((a, b) => b.rate - a.rate);
+      rows.push({
+        marketId: market.id,
+        favoriteTeam: highlightTeam,
+        underdogTeam: sortedOptions[1]?.team ?? sortedOptions[0]!.team,
+        realFavoriteRate: highlightRealRate,
+        realUnderdogRate: sortedOptions.find((item) => item.team !== highlightTeam)?.rate ?? 0,
+        playerFavoriteRate: highlightPlayerRate,
+        playerUnderdogRate: playerRates.get(sortedOptions.find((item) => item.team !== highlightTeam)?.team ?? "") ?? 0,
+        maxDeviation,
+        pattern: benchmark.pattern,
+        totalSlots,
+        isMultiOption: true,
+        marketLabel: market.name
+      });
+      continue;
+    }
+
     const market = findMarketByTeams(
       markets,
       pages,
@@ -345,6 +408,234 @@ function buildSidePickStatsForPages(
   return { rows, maxCount, topRows };
 }
 
+/** 第三页锁定且排名锁定后，数据分析纳入第三页（仅上档）。 */
+export function shouldIncludePage3Analytics(config?: GameConfig | null): boolean {
+  return Boolean(config && isPageLocked(config, 3) && isRankLockApplied(config));
+}
+
+function topTierPlayersForPage3Analytics(players: Player[], config: GameConfig): Player[] {
+  const topIds = new Set(config.rankLockTopPlayerIds ?? []);
+  return players.filter((player) => topIds.has(player.id));
+}
+
+function isPlayerEligibleForPage3Analytics(config: GameConfig, playerId: string): boolean {
+  return (config.rankLockTopPlayerIds ?? []).includes(playerId);
+}
+
+export function mergeSidePickStats(players: Player[], ...parts: Page1SidePickStats[]): Page1SidePickStats {
+  const matchCountByPlayer = new Map<string, number>();
+  for (const player of players) {
+    matchCountByPlayer.set(player.id, 0);
+  }
+  for (const part of parts) {
+    for (const row of part.rows) {
+      matchCountByPlayer.set(
+        row.playerId,
+        (matchCountByPlayer.get(row.playerId) ?? 0) + row.matchCount
+      );
+    }
+  }
+
+  const rows: Page1SidePickRow[] = players
+    .map((player) => ({
+      playerId: player.id,
+      playerName: playerDisplayName(player, player.id),
+      matchCount: matchCountByPlayer.get(player.id) ?? 0
+    }))
+    .sort(
+      (a, b) =>
+        b.matchCount - a.matchCount ||
+        a.playerName.localeCompare(b.playerName, "zh-CN")
+    );
+
+  const maxCount = rows[0]?.matchCount ?? 0;
+  const topRows = topTierByScore(rows, (row) => row.matchCount, 3);
+
+  return { rows, maxCount, topRows };
+}
+
+function mergeRealWorldComparisonStats(
+  ...parts: Page1RealWorldComparisonStats[]
+): Page1RealWorldComparisonStats {
+  const rows = parts
+    .flatMap((part) => part.rows)
+    .sort((a, b) => b.maxDeviation - a.maxDeviation);
+
+  return {
+    rows,
+    topGapRows: topTierByScore(rows, (row) => row.maxDeviation, 3),
+    bottomGapRows: bottomTierByScore(rows, (row) => row.maxDeviation, 3).sort(
+      (a, b) =>
+        a.maxDeviation - b.maxDeviation ||
+        a.marketId.localeCompare(b.marketId, undefined, { numeric: true })
+    )
+  };
+}
+
+function mergePickBalanceStats(...parts: Page1MarketPickBalanceStats[]): Page1MarketPickBalanceStats {
+  const rows = parts
+    .flatMap((part) => part.rows)
+    .sort((a, b) => b.gap - a.gap || a.marketId.localeCompare(b.marketId));
+
+  return {
+    rows,
+    mostLopsidedRows: topTierByScore(rows, (row) => row.gap, 1),
+    mostBalancedRows: bottomTierByScore(rows, (row) => row.gap, 1)
+  };
+}
+
+export function computeLockedAnalyticsPopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): Page1SidePickStats {
+  const phase12 = buildSidePickStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    majorityTeamForMarket
+  );
+  const page3Players = topTierPlayersForPage3Analytics(players, config);
+  const page3 = buildSidePickStatsForPages(
+    page3Players,
+    markets,
+    picks,
+    [3],
+    majorityTeamForMarket,
+    config
+  );
+  return mergeSidePickStats(players, phase12, page3);
+}
+
+export function computeLockedAnalyticsUnpopularPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): Page1SidePickStats {
+  const phase12 = buildSidePickStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    minorityTeamForMarket
+  );
+  const page3Players = topTierPlayersForPage3Analytics(players, config);
+  const page3 = buildSidePickStatsForPages(
+    page3Players,
+    markets,
+    picks,
+    [3],
+    minorityTeamForMarket,
+    config
+  );
+  return mergeSidePickStats(players, phase12, page3);
+}
+
+export function computeLockedAnalyticsRealWorldComparison(
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig,
+  benchmarks: readonly (Page1RealWorldRate | Page2RealWorldRate | Page3RealWorldRate)[] = LOCKED_ANALYTICS_REAL_WORLD_RATES
+): Page1RealWorldComparisonStats {
+  const phase12 = computeRealWorldComparisonForPages(
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    PHASE12_REAL_WORLD_RATES
+  );
+  const page3 = computeRealWorldComparisonForPages(
+    markets,
+    picks,
+    [3],
+    PAGE3_REAL_WORLD_RATES,
+    config
+  );
+  return mergeRealWorldComparisonStats(phase12, page3);
+}
+
+export function computeLockedAnalyticsPickBalanceStats(
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): Page1MarketPickBalanceStats {
+  const phase12 = computeMarketPickBalanceStatsForPages(
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    config
+  );
+  const page3Canyon = computeMarketPickBalanceStatsForPages(
+    markets,
+    picks,
+    [3],
+    config,
+    PAGE3_CANYON_MARKET_IDS
+  );
+  return mergePickBalanceStats(phase12, page3Canyon);
+}
+
+export function computeLockedAnalyticsCorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): Page1SidePickStats {
+  const phase12 = buildSettledResultStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    "correct"
+  );
+  const page3Players = topTierPlayersForPage3Analytics(players, config);
+  const page3 = buildSettledResultStatsForPages(
+    page3Players,
+    markets,
+    picks,
+    [3],
+    "correct",
+    config
+  );
+  return mergeSidePickStats(players, phase12, page3);
+}
+
+export function computeLockedAnalyticsIncorrectPickStats(
+  players: Player[],
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): Page1SidePickStats {
+  const phase12 = buildSettledResultStatsForPages(
+    players,
+    markets,
+    picks,
+    PHASE12_ANALYTICS_PAGES,
+    "incorrect"
+  );
+  const page3Players = topTierPlayersForPage3Analytics(players, config);
+  const page3 = buildSettledResultStatsForPages(
+    page3Players,
+    markets,
+    picks,
+    [3],
+    "incorrect",
+    config
+  );
+  return mergeSidePickStats(players, phase12, page3);
+}
+
+export function computeLockedAnalyticsMaxColdWinStats(
+  markets: Market[],
+  picks: Pick[],
+  config: GameConfig
+): MaxColdWinStats {
+  const balance = computeLockedAnalyticsPickBalanceStats(markets, picks, config);
+  return computeMaxColdWinFromBalance(balance, markets);
+}
+
 /**
  * 1/16 决赛：每位玩家猜中「多数派（热门）」的场数。
  * 多数派按计分位判定（Double 计 2）；玩家累加时每场 +1，Double 不额外加倍。
@@ -546,7 +837,8 @@ export function computeMaxDoubleSingleMatchWinStats(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[] = [1],
-  config?: GameConfig | null
+  config?: GameConfig | null,
+  restrictPage3ToTopTier = false
 ): MaxSingleMatchWinStats {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const marketById = new Map(markets.map((market) => [market.id, market]));
@@ -562,6 +854,14 @@ export function computeMaxDoubleSingleMatchWinStats(
       !pages.includes(market.page as AnalyticsPage) ||
       market.winner === null ||
       pick.team !== market.winner
+    )
+      continue;
+
+    if (
+      restrictPage3ToTopTier &&
+      market.page === 3 &&
+      config &&
+      !isPlayerEligibleForPage3Analytics(config, pick.playerId)
     )
       continue;
 
@@ -619,7 +919,8 @@ export function computeMaxSingleMatchWinStats(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[] = [1],
-  config?: GameConfig | null
+  config?: GameConfig | null,
+  restrictPage3ToTopTier = false
 ): MaxSingleMatchWinStats {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const marketById = new Map(markets.map((market) => [market.id, market]));
@@ -630,6 +931,14 @@ export function computeMaxSingleMatchWinStats(
     if (!market || !pages.includes(market.page as AnalyticsPage))
       continue;
     if (market.winner === null || pick.team !== market.winner)
+      continue;
+
+    if (
+      restrictPage3ToTopTier &&
+      market.page === 3 &&
+      config &&
+      !isPlayerEligibleForPage3Analytics(config, pick.playerId)
+    )
       continue;
 
     const questionPicks = picks.filter((item) => item.marketId === pick.marketId);
@@ -738,13 +1047,17 @@ function computeMarketPickBalanceStatsForPages(
   markets: Market[],
   picks: Pick[],
   pages: readonly AnalyticsPage[],
-  config?: GameConfig | null
+  config?: GameConfig | null,
+  marketIds?: readonly string[]
 ): Page1MarketPickBalanceStats {
   const rows: Page1MarketPickBalanceRow[] = [];
+  const marketIdSet = marketIds ? new Set(marketIds) : null;
 
-  for (const market of markets.filter((item) =>
-    pages.includes(item.page as AnalyticsPage)
-  )) {
+  for (const market of markets) {
+    if (!pages.includes(market.page as AnalyticsPage))
+      continue;
+    if (marketIdSet && !marketIdSet.has(market.id))
+      continue;
     const slotCounts = teamSlotCountsForMarket(market, picks, config);
     const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
     if (totalSlots === 0)
@@ -872,14 +1185,10 @@ export interface MaxColdWinStats {
   topRows: MaxColdWinRow[];
 }
 
-/** 少数派实际获胜的场次，按热门−冷门差距取最大（含并列）。 */
-export function computeMaxColdWinStats(
-  markets: Market[],
-  picks: Pick[],
-  pages: readonly AnalyticsPage[] = [1],
-  config?: GameConfig | null
+function computeMaxColdWinFromBalance(
+  balance: Page1MarketPickBalanceStats,
+  markets: Market[]
 ): MaxColdWinStats {
-  const balance = computeMarketPickBalanceStatsForPages(markets, picks, pages, config);
   const marketById = new Map(markets.map((market) => [market.id, market]));
   const upsets: MaxColdWinRow[] = [];
 
@@ -910,6 +1219,22 @@ export function computeMaxColdWinStats(
   return { topRows };
 }
 
+/** 少数派实际获胜的场次，按热门−冷门差距取最大（含并列）。 */
+export function computeMaxColdWinStats(
+  markets: Market[],
+  picks: Pick[],
+  pages: readonly AnalyticsPage[] = [1],
+  config?: GameConfig | null
+): MaxColdWinStats {
+  const balance = computeMarketPickBalanceStatsForPages(markets, picks, pages, config);
+  return computeMaxColdWinFromBalance(balance, markets);
+}
+
+export interface PickDistributionOption {
+  team: string;
+  slots: number;
+}
+
 export interface Page1PickDistributionRow {
   marketId: string;
   teamA: string;
@@ -920,6 +1245,23 @@ export interface Page1PickDistributionRow {
   coldSlots: number;
   totalSlots: number;
   winner: string | null;
+  /** M3-5..M3-7：全部选项计分位（热门→冷门）。 */
+  isMultiOption?: boolean;
+  options?: PickDistributionOption[];
+  marketName?: string;
+}
+
+function sortedPickDistributionOptions(
+  candidates: string[],
+  slotCounts: Map<string, number>
+): PickDistributionOption[] {
+  return candidates
+    .map((team) => ({ team, slots: slotCounts.get(team) ?? 0 }))
+    .sort(
+      (a, b) =>
+        b.slots - a.slots ||
+        candidates.indexOf(a.team) - candidates.indexOf(b.team)
+    );
 }
 
 function hotColdSlotCounts(
@@ -979,14 +1321,36 @@ function computePickDistributionForPage(
       continue;
 
     const slotCounts = teamSlotCountsForMarket(market, picks, config);
+    const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
+    if (totalSlots === 0)
+      continue;
+
+    if (MULTI_OPTION_FINAL_MARKET_IDS.has(market.id)) {
+      const options = sortedPickDistributionOptions(candidates, slotCounts);
+      const hotTeam = options[0]?.team ?? candidates[0]!;
+      const coldTeam = options[options.length - 1]?.team ?? candidates[candidates.length - 1]!;
+      rows.push({
+        marketId: market.id,
+        teamA: candidates[0]!,
+        teamB: candidates[1] ?? candidates[0]!,
+        hotTeam,
+        coldTeam,
+        hotSlots: options[0]?.slots ?? 0,
+        coldSlots: options[options.length - 1]?.slots ?? 0,
+        totalSlots,
+        winner: market.winner,
+        isMultiOption: true,
+        options,
+        marketName: market.name
+      });
+      continue;
+    }
+
     const sides = hotColdSlotCounts(candidates, slotCounts);
     if (!sides)
       continue;
 
     const { hotTeam, coldTeam, hotSlots, coldSlots } = sides;
-    const totalSlots = [...slotCounts.values()].reduce((sum, count) => sum + count, 0);
-    if (totalSlots === 0)
-      continue;
 
     rows.push({
       marketId: market.id,

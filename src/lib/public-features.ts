@@ -1,4 +1,5 @@
 import type { GameConfig, PlayPage } from "@/types";
+import { isPageLocked } from "@/lib/page-lock";
 
 /** 各页答题总览默认自动开放时间（UTC ISO），较竞猜截止晚 1 分钟。 */
 
@@ -209,6 +210,11 @@ export function isAnswersPagePublic(config: GameConfig, page: PlayPage) {
     if (!opensAt)
         return true;
     return Date.now() >= new Date(opensAt).getTime();
+}
+
+/** 第三页竞猜柱状图：仅在第三页锁定后公开，避免截止前偷看分布。 */
+export function isPage3PickChartPublic(config: GameConfig): boolean {
+    return isPageLocked(config, 3);
 }
 export function isEarlyMarketAnswersPublic(config: GameConfig, marketId: string): boolean {
     return marketId === EARLY_ANSWERS_MARKET_ID && config.answersM1_1Public;

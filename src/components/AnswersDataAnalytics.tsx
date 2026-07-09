@@ -3,9 +3,16 @@
 import { useMemo } from "react";
 import { useGame } from "@/context/GameContext";
 import { useLocale } from "@/context/LocaleContext";
-import { formatMarketMatchup, translateMarketCandidate } from "@/i18n";
+import { formatMarketMatchup, translateMarketCandidate, translateMarketName } from "@/i18n";
 import { formatScore, formatScorePlain } from "@/lib/score-format";
 import {
+  computeLockedAnalyticsCorrectPickStats,
+  computeLockedAnalyticsIncorrectPickStats,
+  computeLockedAnalyticsMaxColdWinStats,
+  computeLockedAnalyticsPickBalanceStats,
+  computeLockedAnalyticsPopularPickStats,
+  computeLockedAnalyticsRealWorldComparison,
+  computeLockedAnalyticsUnpopularPickStats,
   computeMaxColdWinStats,
   computeMaxSingleMatchWinStats,
   computePhase12CorrectPickStats,
@@ -15,7 +22,9 @@ import {
   computePhase12PopularPickStats,
   computePhase12RealWorldComparison,
   computePhase12UnpopularPickStats,
+  LOCKED_ANALYTICS_PAGES,
   PHASE12_ANALYTICS_PAGES,
+  shouldIncludePage3Analytics,
   coldSidePickersForMarket,
   type MaxColdWinRow,
   type MaxSingleMatchWinRow,
@@ -134,8 +143,14 @@ function GapBlock({
         {rows.map((row) => (
           <li key={row.marketId}>
             <span className="answers-analytics-leader-name">
-              {translateMarketCandidate(locale, row.favoriteTeam)} vs{" "}
-              {translateMarketCandidate(locale, row.underdogTeam)}
+              {row.isMultiOption && row.marketLabel
+                ? `${row.marketId.toUpperCase()} · ${translateMarketName(locale, row.marketLabel)}`
+                : (
+                  <>
+                    {translateMarketCandidate(locale, row.favoriteTeam)} vs{" "}
+                    {translateMarketCandidate(locale, row.underdogTeam)}
+                  </>
+                )}
             </span>
             <span className="answers-analytics-leader-count">
               {t("answers.analyticsRealWorldGapDetail", {
@@ -414,42 +429,80 @@ function AnalyticsSection({
   config?: GameConfig | null;
 }) {
   const { t } = useLocale();
+  const includePage3 = shouldIncludePage3Analytics(config);
 
   const popularStats = useMemo(
-    () => computePhase12PopularPickStats(players, markets, picks),
-    [players, markets, picks]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsPopularPickStats(players, markets, picks, config)
+        : computePhase12PopularPickStats(players, markets, picks),
+    [includePage3, players, markets, picks, config]
   );
   const unpopularStats = useMemo(
-    () => computePhase12UnpopularPickStats(players, markets, picks),
-    [players, markets, picks]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsUnpopularPickStats(players, markets, picks, config)
+        : computePhase12UnpopularPickStats(players, markets, picks),
+    [includePage3, players, markets, picks, config]
   );
   const realWorldComparison = useMemo(
-    () => computePhase12RealWorldComparison(markets, picks),
-    [markets, picks]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsRealWorldComparison(markets, picks, config)
+        : computePhase12RealWorldComparison(markets, picks),
+    [includePage3, markets, picks, config]
   );
   const maxWinStats = useMemo(
-    () => computeMaxSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES, config),
-    [players, markets, picks, config]
+    () =>
+      computeMaxSingleMatchWinStats(
+        players,
+        markets,
+        picks,
+        includePage3 ? LOCKED_ANALYTICS_PAGES : PHASE12_ANALYTICS_PAGES,
+        config,
+        includePage3
+      ),
+    [includePage3, players, markets, picks, config]
   );
   const maxColdWinStats = useMemo(
-    () => computeMaxColdWinStats(markets, picks, PHASE12_ANALYTICS_PAGES, config),
-    [markets, picks, config]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsMaxColdWinStats(markets, picks, config)
+        : computeMaxColdWinStats(markets, picks, PHASE12_ANALYTICS_PAGES, config),
+    [includePage3, markets, picks, config]
   );
   const pickBalanceStats = useMemo(
-    () => computePhase12MarketPickBalanceStats(markets, picks, config),
-    [markets, picks, config]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsPickBalanceStats(markets, picks, config)
+        : computePhase12MarketPickBalanceStats(markets, picks, config),
+    [includePage3, markets, picks, config]
   );
   const correctPickStats = useMemo(
-    () => computePhase12CorrectPickStats(players, markets, picks),
-    [players, markets, picks]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsCorrectPickStats(players, markets, picks, config)
+        : computePhase12CorrectPickStats(players, markets, picks),
+    [includePage3, players, markets, picks, config]
   );
   const incorrectPickStats = useMemo(
-    () => computePhase12IncorrectPickStats(players, markets, picks),
-    [players, markets, picks]
+    () =>
+      includePage3 && config
+        ? computeLockedAnalyticsIncorrectPickStats(players, markets, picks, config)
+        : computePhase12IncorrectPickStats(players, markets, picks),
+    [includePage3, players, markets, picks, config]
   );
   const maxDoubleWinStats = useMemo(
-    () => computeMaxDoubleSingleMatchWinStats(players, markets, picks, PHASE12_ANALYTICS_PAGES, config),
-    [players, markets, picks, config]
+    () =>
+      computeMaxDoubleSingleMatchWinStats(
+        players,
+        markets,
+        picks,
+        includePage3 ? LOCKED_ANALYTICS_PAGES : PHASE12_ANALYTICS_PAGES,
+        config,
+        includePage3
+      ),
+    [includePage3, players, markets, picks, config]
   );
 
   const formatRate = (value: number) => `${value.toFixed(1)}%`;

@@ -9,6 +9,7 @@ import { isPageLocked, syncMarkets } from "@/data/markets";
 import { getCurrentPlayerId, hydrateGameState, loadGameState, recalculateLeaderboardWithConfig, setCurrentPlayerId } from "@/lib/local-store";
 import { computePromotionFateByPlayerId } from "@/lib/promotion-fate";
 import { syncPromotionFateByPlayerId } from "@/lib/player-display";
+import { computeTopTierBestRank, type TopTierBestRankResult } from "@/lib/top-tier-best-rank";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
 import type { AnswersPageFeature } from "@/lib/public-features";
 interface GameContextValue {
@@ -41,6 +42,7 @@ interface GameContextValue {
     config: GameConfig;
     leaderboard: LeaderboardEntry[];
     promotionFateByPlayerId: ReadonlyMap<string, "A" | "E">;
+    topTierBestRank: TopTierBestRankResult | null;
     currentPlayerId: string | null;
 }
 const GameContext = createContext<GameContextValue | null>(null);
@@ -338,6 +340,10 @@ export function GameProvider({ children }: {
         () => computePromotionFateByPlayerId(players, markets, picks, config),
         [players, markets, picks, config]
     );
+    const topTierBestRank = useMemo(
+        () => computeTopTierBestRank(players, markets, picks, config),
+        [players, markets, picks, config]
+    );
     useEffect(() => {
         syncPromotionFateByPlayerId(promotionFateByPlayerId);
         return () => syncPromotionFateByPlayerId(null);
@@ -351,6 +357,7 @@ export function GameProvider({ children }: {
         config,
         leaderboard,
         promotionFateByPlayerId,
+        topTierBestRank,
         currentPlayerId,
         submitPicks,
         setMarketWinner,
@@ -375,6 +382,7 @@ export function GameProvider({ children }: {
         config,
         leaderboard,
         promotionFateByPlayerId,
+        topTierBestRank,
         currentPlayerId,
         submitPicks,
         setMarketWinner,

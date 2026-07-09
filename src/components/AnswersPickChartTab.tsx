@@ -9,6 +9,7 @@ import {
   computePage2PickDistribution,
   computePage3PickDistribution
 } from "@/lib/answers-analytics";
+import { isPage3PickChartPublic } from "@/lib/public-features";
 import type { GameConfig, Market, Pick } from "@/types";
 
 function PickChartSection({
@@ -52,6 +53,7 @@ function PickChartSection({
 export function AnswersPickChartTab() {
   const { players, markets, picks, config } = useGame();
   const { t } = useLocale();
+  const page3PickChartPublic = config ? isPage3PickChartPublic(config) : false;
 
   if (players.length === 0) {
     return (
@@ -75,13 +77,19 @@ export function AnswersPickChartTab() {
         picks={picks}
         emptyKey="answers.analyticsPopularEmptyPage2"
       />
-      <PickChartSection
-        page={3}
-        markets={markets}
-        picks={picks}
-        config={config}
-        emptyKey="answers.analyticsPopularEmptyPage2"
-      />
+      {page3PickChartPublic ? (
+        <PickChartSection
+          page={3}
+          markets={markets}
+          picks={picks}
+          config={config}
+          emptyKey="answers.analyticsPopularEmptyPage2"
+        />
+      ) : (
+        <section className="card answers-analytics-section answers-analytics-chart-section answers-pick-chart-section">
+          <p className="answers-analytics-placeholder">{t("answers.analyticsPickChartPage3Locked")}</p>
+        </section>
+      )}
     </div>
   );
 }

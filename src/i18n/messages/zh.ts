@@ -178,7 +178,11 @@ export const zh = {
         promotionZone: "晋级区",
         earning: "总收益",
         penaltyPhase12: "扣收益(1/16·1/8)",
-        penaltyPage3: "扣收益(1/4+)"
+        penaltyPage3: "扣收益(1/4+)",
+        bestPossibleRank: "理论最佳",
+        bestPossibleRankNote: "第三页锁定后，按剩余 {count} 种淘汰赛路径计算上档玩家可达的最高名次。",
+        sharpeRatio: "夏普比率",
+        sharpeRatioNote: "已结算各场 parimutuel 收益之和 ÷ 标准差；未猜的已结算场次记 0。"
     },
     answers: {
         title: "答题总览",
@@ -243,12 +247,15 @@ export const zh = {
         analyticsMaxColdWinEmptyPage2: "暂无 1/8 决赛少数派获胜的已结算场次。",
         analyticsPickChartTitle: "16 场竞猜分布",
         analyticsPickChartTitlePage2: "8 场竞猜分布",
+        analyticsPickChartPage3Locked: "1/4 决赛及以后的竞猜柱状图将在第三页锁定后公开。",
         analyticsPickChartNote: "按计分位统计（Double 计 2）；左热门、右冷门",
         analyticsPickChartLegendHot: "热门（左）",
         analyticsPickChartLegendCold: "冷门（右）",
         analyticsPickChartLegendWinner: "已公布赢家",
         analyticsPickChartAxis: "每计分位等宽",
         analyticsPickChartBarAria: "{market} 热门{hotTeam} {hotSlots} 计分位，冷门{coldTeam} {coldSlots} 计分位",
+        analyticsPickChartOptionAria: "{team} {slots} 计分位",
+        analyticsPickChartMultiBarAria: "{market}：{detail}",
         closedTitle: "答题总览尚未开放",
         closedDesc: "管理员将在合适的时间开放1/16决赛或1/8决赛的答题总览。",
         lead: "每位玩家在各场比赛中的竞猜一览；横向滑动可查看全部题目。",
