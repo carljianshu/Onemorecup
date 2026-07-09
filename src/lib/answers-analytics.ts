@@ -31,6 +31,43 @@ function pickSlotWeight(stake: number): number {
   return stake === DOUBLE_STAKE ? 2 : 1;
 }
 
+/** 第三页数据分析：排名锁定后仅统计上档玩家作答。 */
+export function usesPage3AnalyticsTopTierPool(
+  market: Market,
+  config?: GameConfig | null
+): boolean {
+  return Boolean(market.page === 3 && isRankLockApplied(config));
+}
+
+export function marketPicksForPage3Analytics(
+  market: Market,
+  picks: Pick[],
+  config: GameConfig
+): Pick[] {
+  const topIds = new Set(config.rankLockTopPlayerIds ?? []);
+  return picks.filter(
+    (pick) => pick.marketId === market.id && topIds.has(pick.playerId)
+  );
+}
+
+export function topTierPlayersForPage3Analytics(players: Player[], config: GameConfig): Player[] {
+  const topIds = new Set(config.rankLockTopPlayerIds ?? []);
+  return players.filter((player) => topIds.has(player.id));
+}
+
+function picksForMarketStats(
+  market: Market,
+  picks: Pick[],
+  config?: GameConfig | null
+): Pick[] {
+  if (usesPage3AnalyticsTopTierPool(market, config))
+    return marketPicksForPage3Analytics(market, picks, config!);
+  return filterPicksForParimutuelPool(
+    picks.filter((item) => item.marketId === market.id),
+    { config, market, viewerPlayerId: null }
+  );
+}
+
 export function teamSlotCountsForMarket(
   market: Market,
   picks: Pick[],
@@ -40,10 +77,7 @@ export function teamSlotCountsForMarket(
   for (const team of market.candidates ?? []) {
     counts.set(team, 0);
   }
-  const marketPicks = filterPicksForParimutuelPool(
-    picks.filter((item) => item.marketId === market.id),
-    { config, market, viewerPlayerId: null }
-  );
+  const marketPicks = picksForMarketStats(market, picks, config);
   for (const pick of marketPicks) {
     if (!counts.has(pick.team))
       continue;
@@ -57,10 +91,7 @@ function marketPicksForStats(
   picks: Pick[],
   config?: GameConfig | null
 ): Pick[] {
-  return filterPicksForParimutuelPool(
-    picks.filter((item) => item.marketId === market.id),
-    { config, market, viewerPlayerId: null }
-  );
+  return picksForMarketStats(market, picks, config);
 }
 
 /** 各队支持率（百分数）；无作答返回 null。 */
@@ -413,11 +444,6 @@ export function shouldIncludePage3Analytics(config?: GameConfig | null): boolean
   return Boolean(config && isPageLocked(config, 3) && isRankLockApplied(config));
 }
 
-function topTierPlayersForPage3Analytics(players: Player[], config: GameConfig): Player[] {
-  const topIds = new Set(config.rankLockTopPlayerIds ?? []);
-  return players.filter((player) => topIds.has(player.id));
-}
-
 function isPlayerEligibleForPage3Analytics(config: GameConfig, playerId: string): boolean {
   return (config.rankLockTopPlayerIds ?? []).includes(playerId);
 }
@@ -503,7 +529,7 @@ export function computeLockedAnalyticsPopularPickStats(
     markets,
     picks,
     [3],
-    majorityTeamForMarket,
+    (market, groupPicks, pageConfig) => majorityTeamForMarket(market, groupPicks, pageConfig ?? config),
     config
   );
   return mergeSidePickStats(players, phase12, page3);
@@ -528,7 +554,7 @@ export function computeLockedAnalyticsUnpopularPickStats(
     markets,
     picks,
     [3],
-    minorityTeamForMarket,
+    (market, groupPicks, pageConfig) => minorityTeamForMarket(market, groupPicks, pageConfig ?? config),
     config
   );
   return mergeSidePickStats(players, phase12, page3);

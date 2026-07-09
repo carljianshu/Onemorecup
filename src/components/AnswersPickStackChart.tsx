@@ -78,6 +78,8 @@ function optionLabelColor(index: number, count: number): CSSProperties {
   return {
     color: `color-mix(in srgb, rgba(251, 191, 140, 0.95) ${Math.round((1 - ratio) * 100)}%, rgba(125, 211, 252, 0.95))`
   };
+}
+
 function formatMultiOptionAria(
   row: Page1PickDistributionRow,
   options: PickDistributionOption[],

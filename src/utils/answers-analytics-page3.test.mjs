@@ -10,7 +10,9 @@ import {
   computeLockedAnalyticsPickBalanceStats,
   computeLockedAnalyticsPopularPickStats,
   computeLockedAnalyticsUnpopularPickStats,
-  shouldIncludePage3Analytics
+  marketPicksForPage3Analytics,
+  shouldIncludePage3Analytics,
+  teamSupportRatesForMarket
 } from "./src/lib/answers-analytics.ts";
 import { PAGE3_CANYON_MARKET_IDS, PAGE3_SEQUOIA_MARKET_IDS } from "./src/data/markets.ts";
 import { isPageLocked } from "./src/lib/page-lock.ts";
@@ -59,6 +61,13 @@ assert.equal(top1Popular?.matchCount, 2, "top1 picked hot on m3-1 and m3-5");
 assert.equal(top2Popular?.matchCount, 1, "top2 picked hot only on m3-1");
 assert.equal(bottomPopular?.matchCount, 0, "bottom tier excluded from page 3");
 
+const m31Picks = marketPicksForPage3Analytics(markets.find((m) => m.id === "m3-1"), picks, config);
+assert.equal(m31Picks.length, 2, "page 3 analytics pool ignores bottom tier picks");
+const m35Rates = teamSupportRatesForMarket(markets.find((m) => m.id === "m3-5"), picks, config);
+const m35RatesAll = teamSupportRatesForMarket(markets.find((m) => m.id === "m3-5"), picks, null);
+assert.equal(m35Rates?.get("法国"), 66.66666666666667, "France rate uses top-tier pool only");
+assert.equal(m35RatesAll?.get("法国"), 75, "all-player pool would count bottom-tier France");
+
 const unpopular = computeLockedAnalyticsUnpopularPickStats(players, markets, picks, config);
 const top2Unpopular = unpopular.rows.find((row) => row.playerId === "top2");
 assert.equal(top2Unpopular?.matchCount, 1, "top2 picked least popular Spain on m3-5");
@@ -80,7 +89,9 @@ import {
 } from "./src/lib/answers-analytics.ts";
 import { PAGE3_BINARY_REAL_WORLD_RATES, PAGE3_MULTI_OPTION_REAL_WORLD_RATES } from "./src/data/page3-real-world-rates.ts";
 const distribution = computePage3PickDistribution(markets, picks, config);
+const m31 = distribution.find((row) => row.marketId === "m3-1");
 const m35 = distribution.find((row) => row.marketId === "m3-5");
+assert.equal(m31?.totalSlots, 2, "m3-1 chart excludes bottom-tier slots");
 assert(m35?.isMultiOption, "m3-5 should be multi-option chart row");
 assert.equal(m35?.options?.length, 4, "m3-5 should list all four options");
 assert.equal(m35?.options?.[0]?.team, "法国", "hottest option first");
