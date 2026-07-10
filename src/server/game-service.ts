@@ -272,6 +272,39 @@ export function patchPlayerInGroup(playerId: string, inGroupPlayer: boolean, exp
         });
     }, expectedVersion);
 }
+/** 管理员代填某页竞猜；跳过页面锁定校验，仅限已在册玩家。 */
+export async function adminSavePlayerPagePicks(
+    playerId: string,
+    body: { page: PlayPage; pagePickInputs: PlayerPickInput[] },
+    expectedVersion?: number
+) {
+    let saveResult: ReturnType<typeof savePlayerPicks> | null = null;
+    const stored = await mutateStoredGame((current) => {
+        const state = hydrateGameState(current.payload, { persist: false });
+        const player = state.players.find((p) => p.id === playerId);
+        if (!player)
+            throw new Error("PLAYER_NOT_FOUND");
+        const pagePickInputs = applyLockedMarketPickPreservation(body.page, body.pagePickInputs, state.markets, playerId, state.picks);
+        const pickInputs = migratePickInputsForMarkets(mergePickInputsForPageSave(body.page, pagePickInputs, state.markets, playerId, state.picks), state.markets);
+        validatePlayerSave(body.page, pickInputs, pagePickInputs, state.markets, playerId, state.config);
+        saveResult = savePlayerPicks(player.name, pickInputs, { players: state.players, markets: state.markets, picks: state.picks, config: state.config }, playerId, body.page, state.leaderboard);
+        return snapshotFromState({
+            players: state.players.map((p) => (p.id === saveResult!.player.id ? saveResult!.player : p)),
+            markets: state.markets,
+            picks: [
+                ...state.picks.filter((pick) => pick.playerId !== saveResult!.player.id),
+                ...saveResult.picks
+            ],
+            config: saveResult.config ?? state.config
+        });
+    }, expectedVersion);
+    const response = toResponse(stored);
+    return {
+        ...response,
+        player: saveResult!.player,
+        pickStats: saveResult!.player.pickStats
+    };
+}
 export function patchPlayerHu(playerId: string, huPlayer: boolean, expectedVersion?: number) {
     return mutateAdmin((state) => {
         const result = setPlayerHu(playerId, huPlayer, {

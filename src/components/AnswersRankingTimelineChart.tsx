@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useLocale } from "@/context/LocaleContext";
-import { computeRankingTimeline } from "@/lib/earnings-timeline";
+import type { RankingTimelineData } from "@/lib/earnings-timeline";
 import {
   TIMELINE_CHART_HEIGHT,
   TIMELINE_PAD_BOTTOM,
@@ -16,32 +16,23 @@ import {
 } from "@/components/answers-timeline-chart-shared";
 import { AnswersTimelineChartLegend } from "@/components/AnswersTimelineChartLegend";
 import type { TimelineViewPlayer } from "@/components/AnswersTimelineViewPicker";
-import type { Market, Pick, Player } from "@/types";
 
 function formatRank(rank: number): string {
   return `#${rank}`;
 }
 
 export function AnswersRankingTimelineChart({
-  players,
-  markets,
-  picks,
+  timeline,
   selectedPlayerIds,
   colorIndexByPlayerId,
   legendPlayers
 }: {
-  players: Player[];
-  markets: Market[];
-  picks: Pick[];
+  timeline: RankingTimelineData;
   selectedPlayerIds: Set<string>;
   colorIndexByPlayerId: Map<string, number>;
   legendPlayers: TimelineViewPlayer[];
 }) {
   const { locale, t } = useLocale();
-  const timeline = useMemo(
-    () => computeRankingTimeline(players, markets, picks),
-    [players, markets, picks]
-  );
 
   const visibleSeries = useMemo(
     () =>
@@ -131,6 +122,7 @@ export function AnswersRankingTimelineChart({
             {visibleSeries.map((row) => {
               const color = timelineSeriesColor(colorIndexByPlayerId.get(row.playerId) ?? 0);
               const points = row.ranks
+                .slice(0, row.lastStepIndex + 1)
                 .map((rank, index) => `${xAt(index)},${yAt(rank)}`)
                 .join(" ");
               return (

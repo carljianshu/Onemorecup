@@ -182,7 +182,8 @@ export const zh = {
         bestPossibleRank: "理论最佳",
         bestPossibleRankNote: "第三页锁定后，按剩余 {count} 种淘汰赛路径计算上档玩家可达的最高名次。",
         sharpeRatio: "夏普比率",
-        sharpeRatioNote: "已结算各场 parimutuel 收益之和 ÷ 标准差；未猜的已结算场次记 0。"
+        sharpeRatioNote: "已结算各场 parimutuel 收益之和 ÷ 标准差；未猜的已结算场次记 0。",
+        championshipOdds: "夺冠赔率"
     },
     answers: {
         title: "答题总览",
@@ -191,7 +192,7 @@ export const zh = {
         tabPickChart: "竞猜柱状图",
         tabEarningsTimeline: "积分走势",
         analyticsEarningsTimelineTitle: "逐场累计净收益",
-        analyticsEarningsTimelineNote: "按 1/16 固定结算顺序累计 parimutuel 得分。",
+        analyticsEarningsTimelineNote: "按三阶段固定结算顺序累计 parimutuel 得分（1/16、1/8、1/4 及以后各有独立顺序）。",
         analyticsEarningsTimelineStart: "起始",
         analyticsEarningsTimelineEmpty: "暂无已结算场次。",
         analyticsRankingTimelineTitle: "逐场排名走势",
@@ -200,7 +201,7 @@ export const zh = {
         analyticsTimelineViewTop10: "前10名",
         analyticsTimelineViewBoss: "Boss玩家",
         analyticsTimelineViewTop10Note: "按最新一场结算后的累计净收益取前 10 名；新场次录入后会自动更新名单与折线。",
-        analyticsTimelineViewBossNote: "固定 Boss 玩家名单；仅展示已注册且存在于名单中的玩家。",
+        analyticsTimelineViewBossNote: "固定 Boss 玩家名单。Aguachile、补水啦仅展示第一阶段且不计扣分；Quagmire 仅展示前两阶段；其余玩家展示至当前已结算的第三阶段场次。",
         analyticsTimelineViewBossEmpty: "Boss 名单中暂无已注册玩家。",
         analyticsTimelinePlayerPickerEmpty: "当前没有可展示的玩家。",
         analyticsTitle: "1/16 & 1/8 决赛 · 数据分析",

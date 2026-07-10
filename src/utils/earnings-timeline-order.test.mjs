@@ -8,7 +8,8 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const script = `
-import { computeEarningsTimeline, PAGE1_SETTLEMENT_ORDER, PAGE2_SETTLEMENT_ORDER, sortMarketsBySettlementOrder } from "./src/lib/earnings-timeline.ts";
+import { computeEarningsTimeline, PAGE1_SETTLEMENT_ORDER, PAGE2_SETTLEMENT_ORDER, PAGE3_SETTLEMENT_ORDER, sortMarketsBySettlementOrder } from "./src/lib/earnings-timeline.ts";
+import { buildTimelinePlayerOptionsById } from "./src/lib/timeline-player-views.ts";
 import { ensureMarketShape, DEFAULT_MARKETS } from "./src/data/markets.ts";
 
 function assert(cond, msg) {
@@ -76,6 +77,18 @@ assert(m2Order.indexOf("m2-5") < m2Order.indexOf("m2-6"), "m2-5 should settle be
 assert(m2Order.indexOf("m2-6") < m2Order.indexOf("m2-3"), "m2-6 should settle before m2-3");
 assert(m2Order.indexOf("m2-3") < m2Order.indexOf("m2-4"), "m2-3 should settle before m2-4");
 
+const settledM3 = PAGE3_SETTLEMENT_ORDER.map((id) => ({
+  id,
+  page: 3,
+  winner: "A",
+  candidates: ["A", "B"]
+}));
+const m3Order = sortMarketsBySettlementOrder(settledM3).map((m) => m.id);
+assert(
+  m3Order.join(",") === PAGE3_SETTLEMENT_ORDER.join(","),
+  "settled M3 order should match PAGE3_SETTLEMENT_ORDER"
+);
+
 const crossPage = sortMarketsBySettlementOrder([
   ...settledM2,
   { id: "m1-15", page: 1, winner: "A", candidates: ["A", "B"] }
@@ -84,6 +97,40 @@ assert(
   crossPage.join(",") === "m1-15,m2-2,m2-1,m2-5,m2-6,m2-3,m2-4",
   "M1 should precede M2; after m1-15 comes m2-2 then m2-1 then m2-5 then m2-6 then m2-3 then m2-4"
 );
+
+const crossPageWithM3 = sortMarketsBySettlementOrder([
+  ...settledM2,
+  { id: "m1-15", page: 1, winner: "A", candidates: ["A", "B"] },
+  { id: "m3-1", page: 3, winner: "A", candidates: ["A", "B"] }
+]).map((m) => m.id);
+assert(
+  crossPageWithM3.join(",") === "m1-15,m2-2,m2-1,m2-5,m2-6,m2-3,m2-4,m3-1",
+  "M3 should follow M2; after m2-4 comes m3-1"
+);
+
+const bossPlayers = [
+  { id: "agu", name: "Aguachile", createdAt: "", pickPenalty: 50, pickPenaltyPage3: 20 },
+  { id: "qua", name: "Quagmire", createdAt: "", pickPenalty: 10, pickPenaltyPage3: 0 },
+  { id: "bc", name: "Boss Crab", createdAt: "", pickPenalty: 0, pickPenaltyPage3: 0 }
+];
+const bossOptions = buildTimelinePlayerOptionsById("boss", bossPlayers);
+const bossTimeline = computeEarningsTimeline(
+  bossPlayers,
+  [
+    { id: "m1-1", page: 1, winner: "A", candidates: ["A", "B"] },
+    { id: "m2-1", page: 2, winner: "A", candidates: ["A", "B"] },
+    { id: "m3-1", page: 3, winner: "A", candidates: ["A", "B"] }
+  ],
+  [],
+  { playerOptionsById: bossOptions }
+);
+const agu = bossTimeline.series.find((row) => row.playerId === "agu");
+const qua = bossTimeline.series.find((row) => row.playerId === "qua");
+const bc = bossTimeline.series.find((row) => row.playerId === "bc");
+assert(agu?.lastStepIndex === 1, "Aguachile should stop after phase 1");
+assert(agu?.finalNet === 0, "Aguachile should not apply pick penalties");
+assert(qua?.lastStepIndex === 2, "Quagmire should stop after phase 2");
+assert(bc?.lastStepIndex === 3, "Boss Crab should include settled M3-1");
 
 const allSettled = ensureMarketShape(
   DEFAULT_MARKETS.map((market) =>

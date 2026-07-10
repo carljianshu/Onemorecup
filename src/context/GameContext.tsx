@@ -10,6 +10,7 @@ import { getCurrentPlayerId, hydrateGameState, loadGameState, recalculateLeaderb
 import { computePromotionFateByPlayerId } from "@/lib/promotion-fate";
 import { syncPromotionFateByPlayerId } from "@/lib/player-display";
 import { computeTopTierBestRank, type TopTierBestRankResult } from "@/lib/top-tier-best-rank";
+import { computeChampionshipOdds, type ChampionshipOddsResult } from "@/lib/championship-odds";
 import type { GameConfig, LeaderboardEntry, Market, Pick, PickStats, Player, PlayerPickInput, PlayPage } from "@/types";
 import type { AnswersPageFeature } from "@/lib/public-features";
 interface GameContextValue {
@@ -43,6 +44,7 @@ interface GameContextValue {
     leaderboard: LeaderboardEntry[];
     promotionFateByPlayerId: ReadonlyMap<string, "A" | "E">;
     topTierBestRank: TopTierBestRankResult | null;
+    championshipOdds: ChampionshipOddsResult | null;
     currentPlayerId: string | null;
 }
 const GameContext = createContext<GameContextValue | null>(null);
@@ -344,6 +346,10 @@ export function GameProvider({ children }: {
         () => computeTopTierBestRank(players, markets, picks, config),
         [players, markets, picks, config]
     );
+    const championshipOdds = useMemo(
+        () => computeChampionshipOdds(players, markets, picks, config),
+        [players, markets, picks, config]
+    );
     useEffect(() => {
         syncPromotionFateByPlayerId(promotionFateByPlayerId);
         return () => syncPromotionFateByPlayerId(null);
@@ -358,6 +364,7 @@ export function GameProvider({ children }: {
         leaderboard,
         promotionFateByPlayerId,
         topTierBestRank,
+        championshipOdds,
         currentPlayerId,
         submitPicks,
         setMarketWinner,
@@ -383,6 +390,7 @@ export function GameProvider({ children }: {
         leaderboard,
         promotionFateByPlayerId,
         topTierBestRank,
+        championshipOdds,
         currentPlayerId,
         submitPicks,
         setMarketWinner,

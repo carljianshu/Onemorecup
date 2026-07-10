@@ -3,9 +3,7 @@
 import { useMemo } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { formatScorePlain } from "@/lib/score-format";
-import {
-  computeEarningsTimeline
-} from "@/lib/earnings-timeline";
+import type { EarningsTimelineData } from "@/lib/earnings-timeline";
 import {
   roundTimelineTick,
   TIMELINE_CHART_HEIGHT,
@@ -20,28 +18,19 @@ import {
 } from "@/components/answers-timeline-chart-shared";
 import { AnswersTimelineChartLegend } from "@/components/AnswersTimelineChartLegend";
 import type { TimelineViewPlayer } from "@/components/AnswersTimelineViewPicker";
-import type { Market, Pick, Player } from "@/types";
 
 export function AnswersEarningsTimelineChart({
-  players,
-  markets,
-  picks,
+  timeline,
   selectedPlayerIds,
   colorIndexByPlayerId,
   legendPlayers
 }: {
-  players: Player[];
-  markets: Market[];
-  picks: Pick[];
+  timeline: EarningsTimelineData;
   selectedPlayerIds: Set<string>;
   colorIndexByPlayerId: Map<string, number>;
   legendPlayers: TimelineViewPlayer[];
 }) {
   const { locale, t } = useLocale();
-  const timeline = useMemo(
-    () => computeEarningsTimeline(players, markets, picks),
-    [players, markets, picks]
-  );
 
   const visibleSeries = useMemo(
     () =>
@@ -51,7 +40,9 @@ export function AnswersEarningsTimelineChart({
 
   const stepCount = timeline.steps.length;
   const chartWidth = timelineChartWidth(stepCount);
-  const allValues = visibleSeries.flatMap((row) => row.values);
+  const allValues = visibleSeries.flatMap((row) =>
+    row.values.slice(0, row.lastStepIndex + 1)
+  );
   const minY = stepCount <= 1 || visibleSeries.length === 0 ? 0 : Math.min(0, ...allValues);
   const maxY = stepCount <= 1 || visibleSeries.length === 0 ? 0 : Math.max(0, ...allValues);
   const ySpan = maxY - minY || 1;
@@ -145,6 +136,7 @@ export function AnswersEarningsTimelineChart({
             {visibleSeries.map((row) => {
               const color = timelineSeriesColor(colorIndexByPlayerId.get(row.playerId) ?? 0);
               const points = row.values
+                .slice(0, row.lastStepIndex + 1)
                 .map((value, index) => `${xAt(index)},${yAt(value)}`)
                 .join(" ");
               return (

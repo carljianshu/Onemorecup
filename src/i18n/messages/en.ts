@@ -183,7 +183,8 @@ export const en: Messages = {
         bestPossibleRank: "Best possible",
         bestPossibleRankNote: "After quarter-finals lock, best rank each top-tier player can still reach across {count} remaining knockout paths.",
         sharpeRatio: "Sharpe ratio",
-        sharpeRatioNote: "Sum of settled per-match parimutuel earnings ÷ standard deviation; missed settled matches count as 0."
+        sharpeRatioNote: "Sum of settled per-match parimutuel earnings ÷ standard deviation; missed settled matches count as 0.",
+        championshipOdds: "Win odds"
     },
     answers: {
         title: "All picks",
@@ -192,7 +193,7 @@ export const en: Messages = {
         tabPickChart: "Pick bar chart",
         tabEarningsTimeline: "Earnings timeline",
         analyticsEarningsTimelineTitle: "Cumulative net earnings by settled match",
-        analyticsEarningsTimelineNote: "Parimutuel scores summed in the fixed Round of 16 settlement order.",
+        analyticsEarningsTimelineNote: "Parimutuel scores summed in the fixed settlement order for each phase (Round of 32, Round of 16, quarter-finals and later).",
         analyticsEarningsTimelineStart: "Start",
         analyticsEarningsTimelineEmpty: "No settled matches yet.",
         analyticsRankingTimelineTitle: "Rank after each settled match",
@@ -201,7 +202,7 @@ export const en: Messages = {
         analyticsTimelineViewTop10: "Top 10",
         analyticsTimelineViewBoss: "Boss players",
         analyticsTimelineViewTop10Note: "The top 10 by cumulative net earnings after the latest settled match. Updates automatically when new results are entered.",
-        analyticsTimelineViewBossNote: "Fixed Boss player list; only registered players on the list are shown.",
+        analyticsTimelineViewBossNote: "Fixed Boss player list. Aguachile and 补水啦: phase 1 only, no pick penalties. Quagmire: phases 1–2 only. Others: through the latest settled quarter-final match.",
         analyticsTimelineViewBossEmpty: "No registered players match the Boss list.",
         analyticsTimelinePlayerPickerEmpty: "No players to display.",
         analyticsTitle: "Round of 32 & Round of 16 · Analytics",

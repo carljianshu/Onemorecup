@@ -12,6 +12,7 @@ import { displayM1MarketColumnLabel } from "@/lib/fifa-codes";
 import { promotionCutoffCount, showPromotionCutoffLine } from "@/lib/promotion";
 import { isPlayerInRankLockBottomTier } from "@/lib/rank-lock";
 import { computePlayerSharpeRatio } from "@/lib/player-sharpe-ratio";
+import { formatChampionshipOdds } from "@/lib/championship-odds";
 
 function scoreClass(score: number) {
   if (score > 0) return "score-positive";
@@ -20,7 +21,7 @@ function scoreClass(score: number) {
 }
 
 export default function LeaderboardPage() {
-  const { ready, markets, leaderboard, config, topTierBestRank, picks } = useGame();
+  const { ready, markets, leaderboard, config, topTierBestRank, championshipOdds, picks } = useGame();
   const { t, locale } = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
   const sharpeByPlayerId = useMemo(() => {
@@ -45,7 +46,8 @@ export default function LeaderboardPage() {
   const promotionCount = promotionCutoffCount(leaderboard.length);
   const showPromotionCutoff = showPromotionCutoffLine(leaderboard.length);
   const showBestPossibleRank = Boolean(topTierBestRank);
-  const tableColSpan = 9 + (showBestPossibleRank ? 1 : 0) + 1;
+  const showChampionshipOdds = Boolean(championshipOdds);
+  const tableColSpan = 9 + (showBestPossibleRank ? 1 : 0) + (showChampionshipOdds ? 1 : 0) + 1;
 
   return (
     <main className="container container-wide">
@@ -83,6 +85,7 @@ export default function LeaderboardPage() {
                 <th>{t("leaderboard.settled")}</th>
                 <th>{t("leaderboard.details")}</th>
                 {showBestPossibleRank ? <th>{t("leaderboard.bestPossibleRank")}</th> : null}
+                {showChampionshipOdds ? <th>{t("leaderboard.championshipOdds")}</th> : null}
                 <th>{t("leaderboard.sharpeRatio")}</th>
                 <th>{t("leaderboard.earning")}</th>
               </tr>
@@ -126,6 +129,16 @@ export default function LeaderboardPage() {
                         {isPlayerInRankLockBottomTier(config, entry.playerId)
                           ? t("common.none")
                           : `#${topTierBestRank?.bestRankByPlayerId.get(entry.playerId) ?? entry.rank}`}
+                      </td>
+                    ) : null}
+                    {showChampionshipOdds ? (
+                      <td>
+                        {isPlayerInRankLockBottomTier(config, entry.playerId)
+                          ? t("common.none")
+                          : (() => {
+                              const odds = championshipOdds?.oddsByPlayerId.get(entry.playerId);
+                              return odds == null ? t("common.none") : formatChampionshipOdds(odds);
+                            })()}
                       </td>
                     ) : null}
                     <td>

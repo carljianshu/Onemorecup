@@ -12,53 +12,92 @@ import {
   sortMarketsBySettlementOrder
 } from "@/lib/earnings-timeline";
 import {
+  buildTimelinePlayerOptionsById,
   resolveTimelinePlayerIds,
   TIMELINE_BOSS_PLAYER_NAMES,
   type TimelinePlayerViewMode
 } from "@/lib/timeline-player-views";
 
 export function AnswersEarningsTimelineTab() {
-  const { players, markets, picks } = useGame();
+  const { players, markets, picks, config } = useGame();
   const { t } = useLocale();
   const [viewMode, setViewMode] = useState<TimelinePlayerViewMode>("top10");
 
-  const page1Markets = useMemo(
-    () => markets.filter((market) => market.page === 1 || market.page === 2),
+  const timelineMarkets = useMemo(
+    () => markets.filter((market) => market.page === 1 || market.page === 2 || market.page === 3),
     [markets]
   );
 
   const hasSettled = useMemo(
-    () => sortMarketsBySettlementOrder(page1Markets).length > 0,
-    [page1Markets]
+    () => sortMarketsBySettlementOrder(timelineMarkets).length > 0,
+    [timelineMarkets]
   );
 
-  const earningsTimeline = useMemo(
-    () => (hasSettled ? computeEarningsTimeline(players, page1Markets, picks) : null),
-    [hasSettled, players, page1Markets, picks]
+  const top10PlayerOptions = useMemo(
+    () => buildTimelinePlayerOptionsById("top10", players),
+    [players]
   );
-  const rankingTimeline = useMemo(
-    () => (hasSettled ? computeRankingTimeline(players, page1Markets, picks) : null),
-    [hasSettled, players, page1Markets, picks]
+  const displayPlayerOptions = useMemo(
+    () => buildTimelinePlayerOptionsById(viewMode, players),
+    [viewMode, players]
+  );
+
+  const top10EarningsTimeline = useMemo(
+    () =>
+      hasSettled
+        ? computeEarningsTimeline(players, timelineMarkets, picks, {
+            config,
+            playerOptionsById: top10PlayerOptions
+          })
+        : null,
+    [hasSettled, players, timelineMarkets, picks, config, top10PlayerOptions]
+  );
+
+  const displayEarningsTimeline = useMemo(
+    () =>
+      hasSettled
+        ? computeEarningsTimeline(players, timelineMarkets, picks, {
+            config,
+            playerOptionsById: displayPlayerOptions
+          })
+        : null,
+    [hasSettled, players, timelineMarkets, picks, config, displayPlayerOptions]
+  );
+
+  const displayRankingTimeline = useMemo(
+    () =>
+      hasSettled
+        ? computeRankingTimeline(players, timelineMarkets, picks, {
+            config,
+            playerOptionsById: displayPlayerOptions
+          })
+        : null,
+    [hasSettled, players, timelineMarkets, picks, config, displayPlayerOptions]
   );
 
   const playerMetaById = useMemo(() => {
-    if (!earningsTimeline || !rankingTimeline)
+    if (!top10EarningsTimeline || !displayEarningsTimeline || !displayRankingTimeline)
       return new Map<string, { playerName: string; finalNet: number; finalRank: number; colorIndex: number }>();
-    const rankById = new Map(
-      rankingTimeline.series.map((row) => [row.playerId, row.finalRank])
+
+    const displayNetById = new Map(
+      displayEarningsTimeline.series.map((row) => [row.playerId, row.finalNet])
     );
+    const displayRankById = new Map(
+      displayRankingTimeline.series.map((row) => [row.playerId, row.finalRank])
+    );
+
     return new Map(
-      earningsTimeline.series.map((row, index) => [
+      top10EarningsTimeline.series.map((row, index) => [
         row.playerId,
         {
           playerName: row.playerName,
-          finalNet: row.finalNet,
-          finalRank: rankById.get(row.playerId) ?? players.length,
+          finalNet: displayNetById.get(row.playerId) ?? row.finalNet,
+          finalRank: displayRankById.get(row.playerId) ?? players.length,
           colorIndex: index
         }
       ])
     );
-  }, [earningsTimeline, rankingTimeline, players.length]);
+  }, [top10EarningsTimeline, displayEarningsTimeline, displayRankingTimeline, players.length]);
 
   const colorIndexByPlayerId = useMemo(
     () => new Map([...playerMetaById.entries()].map(([id, meta]) => [id, meta.colorIndex])),
@@ -66,10 +105,10 @@ export function AnswersEarningsTimelineTab() {
   );
 
   const selectedPlayerIds = useMemo(() => {
-    if (!earningsTimeline)
+    if (!top10EarningsTimeline)
       return new Set<string>();
-    return resolveTimelinePlayerIds(viewMode, earningsTimeline.series, players);
-  }, [viewMode, earningsTimeline, players]);
+    return resolveTimelinePlayerIds(viewMode, top10EarningsTimeline.series, players);
+  }, [viewMode, top10EarningsTimeline, players]);
 
   const legendPlayers = useMemo(() => {
     const buildRow = (playerId: string) => {
@@ -90,13 +129,19 @@ export function AnswersEarningsTimelineTab() {
       });
     }
 
-    return earningsTimeline?.series
+    return top10EarningsTimeline?.series
       .filter((row) => selectedPlayerIds.has(row.playerId))
       .map((row) => buildRow(row.playerId))
       .filter((row): row is NonNullable<typeof row> => row !== null) ?? [];
-  }, [viewMode, earningsTimeline, players, selectedPlayerIds, playerMetaById]);
+  }, [viewMode, top10EarningsTimeline, players, selectedPlayerIds, playerMetaById]);
 
-  if (players.length === 0 || !hasSettled || !earningsTimeline || !rankingTimeline) {
+  if (
+    players.length === 0 ||
+    !hasSettled ||
+    !top10EarningsTimeline ||
+    !displayEarningsTimeline ||
+    !displayRankingTimeline
+  ) {
     return (
       <div className="card answers-analytics-card">
         <p className="answers-analytics-placeholder">
@@ -116,9 +161,7 @@ export function AnswersEarningsTimelineTab() {
       </section>
       <section className="card answers-analytics-section answers-analytics-chart-section answers-timeline-chart-section">
         <AnswersEarningsTimelineChart
-          players={players}
-          markets={markets}
-          picks={picks}
+          timeline={displayEarningsTimeline}
           selectedPlayerIds={selectedPlayerIds}
           colorIndexByPlayerId={colorIndexByPlayerId}
           legendPlayers={legendPlayers}
@@ -126,9 +169,7 @@ export function AnswersEarningsTimelineTab() {
       </section>
       <section className="card answers-analytics-section answers-analytics-chart-section answers-ranking-timeline-section">
         <AnswersRankingTimelineChart
-          players={players}
-          markets={markets}
-          picks={picks}
+          timeline={displayRankingTimeline}
           selectedPlayerIds={selectedPlayerIds}
           colorIndexByPlayerId={colorIndexByPlayerId}
           legendPlayers={legendPlayers}

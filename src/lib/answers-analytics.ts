@@ -141,6 +141,9 @@ export interface Page1RealWorldComparisonRow {
   marketLabel?: string;
 }
 
+/** 数据分析页「与真实赔率偏差」最大/最小展示条数。 */
+export const REAL_WORLD_GAP_DISPLAY_COUNT = 5;
+
 export interface Page1RealWorldComparisonStats {
   rows: Page1RealWorldComparisonRow[];
   topGapRows: Page1RealWorldComparisonRow[];
@@ -262,8 +265,8 @@ function computeRealWorldComparisonForPages(
 
   return {
     rows,
-    topGapRows: topTierByScore(rows, (row) => row.maxDeviation, 3),
-    bottomGapRows: bottomTierByScore(rows, (row) => row.maxDeviation, 3).sort(
+    topGapRows: topTierByScore(rows, (row) => row.maxDeviation, REAL_WORLD_GAP_DISPLAY_COUNT),
+    bottomGapRows: bottomTierByScore(rows, (row) => row.maxDeviation, REAL_WORLD_GAP_DISPLAY_COUNT).sort(
       (a, b) =>
         a.maxDeviation - b.maxDeviation ||
         a.marketId.localeCompare(b.marketId, undefined, { numeric: true })
@@ -489,8 +492,8 @@ function mergeRealWorldComparisonStats(
 
   return {
     rows,
-    topGapRows: topTierByScore(rows, (row) => row.maxDeviation, 3),
-    bottomGapRows: bottomTierByScore(rows, (row) => row.maxDeviation, 3).sort(
+    topGapRows: topTierByScore(rows, (row) => row.maxDeviation, REAL_WORLD_GAP_DISPLAY_COUNT),
+    bottomGapRows: bottomTierByScore(rows, (row) => row.maxDeviation, REAL_WORLD_GAP_DISPLAY_COUNT).sort(
       (a, b) =>
         a.maxDeviation - b.maxDeviation ||
         a.marketId.localeCompare(b.marketId, undefined, { numeric: true })
