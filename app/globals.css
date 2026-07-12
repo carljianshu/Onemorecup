@@ -1042,6 +1042,31 @@ a {
   height: auto;
 }
 
+.answers-timeline-series-dimmed {
+  opacity: 0.18;
+  transition: opacity 0.15s ease;
+}
+
+.answers-timeline-series-highlighted {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.answers-timeline-chart-legend-item-interactive {
+  cursor: default;
+  border-radius: 6px;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.answers-timeline-chart-legend-item-dimmed {
+  opacity: 0.35;
+}
+
+.answers-timeline-chart-legend-item-highlighted {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .answers-earnings-timeline-grid {
   stroke: rgba(255, 255, 255, 0.1);
   stroke-width: 1;

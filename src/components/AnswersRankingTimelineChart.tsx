@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import type { RankingTimelineData } from "@/lib/earnings-timeline";
 import {
@@ -10,11 +10,10 @@ import {
   TIMELINE_PAD_RIGHT,
   TIMELINE_PAD_TOP,
   timelineChartWidth,
-  timelineSeriesColor,
-  timelineStepLabel,
-  TIMELINE_SERIES_STROKE_WIDTH
+  timelineStepLabel
 } from "@/components/answers-timeline-chart-shared";
 import { AnswersTimelineChartLegend } from "@/components/AnswersTimelineChartLegend";
+import { AnswersTimelineSeriesLines } from "@/components/AnswersTimelineSeriesLines";
 import type { TimelineViewPlayer } from "@/components/AnswersTimelineViewPicker";
 
 function formatRank(rank: number): string {
@@ -33,6 +32,7 @@ export function AnswersRankingTimelineChart({
   legendPlayers: TimelineViewPlayer[];
 }) {
   const { locale, t } = useLocale();
+  const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null);
 
   const visibleSeries = useMemo(
     () =>
@@ -73,6 +73,15 @@ export function AnswersRankingTimelineChart({
   const yAt = (rank: number) =>
     TIMELINE_PAD_TOP + ((rank - minRank) / rankSpan) * plotHeight;
 
+  const seriesLines = visibleSeries.map((row) => ({
+    playerId: row.playerId,
+    colorIndex: colorIndexByPlayerId.get(row.playerId) ?? 0,
+    points: row.ranks
+      .slice(0, row.lastStepIndex + 1)
+      .map((rank, index) => `${xAt(index)},${yAt(rank)}`)
+      .join(" ")
+  }));
+
   return (
     <div className="answers-earnings-timeline">
       <div className="answers-earnings-timeline-header">
@@ -97,6 +106,7 @@ export function AnswersRankingTimelineChart({
             style={{ minWidth: chartWidth }}
             role="img"
             aria-label={t("answers.analyticsRankingTimelineTitle")}
+            onMouseLeave={() => setHoveredPlayerId(null)}
           >
             {yTicks.map((tick) => (
               <g key={tick}>
@@ -119,24 +129,11 @@ export function AnswersRankingTimelineChart({
               </g>
             ))}
 
-            {visibleSeries.map((row) => {
-              const color = timelineSeriesColor(colorIndexByPlayerId.get(row.playerId) ?? 0);
-              const points = row.ranks
-                .slice(0, row.lastStepIndex + 1)
-                .map((rank, index) => `${xAt(index)},${yAt(rank)}`)
-                .join(" ");
-              return (
-                <polyline
-                  key={row.playerId}
-                  points={points}
-                  fill="none"
-                  stroke={color}
-                  strokeWidth={TIMELINE_SERIES_STROKE_WIDTH}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              );
-            })}
+            <AnswersTimelineSeriesLines
+              lines={seriesLines}
+              hoveredPlayerId={hoveredPlayerId}
+              onHoverPlayerId={setHoveredPlayerId}
+            />
 
             {timeline.steps.map((step, index) => (
               <text
@@ -154,7 +151,12 @@ export function AnswersRankingTimelineChart({
             ))}
           </svg>
           </div>
-          <AnswersTimelineChartLegend players={legendPlayers} showRank />
+          <AnswersTimelineChartLegend
+            players={legendPlayers}
+            showRank
+            hoveredPlayerId={hoveredPlayerId}
+            onHoverPlayerId={setHoveredPlayerId}
+          />
         </div>
       )}
     </div>

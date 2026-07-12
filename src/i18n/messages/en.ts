@@ -183,7 +183,7 @@ export const en: Messages = {
         bestPossibleRank: "Best possible",
         bestPossibleRankNote: "After quarter-finals lock, best rank each top-tier player can still reach across {count} remaining knockout paths.",
         sharpeRatio: "Sharpe ratio",
-        sharpeRatioNote: "Sum of settled per-match parimutuel earnings ÷ standard deviation; missed settled matches count as 0.",
+        sharpeRatioNote: "Sum of settled per-match parimutuel earnings ÷ standard deviation; missed settled matches count as 0. Bottom-tier players use only Round of 32 and Round of 16 (24 matches), excluding quarter-finals and later.",
         championshipOdds: "Win odds"
     },
     answers: {

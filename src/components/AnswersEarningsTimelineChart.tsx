@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { formatScorePlain } from "@/lib/score-format";
 import type { EarningsTimelineData } from "@/lib/earnings-timeline";
@@ -12,11 +12,10 @@ import {
   TIMELINE_PAD_RIGHT,
   TIMELINE_PAD_TOP,
   timelineChartWidth,
-  timelineSeriesColor,
-  timelineStepLabel,
-  TIMELINE_SERIES_STROKE_WIDTH
+  timelineStepLabel
 } from "@/components/answers-timeline-chart-shared";
 import { AnswersTimelineChartLegend } from "@/components/AnswersTimelineChartLegend";
+import { AnswersTimelineSeriesLines } from "@/components/AnswersTimelineSeriesLines";
 import type { TimelineViewPlayer } from "@/components/AnswersTimelineViewPicker";
 
 export function AnswersEarningsTimelineChart({
@@ -31,6 +30,7 @@ export function AnswersEarningsTimelineChart({
   legendPlayers: TimelineViewPlayer[];
 }) {
   const { locale, t } = useLocale();
+  const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null);
 
   const visibleSeries = useMemo(
     () =>
@@ -77,6 +77,15 @@ export function AnswersEarningsTimelineChart({
   const yAt = (value: number) =>
     TIMELINE_PAD_TOP + ((maxY - value) / ySpan) * plotHeight;
 
+  const seriesLines = visibleSeries.map((row) => ({
+    playerId: row.playerId,
+    colorIndex: colorIndexByPlayerId.get(row.playerId) ?? 0,
+    points: row.values
+      .slice(0, row.lastStepIndex + 1)
+      .map((value, index) => `${xAt(index)},${yAt(value)}`)
+      .join(" ")
+  }));
+
   return (
     <div className="answers-earnings-timeline">
       <div className="answers-earnings-timeline-header">
@@ -101,6 +110,7 @@ export function AnswersEarningsTimelineChart({
             style={{ minWidth: chartWidth }}
             role="img"
             aria-label={t("answers.analyticsEarningsTimelineTitle")}
+            onMouseLeave={() => setHoveredPlayerId(null)}
           >
             {yTicks.map((tick) => (
               <g key={tick}>
@@ -133,24 +143,11 @@ export function AnswersEarningsTimelineChart({
               />
             ) : null}
 
-            {visibleSeries.map((row) => {
-              const color = timelineSeriesColor(colorIndexByPlayerId.get(row.playerId) ?? 0);
-              const points = row.values
-                .slice(0, row.lastStepIndex + 1)
-                .map((value, index) => `${xAt(index)},${yAt(value)}`)
-                .join(" ");
-              return (
-                <polyline
-                  key={row.playerId}
-                  points={points}
-                  fill="none"
-                  stroke={color}
-                  strokeWidth={TIMELINE_SERIES_STROKE_WIDTH}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              );
-            })}
+            <AnswersTimelineSeriesLines
+              lines={seriesLines}
+              hoveredPlayerId={hoveredPlayerId}
+              onHoverPlayerId={setHoveredPlayerId}
+            />
 
             {timeline.steps.map((step, index) => (
               <text
@@ -168,7 +165,11 @@ export function AnswersEarningsTimelineChart({
             ))}
           </svg>
           </div>
-          <AnswersTimelineChartLegend players={legendPlayers} />
+          <AnswersTimelineChartLegend
+            players={legendPlayers}
+            hoveredPlayerId={hoveredPlayerId}
+            onHoverPlayerId={setHoveredPlayerId}
+          />
         </div>
       )}
     </div>

@@ -49,6 +49,26 @@ assert.equal(
 assert.equal(sharpeRatioFromEarningsSeries([]), null);
 assert.equal(sharpeRatioFromEarningsSeries([0, 0]), null);
 
+const marketsWithM3 = [
+  ...markets,
+  { id: "m3-1", winner: "A", candidates: ["A", "B"], page: 3 },
+];
+const picksWithM3 = [
+  ...picks,
+  { playerId: "p1", marketId: "m3-1", team: "A", stake: 1 },
+];
+const scoresWithM3 = { ...marketScores, "m3-1": 50 };
+assert.deepEqual(
+  settledMarketEarningsSeries("p1", marketsWithM3, picksWithM3, scoresWithM3, { maxPage: 2 }),
+  [10, -10],
+  "maxPage 2 should exclude settled M3 earnings"
+);
+assert.equal(
+  computePlayerSharpeRatio("p1", marketsWithM3, picksWithM3, scoresWithM3, { maxPage: 2 }),
+  0,
+  "bottom-tier scope should ignore M3 when computing Sharpe"
+);
+
 console.log("player-sharpe-ratio smoke tests passed");
 `;
 

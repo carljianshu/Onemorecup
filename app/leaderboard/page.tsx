@@ -29,11 +29,17 @@ export default function LeaderboardPage() {
     for (const entry of leaderboard) {
       map.set(
         entry.playerId,
-        computePlayerSharpeRatio(entry.playerId, markets, picks, entry.marketScores)
+        computePlayerSharpeRatio(
+          entry.playerId,
+          markets,
+          picks,
+          entry.marketScores,
+          isPlayerInRankLockBottomTier(config, entry.playerId) ? { maxPage: 2 } : undefined
+        )
       );
     }
     return map;
-  }, [leaderboard, markets, picks]);
+  }, [leaderboard, markets, picks, config]);
 
   if (!ready) {
     return (

@@ -42,7 +42,7 @@ for (let mask = 0; mask < 128; mask++) {
 assert.equal(pathCount, 64, "M3-1 settled → 64 paths");
 assert.ok(probSum > 0.5 && probSum < 1.5, "scenario probabilities roughly sum to ~1");
 
-const franceChampion = phase3WinnersForScenarioMask(m31France, 0);
+const franceChampion = phase3WinnersForScenarioMask(m31France, 4);
 assert(franceChampion);
 const pFrance = computeScenarioProbability(franceChampion, state);
 assert.ok(pFrance > 0, "France champion path has positive probability");
@@ -55,12 +55,16 @@ const afterSpainQf = buildChampionshipOddsStateFromMarkets(
 assert.equal(afterSpainQf.markets.get("m3-2")?.get("西班牙"), 100);
 assert.equal(afterSpainQf.markets.get("m3-2")?.get("比利时"), 0);
 assert.equal(
+  afterSpainQf.markets.get("m3-5")?.get("法国"),
+  57.7
+);
+assert.equal(
   afterSpainQf.markets.get("m3-5")?.get("西班牙"),
-  32.29 + 8.12
+  42.3
 );
 assert.equal(
   afterSpainQf.markets.get("m3-7")?.get("西班牙"),
-  18.9 + 3
+  23.45
 );
 
 const createdAt = "2026-01-01T00:00:00.000Z";

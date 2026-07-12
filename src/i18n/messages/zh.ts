@@ -182,7 +182,7 @@ export const zh = {
         bestPossibleRank: "理论最佳",
         bestPossibleRankNote: "第三页锁定后，按剩余 {count} 种淘汰赛路径计算上档玩家可达的最高名次。",
         sharpeRatio: "夏普比率",
-        sharpeRatioNote: "已结算各场 parimutuel 收益之和 ÷ 标准差；未猜的已结算场次记 0。",
+        sharpeRatioNote: "已结算各场 parimutuel 收益之和 ÷ 标准差；未猜的已结算场次记 0。下档玩家仅计 1/16、1/8 共 24 场，不含 1/4 及以后。",
         championshipOdds: "夺冠赔率"
     },
     answers: {

@@ -11,15 +11,27 @@ function populationStd(values: number[]): number {
   return Math.sqrt(variance);
 }
 
+export interface SharpeRatioScope {
+  /** 仅统计 page ≤ maxPage 的场次（下档玩家为 2，即 1/16 + 1/8）。 */
+  maxPage?: 1 | 2 | 3;
+}
+
 /** 每场已结算题目的收益；未猜该场记 0。 */
 export function settledMarketEarningsSeries(
   playerId: string,
   markets: Market[],
   picks: Pick[],
-  marketScores: Record<string, number>
+  marketScores: Record<string, number>,
+  scope?: SharpeRatioScope
 ): number[] {
   return markets
-    .filter((market) => market.winner)
+    .filter((market) => {
+      if (!market.winner)
+        return false;
+      if (scope?.maxPage != null && market.page > scope.maxPage)
+        return false;
+      return true;
+    })
     .map((market) => {
       if (!findPlayerPick(picks, playerId, market.id))
         return 0;
@@ -42,9 +54,10 @@ export function computePlayerSharpeRatio(
   playerId: string,
   markets: Market[],
   picks: Pick[],
-  marketScores: Record<string, number>
+  marketScores: Record<string, number>,
+  scope?: SharpeRatioScope
 ): number | null {
   return sharpeRatioFromEarningsSeries(
-    settledMarketEarningsSeries(playerId, markets, picks, marketScores)
+    settledMarketEarningsSeries(playerId, markets, picks, marketScores, scope)
   );
 }
