@@ -5,7 +5,8 @@
  * - 本文件仅用于后续「每位玩家夺冠赔率」计算
  * - 数据分析页的「真实世界赔率偏差」仍使用 page3-real-world-rates.ts
  *
- * M3-1、M3-2 已结算（法国、西班牙晋级）；M3-5/M3-6/M3-7 为当前赔率隐含概率。
+ * M3-1～M3-5 已结算（法国、西班牙、英格兰、阿根廷、西班牙进决赛）；
+ * M3-6/M3-7 为当前赔率隐含概率。
  */
 
 export interface ChampionshipOddsBinaryProbability {
@@ -68,8 +69,8 @@ export const CHAMPIONSHIP_ODDS_MULTI_OPTION_PROBABILITIES: ChampionshipOddsMulti
   {
     marketId: "m3-5",
     optionRates: [
-      { team: "法国", rate: 57.7 },
-      { team: "西班牙", rate: 42.3 },
+      { team: "法国", rate: 0 },
+      { team: "西班牙", rate: 100 },
       { team: "比利时", rate: 0 },
       { team: "摩洛哥", rate: 0 }
     ]
@@ -77,8 +78,8 @@ export const CHAMPIONSHIP_ODDS_MULTI_OPTION_PROBABILITIES: ChampionshipOddsMulti
   {
     marketId: "m3-6",
     optionRates: [
-      { team: "阿根廷", rate: 49.06 },
-      { team: "英格兰", rate: 50.94 },
+      { team: "阿根廷", rate: 47.47 },
+      { team: "英格兰", rate: 52.53 },
       { team: "挪威", rate: 0 },
       { team: "瑞士", rate: 0 }
     ]
@@ -86,10 +87,10 @@ export const CHAMPIONSHIP_ODDS_MULTI_OPTION_PROBABILITIES: ChampionshipOddsMulti
   {
     marketId: "m3-7",
     optionRates: [
-      { team: "法国", rate: 34.05 },
-      { team: "西班牙", rate: 23.45 },
-      { team: "阿根廷", rate: 20.55 },
-      { team: "英格兰", rate: 21.94 },
+      { team: "法国", rate: 0 },
+      { team: "西班牙", rate: 56.15 },
+      { team: "阿根廷", rate: 20.47 },
+      { team: "英格兰", rate: 23.38 },
       { team: "挪威", rate: 0 },
       { team: "瑞士", rate: 0 },
       { team: "比利时", rate: 0 },

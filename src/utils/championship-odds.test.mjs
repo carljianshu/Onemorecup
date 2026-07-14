@@ -42,10 +42,16 @@ for (let mask = 0; mask < 128; mask++) {
 assert.equal(pathCount, 64, "M3-1 settled → 64 paths");
 assert.ok(probSum > 0.5 && probSum < 1.5, "scenario probabilities roughly sum to ~1");
 
-const franceChampion = phase3WinnersForScenarioMask(m31France, 4);
-assert(franceChampion);
-const pFrance = computeScenarioProbability(franceChampion, state);
-assert.ok(pFrance > 0, "France champion path has positive probability");
+let foundPositive = false;
+for (let mask = 0; mask < 128; mask++) {
+  const winners = phase3WinnersForScenarioMask(m31France, mask);
+  if (!winners) continue;
+  if (computeScenarioProbability(winners, state) > 0) {
+    foundPositive = true;
+    break;
+  }
+}
+assert.ok(foundPositive, "at least one scenario has positive probability");
 
 const afterSpainQf = buildChampionshipOddsStateFromMarkets(
   m31France.map((market) =>
@@ -54,18 +60,40 @@ const afterSpainQf = buildChampionshipOddsStateFromMarkets(
 );
 assert.equal(afterSpainQf.markets.get("m3-2")?.get("西班牙"), 100);
 assert.equal(afterSpainQf.markets.get("m3-2")?.get("比利时"), 0);
-assert.equal(
-  afterSpainQf.markets.get("m3-5")?.get("法国"),
-  57.7
-);
-assert.equal(
-  afterSpainQf.markets.get("m3-5")?.get("西班牙"),
-  42.3
-);
-assert.equal(
-  afterSpainQf.markets.get("m3-7")?.get("西班牙"),
-  23.45
-);
+assert.equal(afterSpainQf.markets.get("m3-5")?.get("西班牙"), 100);
+assert.equal(afterSpainQf.markets.get("m3-5")?.get("法国"), 0);
+
+const settledThroughSf = m31France.map((market) => {
+  if (market.id === "m3-2") return { ...market, winner: "西班牙" };
+  if (market.id === "m3-3") return { ...market, winner: "英格兰" };
+  if (market.id === "m3-4") return { ...market, winner: "阿根廷" };
+  if (market.id === "m3-5") return { ...market, winner: "西班牙" };
+  return market;
+});
+const afterSpainSf = buildChampionshipOddsStateFromMarkets(settledThroughSf);
+assert.equal(afterSpainSf.markets.get("m3-5")?.get("西班牙"), 100);
+assert.equal(afterSpainSf.markets.get("m3-5")?.get("法国"), 0);
+assert.equal(afterSpainSf.markets.get("m3-6")?.get("英格兰"), 52.53);
+assert.equal(afterSpainSf.markets.get("m3-6")?.get("阿根廷"), 47.47);
+assert.equal(afterSpainSf.markets.get("m3-7")?.get("西班牙"), 56.15);
+assert.equal(afterSpainSf.markets.get("m3-7")?.get("英格兰"), 23.38);
+assert.equal(afterSpainSf.markets.get("m3-7")?.get("阿根廷"), 20.47);
+assert.equal(afterSpainSf.markets.get("m3-7")?.get("法国"), 0);
+
+let pathCountSf = 0;
+let probSumSf = 0;
+const seenSf = new Set();
+for (let mask = 0; mask < 128; mask++) {
+  const winners = phase3WinnersForScenarioMask(settledThroughSf, mask);
+  if (!winners) continue;
+  const key = Object.values(winners).join("|");
+  if (seenSf.has(key)) continue;
+  seenSf.add(key);
+  pathCountSf++;
+  probSumSf += computeScenarioProbability(winners, afterSpainSf);
+}
+assert.equal(pathCountSf, 4, "M3-5 Spain settled → 4 paths");
+assert.ok(probSumSf > 0.95 && probSumSf < 1.05, "remaining scenario probabilities sum to ~1");
 
 const createdAt = "2026-01-01T00:00:00.000Z";
 const players = Array.from({ length: 4 }, (_, index) => ({
