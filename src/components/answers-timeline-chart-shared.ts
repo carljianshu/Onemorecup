@@ -1,3 +1,4 @@
+import { formatAnalyticsMarketLabel } from "@/i18n";
 import { formatTimelineMatchupLabel } from "@/lib/fifa-codes";
 import type { EarningsTimelineData } from "@/lib/earnings-timeline";
 
@@ -49,6 +50,11 @@ export function timelineStepLabel(
 ): string {
   if (step.labelKey === "start")
     return startLabel;
+  if (step.marketId) {
+    const roundLabel = formatAnalyticsMarketLabel(locale, step.marketId);
+    if (roundLabel)
+      return roundLabel;
+  }
   if (step.teamA && step.teamB)
     return formatTimelineMatchupLabel(locale, step.teamA, step.teamB);
   return step.marketId ?? "";

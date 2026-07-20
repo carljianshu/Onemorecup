@@ -13,6 +13,7 @@ import {
 } from "@/lib/earnings-timeline";
 import {
   buildTimelinePlayerOptionsById,
+  eligibleTopTimelineSeries,
   resolveTimelinePlayerIds,
   TIMELINE_BOSS_PLAYER_NAMES,
   type TimelinePlayerViewMode
@@ -86,18 +87,25 @@ export function AnswersEarningsTimelineTab() {
       displayRankingTimeline.series.map((row) => [row.playerId, row.finalRank])
     );
 
+    const colorIndexById = new Map(
+      eligibleTopTimelineSeries(top10EarningsTimeline.series, config).map((row, index) => [
+        row.playerId,
+        index
+      ])
+    );
+
     return new Map(
-      top10EarningsTimeline.series.map((row, index) => [
+      top10EarningsTimeline.series.map((row) => [
         row.playerId,
         {
           playerName: row.playerName,
           finalNet: displayNetById.get(row.playerId) ?? row.finalNet,
           finalRank: displayRankById.get(row.playerId) ?? players.length,
-          colorIndex: index
+          colorIndex: colorIndexById.get(row.playerId) ?? 0
         }
       ])
     );
-  }, [top10EarningsTimeline, displayEarningsTimeline, displayRankingTimeline, players.length]);
+  }, [top10EarningsTimeline, displayEarningsTimeline, displayRankingTimeline, players.length, config]);
 
   const colorIndexByPlayerId = useMemo(
     () => new Map([...playerMetaById.entries()].map(([id, meta]) => [id, meta.colorIndex])),
@@ -107,8 +115,8 @@ export function AnswersEarningsTimelineTab() {
   const selectedPlayerIds = useMemo(() => {
     if (!top10EarningsTimeline)
       return new Set<string>();
-    return resolveTimelinePlayerIds(viewMode, top10EarningsTimeline.series, players);
-  }, [viewMode, top10EarningsTimeline, players]);
+    return resolveTimelinePlayerIds(viewMode, top10EarningsTimeline.series, players, config);
+  }, [viewMode, top10EarningsTimeline, players, config]);
 
   const legendPlayers = useMemo(() => {
     const buildRow = (playerId: string) => {
@@ -129,11 +137,12 @@ export function AnswersEarningsTimelineTab() {
       });
     }
 
-    return top10EarningsTimeline?.series
+    return eligibleTopTimelineSeries(top10EarningsTimeline.series, config)
       .filter((row) => selectedPlayerIds.has(row.playerId))
+      .slice(0, 10)
       .map((row) => buildRow(row.playerId))
       .filter((row): row is NonNullable<typeof row> => row !== null) ?? [];
-  }, [viewMode, top10EarningsTimeline, players, selectedPlayerIds, playerMetaById]);
+  }, [viewMode, top10EarningsTimeline, players, selectedPlayerIds, playerMetaById, config]);
 
   if (
     players.length === 0 ||

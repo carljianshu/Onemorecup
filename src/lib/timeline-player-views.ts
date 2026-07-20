@@ -1,3 +1,6 @@
+import { isPlayerInRankLockBottomTier, isRankLockApplied } from "@/lib/rank-lock";
+import type { GameConfig } from "@/types";
+
 export interface TimelinePlayerComputeOptions {
   maxPage: 1 | 2 | 3;
   skipPenalty: boolean;
@@ -28,11 +31,23 @@ export const TIMELINE_TOP_PLAYER_COUNT = 10;
 
 export type TimelinePlayerViewMode = "top10" | "boss";
 
+export function eligibleTopTimelineSeries<T extends { playerId: string }>(
+  series: readonly T[],
+  config?: GameConfig | null
+): T[] {
+  if (!isRankLockApplied(config))
+    return [...series];
+  return series.filter((row) => !isPlayerInRankLockBottomTier(config, row.playerId));
+}
+
 export function resolveTopTimelinePlayerIds(
-  series: readonly { playerId: string }[]
+  series: readonly { playerId: string }[],
+  config?: GameConfig | null
 ): Set<string> {
   return new Set(
-    series.slice(0, TIMELINE_TOP_PLAYER_COUNT).map((row) => row.playerId)
+    eligibleTopTimelineSeries(series, config)
+      .slice(0, TIMELINE_TOP_PLAYER_COUNT)
+      .map((row) => row.playerId)
   );
 }
 
@@ -52,11 +67,12 @@ export function resolveBossTimelinePlayerIds(
 export function resolveTimelinePlayerIds(
   mode: TimelinePlayerViewMode,
   series: readonly { playerId: string }[],
-  players: readonly { id: string; name: string }[]
+  players: readonly { id: string; name: string }[],
+  config?: GameConfig | null
 ): Set<string> {
   if (mode === "boss")
     return resolveBossTimelinePlayerIds(players);
-  return resolveTopTimelinePlayerIds(series);
+  return resolveTopTimelinePlayerIds(series, config);
 }
 
 export function resolveTimelinePlayerComputeOptions(
