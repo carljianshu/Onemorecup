@@ -1,0 +1,189 @@
+"use client";
+
+import { useMemo } from "react";
+import { useLocale } from "@/context/LocaleContext";
+import type { RankingTimelineData } from "@/lib/earnings-timeline";
+import {
+  TIMELINE_CHART_HEIGHT,
+  TIMELINE_PAD_BOTTOM,
+  TIMELINE_PAD_LEFT,
+  TIMELINE_PAD_RIGHT,
+  TIMELINE_PAD_TOP,
+  timelineChartWidth,
+  timelineStepLabel
+} from "@/components/answers-timeline-chart-shared";
+import { AnswersTimelineChartLegend } from "@/components/AnswersTimelineChartLegend";
+import { AnswersTimelineSeriesLines } from "@/components/AnswersTimelineSeriesLines";
+import { useTimelineChartHighlight } from "@/components/use-timeline-chart-highlight";
+import type { TimelineViewPlayer } from "@/components/AnswersTimelineViewPicker";
+
+function formatRank(rank: number): string {
+  return `#${rank}`;
+}
+
+export function AnswersRankingTimelineChart({
+  timeline,
+  selectedPlayerIds,
+  colorIndexByPlayerId,
+  legendPlayers
+}: {
+  timeline: RankingTimelineData;
+  selectedPlayerIds: Set<string>;
+  colorIndexByPlayerId: Map<string, number>;
+  legendPlayers: TimelineViewPlayer[];
+}) {
+  const { locale, t } = useLocale();
+  const {
+    scrollRef,
+    scrollPaused,
+    lockedPlayerId,
+    highlightedPlayerId,
+    toggleLock,
+    requestPreview,
+    clearPreview
+  } = useTimelineChartHighlight();
+
+  const hoverEnabled = !scrollPaused && lockedPlayerId == null;
+
+  const visibleSeries = useMemo(
+    () =>
+      timeline.series.filter((row) => selectedPlayerIds.has(row.playerId)),
+    [timeline.series, selectedPlayerIds]
+  );
+
+  const stepCount = timeline.steps.length;
+  const chartWidth = timelineChartWidth(stepCount);
+  const maxRank = timeline.playerCount;
+  const minRank = 1;
+
+  if (stepCount <= 1) {
+    return (
+      <p className="answers-analytics-placeholder">
+        {t("answers.analyticsEarningsTimelineEmpty")}
+      </p>
+    );
+  }
+
+  const yTicks = (() => {
+    const ticks: number[] = [];
+    const step = maxRank <= 12 ? 1 : maxRank <= 24 ? 2 : 5;
+    for (let rank = minRank; rank <= maxRank; rank += step) {
+      ticks.push(rank);
+    }
+    if (!ticks.includes(maxRank))
+      ticks.push(maxRank);
+    return ticks;
+  })();
+
+  const plotWidth = chartWidth - TIMELINE_PAD_LEFT - TIMELINE_PAD_RIGHT;
+  const plotHeight = TIMELINE_CHART_HEIGHT - TIMELINE_PAD_TOP - TIMELINE_PAD_BOTTOM;
+  const rankSpan = maxRank - minRank || 1;
+
+  const xAt = (index: number) =>
+    TIMELINE_PAD_LEFT + (stepCount <= 1 ? 0 : (index / (stepCount - 1)) * plotWidth);
+  const yAt = (rank: number) =>
+    TIMELINE_PAD_TOP + ((rank - minRank) / rankSpan) * plotHeight;
+
+  const seriesLines = visibleSeries.map((row) => ({
+    playerId: row.playerId,
+    colorIndex: colorIndexByPlayerId.get(row.playerId) ?? 0,
+    points: row.ranks
+      .slice(0, row.lastStepIndex + 1)
+      .map((rank, index) => `${xAt(index)},${yAt(rank)}`)
+      .join(" ")
+  }));
+
+  return (
+    <div className="answers-earnings-timeline">
+      <div className="answers-earnings-timeline-header">
+        <h3 className="answers-earnings-timeline-title">
+          {t("answers.analyticsRankingTimelineTitle")}
+        </h3>
+        <p className="answers-earnings-timeline-note">
+          {t("answers.analyticsRankingTimelineNote")}
+        </p>
+        <p className="answers-earnings-timeline-highlight-hint">
+          {t("answers.analyticsTimelineHighlightHint")}
+        </p>
+      </div>
+
+      {visibleSeries.length === 0 ? (
+        <p className="answers-analytics-placeholder">
+          {t("answers.analyticsTimelinePlayerPickerEmpty")}
+        </p>
+      ) : (
+        <div className="answers-timeline-chart-row">
+          <div
+            ref={scrollRef}
+            className="answers-earnings-timeline-chart-wrap"
+            onMouseLeave={clearPreview}
+          >
+            <svg
+            className="answers-earnings-timeline-chart"
+            viewBox={`0 0 ${chartWidth} ${TIMELINE_CHART_HEIGHT}`}
+            style={{ minWidth: chartWidth }}
+            role="img"
+            aria-label={t("answers.analyticsRankingTimelineTitle")}
+          >
+            {yTicks.map((tick) => (
+              <g key={tick}>
+                <line
+                  x1={TIMELINE_PAD_LEFT}
+                  x2={chartWidth - TIMELINE_PAD_RIGHT}
+                  y1={yAt(tick)}
+                  y2={yAt(tick)}
+                  className="answers-earnings-timeline-grid"
+                />
+                <text
+                  x={TIMELINE_PAD_LEFT - 8}
+                  y={yAt(tick)}
+                  className="answers-earnings-timeline-axis-y"
+                  textAnchor="end"
+                  dominantBaseline="middle"
+                >
+                  {formatRank(tick)}
+                </text>
+              </g>
+            ))}
+
+            <AnswersTimelineSeriesLines
+              lines={seriesLines}
+              highlightedPlayerId={highlightedPlayerId}
+              lockedPlayerId={lockedPlayerId}
+              hoverEnabled={hoverEnabled}
+              onPreviewPlayerId={requestPreview}
+              onClearPreview={clearPreview}
+              onToggleLock={toggleLock}
+            />
+
+            {timeline.steps.map((step, index) => (
+              <text
+                key={step.stepIndex}
+                x={xAt(index)}
+                y={TIMELINE_CHART_HEIGHT - 12}
+                className="answers-earnings-timeline-axis-x"
+                textAnchor="end"
+                transform={`rotate(-32 ${xAt(index)} ${TIMELINE_CHART_HEIGHT - 12})`}
+              >
+                {step.labelKey === "start"
+                  ? t("answers.analyticsEarningsTimelineStart")
+                  : timelineStepLabel(locale, step, t("answers.analyticsEarningsTimelineStart"))}
+              </text>
+            ))}
+          </svg>
+          </div>
+          <AnswersTimelineChartLegend
+            players={legendPlayers}
+            showRank
+            highlightedPlayerId={highlightedPlayerId}
+            lockedPlayerId={lockedPlayerId}
+            hoverEnabled={hoverEnabled}
+            onPreviewPlayerId={requestPreview}
+            onClearPreview={clearPreview}
+            onToggleLock={toggleLock}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
